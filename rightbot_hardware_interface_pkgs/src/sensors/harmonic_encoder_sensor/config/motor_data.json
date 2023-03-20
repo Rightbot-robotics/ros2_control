@@ -1,0 +1,13 @@
+{
+    
+    "status": 0,
+    "battery_voltage": 0,
+    "counts": 0,
+    "velocity": 0,
+    "manufacturer_register": 0,
+    "latched_fault": 0,
+    "read_status": 0,
+    "timestamp": 0
+
+}
+ 

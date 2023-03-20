@@ -1,0 +1,9 @@
+<library path="harmonic_motor_actuator">
+
+  <class name="harmonic_motor_actuator" type="harmonic_motor_actuator" base_class_type="actuator">
+    <description>
+      harmonic motor actuator
+    </description>
+  </class>
+
+</library>

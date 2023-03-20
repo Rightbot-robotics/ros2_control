@@ -1,0 +1,9 @@
+<library path="motor_actuator">
+
+  <class name="motor_actuator" type="MotorActuator" base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      Motor Actuator
+    </description>
+  </class>
+
+</library>

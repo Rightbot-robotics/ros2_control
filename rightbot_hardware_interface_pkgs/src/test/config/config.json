@@ -1,0 +1,24 @@
+{
+  "actuator_list": [
+    {
+      "actuator_name": "wheel_left",
+      "actuator_data_type": "motor_actuator",
+      "motor_id": 12,
+      "motor_axis": 1
+    },
+    {
+      "actuator_name": "wheel_right",
+      "actuator_data_type": "motor_actuator",
+      "motor_id": 13,
+      "motor_axis": 1
+    },
+    {
+      "actuator_name": "rotate_motor",
+      "actuator_data_type": "motor_actuator",
+      "motor_id": 15,
+      "motor_axis": 1
+    }
+
+  ]
+}
+ 

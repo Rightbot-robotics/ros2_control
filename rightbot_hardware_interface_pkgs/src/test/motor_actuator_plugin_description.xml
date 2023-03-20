@@ -1,0 +1,9 @@
+<library path="motor_actuator">
+
+  <class name="motor_actuator" type="motor_actuator" base_class_type="actuator">
+    <description>
+      motor actuator
+    </description>
+  </class>
+
+</library>
