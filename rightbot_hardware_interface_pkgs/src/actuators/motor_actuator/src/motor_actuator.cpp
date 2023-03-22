@@ -1,5 +1,6 @@
 #include <motor_actuator/motor_actuator.hpp>
-#include "pluginlib/class_list_macros.hpp"  // NOLINT
+
+
 PLUGINLIB_EXPORT_CLASS(MotorActuator, hardware_interface::ActuatorInterface)
 
 using namespace std;
@@ -23,12 +24,16 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     }
 
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
-    motor_name_ = stoi(info_.joints[0].name);
+    motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+    
+    logger_->info("motor_name_ {}", motor_name_);
+    logger_->info("motor_id_ {}", motor_id_);
+    logger_->info("axis_ {}", axis_);
 
-    motor_id_ = 12;
-    motor_name_ = "left_wheel";
-    axis_ = 1;
+    // motor_id_ = 12;
+    // motor_name_ = "left_wheel";
+    // axis_ = 1;
 
     // can only control one joint
     // if (info_.joints.size() != 1)

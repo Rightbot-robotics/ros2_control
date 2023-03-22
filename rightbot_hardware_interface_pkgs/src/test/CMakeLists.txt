@@ -47,6 +47,7 @@ target_link_libraries(${PROJECT_NAME}_test
         jsoncpp
 
         spdlog
+
         )
 
 ament_target_dependencies(${PROJECT_NAME}_test
@@ -56,6 +57,7 @@ ament_target_dependencies(${PROJECT_NAME}_test
         socketcan_pkg
         motor_actuator
         ros2_control_test_assets
+        pluginlib
         )
 
 install(

@@ -26,7 +26,7 @@ constexpr char HW_IF_ACCELERATION[] = "acceleration";
 /// Constant defining effort interface
 constexpr char HW_IF_EFFORT[] = "effort";
 
-constexpr char HW_IF_MAX_VELOCITY[] = "max_vel";
+constexpr char HW_IF_MAX_VELOCITY[] = "max_velocity";
 
 constexpr char HW_IF_DECELERATION[] = "deceleration";
 
@@ -38,7 +38,7 @@ constexpr char HW_IF_MANUFACTURER_REGISTER[] = "manufacturer_register";
 
 constexpr char HW_IF_LATCHED_FAULT[] = "latched_fault";
 
-constexpr char HW_IF_NODE_GUARD_ERROR[] = "node_guard_err";
+constexpr char HW_IF_NODE_GUARD_ERROR[] = "node_guard_error";
 
 }  // namespace hardware_interface
 

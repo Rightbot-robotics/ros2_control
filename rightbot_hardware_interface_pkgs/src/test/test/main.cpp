@@ -1,5 +1,7 @@
-#include <motor_actuator/motor_actuator.hpp>
+// #include <motor_actuator/motor_actuator.hpp>
+#include <iostream>
 
+#include "pluginlib/class_loader.hpp"
 
 #include <thread>
 #include <condition_variable>
@@ -20,6 +22,9 @@ using namespace std;
 
 #include "test/test_urdf.hpp"
 
+
+#include <hardware_interface/actuator_interface.hpp>
+
 std::condition_variable cv;
 
 // This mutex is used for three purposes:
@@ -30,9 +35,8 @@ std::mutex cv_m;
 
 bool message_received = false;
 
-Sockets::SocketsSPtr motor_sockets_1;
-MotorActuator::MotorActuatorSPtr motor_actuator_1;
-Json::Value actuator_data;
+
+// Json::Value actuator_data;
 std::mutex sync_mutex; // for sync of message_received variable
 std::shared_ptr<spdlog::logger> logger_;
 
@@ -64,7 +68,7 @@ void signals() {
         {
             std::lock_guard<std::mutex> lk(cv_m);
 
-            actuator_data["counts"] = actuator_data["counts"].asInt() + 1;
+            // actuator_data["counts"] = actuator_data["counts"].asInt() + 1;
 
             sync_mutex.lock();
             message_received = true;
@@ -93,7 +97,7 @@ int main() {
     logger_->info("In Interface Initialization");
     logger_->flush();
 
-    Json::Value config_data;/// load config data from json file here
+    // Json::Value config_data;/// load config data from json file here
 
     // motor_sockets_1 = std::make_shared<Sockets>(12, "wheel_left");
 
@@ -110,6 +114,8 @@ int main() {
     // write_thread.join();
     // subscribe_thread.join();
 
+    pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader("motor_actuator", "hardware_interface::ActuatorInterface");
+
     std::string urdf_to_test =
     std::string(ros2_control_test_assets::urdf_head) +
     ros2_control_test_assets::hardware_resources +
@@ -118,13 +124,27 @@ int main() {
 
     const auto hardware_info = control_hardware.front();
 
+    const auto hardware_info_two = control_hardware[1];
+
+    auto interface = std::unique_ptr<hardware_interface::ActuatorInterface>(
+      poly_loader.createUnmanagedInstance(hardware_info.hardware_class_type));
+
     logger_->info("test {}",hardware_info.name);
     logger_->info("test {}",hardware_info.type);
+    logger_->info("test {}",hardware_info.hardware_class_type);
+
+    auto interface_two = std::unique_ptr<hardware_interface::ActuatorInterface>(
+      poly_loader.createUnmanagedInstance(hardware_info_two.hardware_class_type));
 
     // logger_->info("test {}",hardware_info.joints[0].parameters.at("can_id"));
-    hardware_interface::Actuator actuator_hw(std::make_unique<MotorActuator>());
+    hardware_interface::Actuator actuator_hw(std::move(interface));
     auto state = actuator_hw.initialize(hardware_info);
     state = actuator_hw.configure();
+
+    hardware_interface::Actuator actuator_hw_two(std::move(interface_two));
+    auto state_two = actuator_hw_two.initialize(hardware_info_two);
+    state_two = actuator_hw_two.configure();
+
 
     return 0;
 

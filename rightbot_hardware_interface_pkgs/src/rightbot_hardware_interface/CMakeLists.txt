@@ -17,7 +17,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 )
 
 find_package(ament_cmake REQUIRED)
-find_package(motor_actuator REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()

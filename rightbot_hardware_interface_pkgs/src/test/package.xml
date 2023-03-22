@@ -15,6 +15,10 @@
     <depend>canopen_pkg</depend>
     <depend>rclcpp</depend>
     <depend>motor_actuator</depend>
+    <depend>encoder_sensor</depend>
+    <depend>pluginlib</depend>
+
+
 
 
     <test_depend>ament_lint_auto</test_depend>
