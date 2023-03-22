@@ -92,13 +92,17 @@ private:
     double velocity_state_ = std::numeric_limits<double>::quiet_NaN();
     double manufacturer_register_state_ = std::numeric_limits<double>::quiet_NaN();
     double latched_fault_state_ = std::numeric_limits<double>::quiet_NaN();
-    double node_guard_err_state_ = std::numeric_limits<double>::quiet_NaN();
+    double node_guard_error_state_ = std::numeric_limits<double>::quiet_NaN();
     
     double position_command_ = 0.0;
-    double velocity_command_ = 0.0;
     double max_velocity_command_ = 0.0;
     double acceleration_command_ = 0.0;
     double deceleration_command_ = 0.0;
+
+    double previous_position_command_ = 0.0;
+    double previous_max_velocity_command_ = 0.0;
+    double previous_acceleration_command_ = 0.0;
+    double previous_deceleration_command_ = 0.0;
 
 
 };

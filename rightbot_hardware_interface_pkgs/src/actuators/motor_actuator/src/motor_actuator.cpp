@@ -22,9 +22,9 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
       return CallbackReturn::ERROR;
     }
 
-    // motor_id_ = stoi(info_.hardware_parameters["motor_id"]);
-    // motor_name_ = stoi(info_.hardware_parameters["motor_name"]);
-    // axis_ = stoi(info_.hardware_parameters["motor_axis"]);
+    motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
+    motor_name_ = stoi(info_.joints[0].name);
+    axis_ = stoi(info.joints[0].parameters.at("axis"));
 
     motor_id_ = 12;
     motor_name_ = "left_wheel";
@@ -39,7 +39,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 5)
+    if (command_interfaces.size() != 4)
     {
         logger_->error("[{}] - Incorrect command interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -50,7 +50,6 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     {
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
-            (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (command_interface.name != hardware_interface::HW_IF_MAX_VELOCITY) &&
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
             (command_interface.name != hardware_interface::HW_IF_DECELERATION)
@@ -127,7 +126,6 @@ CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & prev
     motor_->motor_disable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-
 }
 
 std::vector<hardware_interface::StateInterface> MotorActuator::export_state_interfaces(){
@@ -147,7 +145,7 @@ std::vector<hardware_interface::StateInterface> MotorActuator::export_state_inte
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &latched_fault_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &node_guard_err_state_));
+      motor_name_, hardware_interface::HW_IF_POSITION, &node_guard_error_state_));
 
     return state_interfaces;
 
@@ -159,8 +157,6 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -184,23 +180,40 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
 
     position_state_ = sensor_data["counts"].asInt();
-    velocity_state_ = sensor_data["counts"].asDouble();
+    velocity_state_ = sensor_data["velocity"].asDouble();
 
     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();
 
     latched_fault_state_ = sensor_data["latched_fault"].asInt();
+
+    node_guard_error_state_ = sensor_data["guard_err"].asInt();
 
     return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-    // call write functions for velocity command, accel, decel, max vel TO DO
+    if(previous_position_command_ != position_command_){
+        motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>( position_command_));
+    }
 
-    motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>( position_command_));
+    if(previous_max_velocity_command_ != max_velocity_command_){
+        motor_controls_->set_profile_velocity(motor_id_, motor_controls_->motor_rpm_to_cps(max_velocity_command_));
+    }
 
+    if(previous_acceleration_command_ != acceleration_command_){
+        motor_controls_->set_profile_acc(motor_id_, motor_controls_->motor_rps2_to_cps2(acceleration_command_));
+    }
+
+    if(previous_deceleration_command_ != deceleration_command_){
+        motor_controls_->set_profile_deacc(motor_id_, motor_controls_->motor_rps2_to_cps2(deceleration_command_));
+    }
     
-
+    previous_position_command_ = position_command_;
+    previous_max_velocity_command_ = max_velocity_command_;
+    previous_acceleration_command_ = acceleration_command_;
+    previous_deceleration_command_ = deceleration_command_;
+    
     return hardware_interface::return_type::OK;
 }
 

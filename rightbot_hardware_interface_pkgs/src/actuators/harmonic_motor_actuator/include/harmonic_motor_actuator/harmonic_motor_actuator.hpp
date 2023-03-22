@@ -130,6 +130,22 @@ private:
     HarmonicEncoderData encoder_data_q_element_;
     std::mutex read_mutex_;
 
+    double status_state_ = std::numeric_limits<double>::quiet_NaN();
+    double error_code_state_ = std::numeric_limits<double>::quiet_NaN();
+    double position_state_ = std::numeric_limits<double>::quiet_NaN();
+    double velocity_state_ = std::numeric_limits<double>::quiet_NaN();
+    double node_guard_error_state_ = std::numeric_limits<double>::quiet_NaN();
+    
+    double position_command_ = 0.0;
+    double max_velocity_command_ = 0.0;
+    double acceleration_command_ = 0.0;
+    double deceleration_command_ = 0.0;
+
+    double previous_position_command_ = 0.0;
+    double previous_max_velocity_command_ = 0.0;
+    double previous_acceleration_command_ = 0.0;
+    double previous_deceleration_command_ = 0.0;
+
 };
 
 

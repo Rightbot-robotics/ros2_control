@@ -127,9 +127,117 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
 
     // harmonic_encoder_sensor = std::make_shared<HarmonicEncoderSensor>();
     // harmonic_encoder_sensor->initialize(config_data, motor_sockets_);
-    read_motor_data_thread_ = std::thread(HarmonicMotorActuator::readMotorData, this);
+    read_motor_data_thread_ = std::thread(&HarmonicMotorActuator::readMotorData, this);
     
     return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
+
+    logger_->info("Motor Enable action for: [{}]",motor_name_);
+    enableMotor();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+
+}
+
+CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
+
+    logger_->info("Motor Disable action for: [{}]",motor_name_);
+    disableMotor();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+}
+
+std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_state_interfaces(){
+    
+    // We can read a position and a velocity
+    std::vector<hardware_interface::StateInterface> state_interfaces;
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &status_state_));
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &error_code_state_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY, &velocity_state_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &node_guard_error_state_));
+
+    return state_interfaces;
+
+
+}
+
+std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_command_interfaces(){
+
+    std::vector<hardware_interface::CommandInterface> command_interfaces;
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &max_velocity_command_));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &acceleration_command_));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSITION, &deceleration_command_));
+
+    return command_interfaces;
+
+
+}
+
+hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+    Json::Value sensor_data;
+    getData(sensor_data);
+
+    if(sensor_data["read_status"].asBool() == false){
+        return hardware_interface::return_type::ERROR;
+    }
+    
+    status_state_ = sensor_data["status"].asInt();
+    error_code_state_ = sensor_data["err_code"].asInt();
+
+    position_state_ = sensor_data["counts"].asInt();
+    velocity_state_ = sensor_data["velocity"].asDouble();
+
+    node_guard_error_state_ = sensor_data["guard_err"].asInt();
+
+    return hardware_interface::return_type::OK;
+}
+
+hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+    if(previous_position_command_ != position_command_){
+        set_relative_position( static_cast<uint32_t>( position_command_), motor_id_);
+    }
+
+    if(previous_max_velocity_command_ != max_velocity_command_){
+        set_profile_velocity(max_velocity_command_);
+    }
+
+    if(previous_acceleration_command_ != acceleration_command_){
+        set_profile_acc(acceleration_command_);
+    }
+
+    if(previous_deceleration_command_ != deceleration_command_){
+        set_profile_deacc(deceleration_command_);
+    }
+    
+    previous_position_command_ = position_command_;
+    previous_max_velocity_command_ = max_velocity_command_;
+    previous_acceleration_command_ = acceleration_command_;
+    previous_deceleration_command_ = deceleration_command_;
+
+    return hardware_interface::return_type::OK;
+}
+
+CallbackReturn HarmonicMotorActuator::on_shutdown(const rclcpp_lifecycle::State & previous_state){
+
+}
+
+CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
+
 }
 
 int HarmonicMotorActuator::initMotor(){

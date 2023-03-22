@@ -137,6 +137,8 @@ const auto hardware_resources =
       <command_interface name="position"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>
+      <param name="can_id">12</param>
+      <param name="axis">1</param>
     </joint>
   </ros2_control>
   <ros2_control name="TestSensorHardware" type="sensor">

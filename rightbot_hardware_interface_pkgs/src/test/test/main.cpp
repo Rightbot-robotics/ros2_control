@@ -121,6 +121,7 @@ int main() {
     logger_->info("test {}",hardware_info.name);
     logger_->info("test {}",hardware_info.type);
 
+    // logger_->info("test {}",hardware_info.joints[0].parameters.at("can_id"));
     hardware_interface::Actuator actuator_hw(std::make_unique<MotorActuator>());
     auto state = actuator_hw.initialize(hardware_info);
     state = actuator_hw.configure();
