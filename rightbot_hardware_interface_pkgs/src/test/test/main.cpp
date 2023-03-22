@@ -116,15 +116,21 @@ int main() {
 
     pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader("motor_actuator", "hardware_interface::ActuatorInterface");
 
+    pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader_("harmonic_motor_actuator", "hardware_interface::ActuatorInterface");
+
     std::string urdf_to_test =
     std::string(ros2_control_test_assets::urdf_head) +
     ros2_control_test_assets::hardware_resources +
     ros2_control_test_assets::urdf_tail;
     const auto control_hardware = hardware_interface::parse_control_resources_from_urdf(urdf_to_test);
 
+    logger_->info("test {}",control_hardware.size());
+
     const auto hardware_info = control_hardware.front();
 
     const auto hardware_info_two = control_hardware[1];
+
+    const auto hardware_info_three = control_hardware[2];
 
     auto interface = std::unique_ptr<hardware_interface::ActuatorInterface>(
       poly_loader.createUnmanagedInstance(hardware_info.hardware_class_type));
@@ -136,6 +142,9 @@ int main() {
     auto interface_two = std::unique_ptr<hardware_interface::ActuatorInterface>(
       poly_loader.createUnmanagedInstance(hardware_info_two.hardware_class_type));
 
+    auto interface_three = std::unique_ptr<hardware_interface::ActuatorInterface>(
+      poly_loader_.createUnmanagedInstance(hardware_info_three.hardware_class_type));
+
     // logger_->info("test {}",hardware_info.joints[0].parameters.at("can_id"));
     hardware_interface::Actuator actuator_hw(std::move(interface));
     auto state = actuator_hw.initialize(hardware_info);
@@ -144,6 +153,10 @@ int main() {
     hardware_interface::Actuator actuator_hw_two(std::move(interface_two));
     auto state_two = actuator_hw_two.initialize(hardware_info_two);
     state_two = actuator_hw_two.configure();
+
+    hardware_interface::Actuator actuator_hw_three(std::move(interface_three));
+    auto state_three = actuator_hw_three.initialize(hardware_info_three);
+    state_three = actuator_hw_three.configure();
 
 
     return 0;

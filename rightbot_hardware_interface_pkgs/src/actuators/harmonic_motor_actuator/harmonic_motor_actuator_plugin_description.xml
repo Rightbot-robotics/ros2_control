@@ -1,6 +1,6 @@
 <library path="harmonic_motor_actuator">
 
-  <class name="harmonic_motor_actuator" type="harmonic_motor_actuator" base_class_type="actuator">
+  <class name="harmonic_motor_actuator" type="HarmonicMotorActuator" base_class_type="hardware_interface::ActuatorInterface">
     <description>
       harmonic motor actuator
     </description>

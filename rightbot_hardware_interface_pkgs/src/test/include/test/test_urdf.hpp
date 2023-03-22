@@ -169,6 +169,18 @@ const auto hardware_resources =
       <param name="axis">1</param>
     </joint>
   </ros2_control>
+  <ros2_control name="TestHarmonicActuatorHardwareOne" type="actuator">
+    <hardware>
+      <plugin>harmonic_motor_actuator</plugin>
+    </hardware>
+    <joint name="joint3">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <param name="can_id">14</param>
+      <param name="axis">1</param>
+    </joint>
+  </ros2_control>
   
 )";
 

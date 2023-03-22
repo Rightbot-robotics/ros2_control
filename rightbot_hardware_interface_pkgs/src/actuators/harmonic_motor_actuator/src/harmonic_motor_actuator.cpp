@@ -3,7 +3,6 @@
 //
 
 #include "harmonic_motor_actuator/harmonic_motor_actuator.hpp"
-#include "pluginlib/class_list_macros.hpp"  // NOLINT
 PLUGINLIB_EXPORT_CLASS(HarmonicMotorActuator, hardware_interface::ActuatorInterface)
 
 HarmonicEncoderData::HarmonicEncoderData() {
@@ -55,12 +54,13 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
       return CallbackReturn::ERROR;
     }
 
-    // motor_id_ = stoi(info_.hardware_parameters["motor_id"]);
-    // motor_name_ = stoi(info_.hardware_parameters["motor_name"]);
-    // axis_ = stoi(info_.hardware_parameters["motor_axis"]);
-
-    motor_id_ = 12;
-    motor_name_ = "left_wheel";
+    motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
+    motor_name_ = info_.joints[0].name;
+    axis_ = stoi(info.joints[0].parameters.at("axis"));
+    
+    logger_->info("motor_name_ {}", motor_name_);
+    logger_->info("motor_id_ {}", motor_id_);
+    logger_->info("axis_ {}", axis_);
 
     // fill motor data from json file here
 
@@ -113,10 +113,11 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     
     previous_mode = "not_set";
 
+    harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
     initMotor();
 	logger_->info("{}, initialization done", motor_name_);
-	enableMotor();
-	logger_->info("{}, enabled", motor_name_);
+	// enableMotor();
+	// logger_->info("{}, enabled", motor_name_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     
 
@@ -127,7 +128,7 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
 
     // harmonic_encoder_sensor = std::make_shared<HarmonicEncoderSensor>();
     // harmonic_encoder_sensor->initialize(config_data, motor_sockets_);
-    read_motor_data_thread_ = std::thread(&HarmonicMotorActuator::readMotorData, this);
+    // read_motor_data_thread_ = std::thread(&HarmonicMotorActuator::readMotorData, this);
     
     return CallbackReturn::SUCCESS;
 }
@@ -868,7 +869,6 @@ int HarmonicMotorActuator::readData(HarmonicEncoderData *encoder_data) {
 
 void HarmonicMotorActuator::readMotorData() {
 
-
     while (true) {
 
         auto start_time = std::chrono::system_clock::now();
@@ -883,6 +883,7 @@ void HarmonicMotorActuator::readMotorData() {
                     read_mutex_.lock();
                     q_encoder_data_.push_back(encoder_data_);
                     read_mutex_.unlock();
+
                 }
                 else {
                     logger_->warn("incomplete data received, not pushing to sensor data q");
@@ -892,9 +893,12 @@ void HarmonicMotorActuator::readMotorData() {
 
         }
 
+
+
         auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::system_clock::now() - start_time);
         logger_->debug("Time in execution [ readMotorData() ]: [{}] us", time_passed_in_read.count());
+        // logger_->flush();
 
         std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
 

@@ -30,7 +30,6 @@ find_package(socketcan_pkg REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(pluginlib)
 find_package(rightbot_hardware_interface)
-find_package(sensor)
 
 add_library(${PROJECT_NAME} SHARED
         src/harmonic_motor_actuator.cpp
