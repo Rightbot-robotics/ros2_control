@@ -30,10 +30,13 @@ find_package(socketcan_pkg REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(pluginlib)
 find_package(rightbot_hardware_interface)
+find_package(sensor)
+
 
 add_library(${PROJECT_NAME} SHARED
         src/harmonic_motor_actuator.cpp
         src/harmonic_motor_actuator_sockets.cpp
+        src/harmonic_encoder_sensor.cpp
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -49,6 +52,7 @@ ament_target_dependencies(${PROJECT_NAME}
         socketcan_pkg
         pluginlib
         rightbot_hardware_interface
+        sensor
         
 
         )

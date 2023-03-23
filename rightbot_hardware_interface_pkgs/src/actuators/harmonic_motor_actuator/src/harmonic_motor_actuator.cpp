@@ -5,18 +5,6 @@
 #include "harmonic_motor_actuator/harmonic_motor_actuator.hpp"
 PLUGINLIB_EXPORT_CLASS(HarmonicMotorActuator, hardware_interface::ActuatorInterface)
 
-HarmonicEncoderData::HarmonicEncoderData() {
-    status_m = 0;
-    err_code_m =0;
-    pos_m = 0;
-    vel_m = 0.0;
-    guard_err_m = 0;
-    time_sys = 0;
-    read_status_err_code = false;
-    read_status_encoder = false;
-    read_status_velocity = false;
-
-}
 
 HarmonicMotorActuator::HarmonicMotorActuator() {
 
@@ -114,8 +102,13 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     previous_mode = "not_set";
 
     harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
+    
     initMotor();
 	logger_->info("{}, initialization done", motor_name_);
+
+    encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
+
+    encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
 	// enableMotor();
 	// logger_->info("{}, enabled", motor_name_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -190,7 +183,7 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
 hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     Json::Value sensor_data;
-    getData(sensor_data);
+    // getData(sensor_data);
 
     if(sensor_data["read_status"].asBool() == false){
         return hardware_interface::return_type::ERROR;
@@ -698,251 +691,3 @@ void HarmonicMotorActuator::changeActuatorControlMode(Json::Value &actuator_cont
 
 }
 
-int HarmonicMotorActuator::motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, int timeout) {
-    int err;
-    my_can_frame f;
-    err = PDO_read(harmonic_motor_actuator_sockets_->motor_status_pdo_fd, &f, timeout);
-
-    if (err != 0) {
-        // Read error, or no data
-        return err;
-    }
-
-    if (f.id == (PDO_TX1_ID + motor_id)) {
-        *status = (f.data[0] << 0) | (f.data[1] << 8);
-        *err_code = (f.data[2] << 0) | (f.data[3] << 8);
-        // *battery_vol = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
-        // logger_->debug("test battery vol: [{}]", *battery_vol);
-
-    }
-
-    return err;
-
-}
-
-int HarmonicMotorActuator::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
-    int err;
-    my_can_frame f;
-    uint32_t enc;
-
-    err = PDO_read(harmonic_motor_actuator_sockets_->motor_enc_pdo_fd, &f, timeout);
-
-    if (err != 0) {
-        // Read error, or no data
-        return err;
-    }
-
-    if (f.id == (PDO_TX3_ID + motor_id)) {
-        //ENCODER COUNT
-        enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
-              ((uint32_t) f.data[3] << 24);
-        //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
-        // logger_->debug("Harmonic motor counts init: [{}]", enc);
-        
-        *pos = enc;
-        // if (init_enc) {
-        //     *pos = -enc - err_enc;
-        // } else {
-        //     err_enc = -enc;
-        //     init_enc = true;
-        // }
-        //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
-    }
-
-    return err;
-}
-
-int HarmonicMotorActuator::motor_vel_read(int motor_id, double *vel, int timeout) {
-    int err;
-    my_can_frame f;
-    int32_t rpm;
-    int32_t register_cps;
-    double cps;
-
-    err = PDO_read(harmonic_motor_actuator_sockets_->motor_vel_pdo_fd, &f, timeout);
-
-    if (err != 0) {
-        // Read error, or no data
-        return err;
-    }
-
-    if (f.id == (PDO_TX2_ID + motor_id)) {
-        //RPM OF LEFT
-        register_cps = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
-                       ((uint32_t) f.data[3] << 24);
-        cps = register_cps;
-        *vel = (double) motor_cps_to_rpm(cps);
-    }
-
-    return err;
-}
-
-double HarmonicMotorActuator::motor_cps_to_rpm(double counts_per_sec) {
-
-    double m_per_sec = (counts_per_sec) / EROB_CPR;
-    return m_per_sec * 60;
-}
-
-int HarmonicMotorActuator::node_guarding_response_read(uint16_t *response, int timeout){
-    int err;
-    my_can_frame f;
-    err = PDO_read(harmonic_motor_actuator_sockets_->nmt_motor_cfg_fd, &f, timeout);
-
-    if(err != 0) {
-        // loop executed when read error, or no data
-        return err;
-    }
-
-    if(f.data[0] <= 0){
-        return -1;
-    }
-
-    if (f.id == (NMT_TX + motor_id_)) {
-        *response = ((uint16_t)f.data[0]);
-    }
-
-    return 0;
-}
-
-
-int HarmonicMotorActuator::readData(HarmonicEncoderData *encoder_data) {
-
-    uint16_t status_register_fb_[1]= {0};
-    uint16_t err_code_fb_[1] = {0};
-    int32_t encoder_fb_[1]= {0};
-    double vel_fb_[1]= {0};
-    int guard_err_fb_= -1;
-
-    auto err_pdo_1_ = motor_status_n_voltage_read(motor_id_, status_register_fb_, err_code_fb_, 1);
-    auto err_pdo_2_ = motor_enc_read(motor_id_, encoder_fb_, 1);
-    auto err_pdo_3_ = motor_vel_read(motor_id_, vel_fb_, 1);
-    
-    guard_err_fb_ = err_pdo_2_;
-
-    if (0 == err_pdo_1_) {
-
-        encoder_data->status_m = status_register_fb_[0];
-        encoder_data->err_code_m = err_code_fb_[0];
-        encoder_data->read_status_err_code = true;
-
-    }
-    else{
-        encoder_data->read_status_err_code = false;
-    }
-
-    if (0 == err_pdo_2_) {
-        encoder_data->pos_m = encoder_fb_[0];
-        // logger_->debug("Encoder_position: [{}]", encoder_fb_[0]);
-        encoder_data->read_status_encoder = true;
-    }
-    else{
-        encoder_data->read_status_encoder = false;
-    }
-
-    if (0 == err_pdo_3_) {
-        encoder_data->vel_m = vel_fb_[0];
-        // logger_->debug("Encoder_Velocity: [{}]", vel_fb_[0]);
-        encoder_data->read_status_velocity = true;
-    }
-    {
-        encoder_data->read_status_velocity = false;
-    }
-
-    encoder_data->guard_err_m = guard_err_fb_;
-
-    auto now = std::chrono::high_resolution_clock::now();
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-    auto epoch = now_ms.time_since_epoch();
-    auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-    long duration = value.count();
-    encoder_data->time_sys = duration;
-
-    bool status = encoder_data->read_status_encoder;
-    int rt_value = -1;
-    if(true == status) {
-        rt_value = 0;
-	logger_->debug("{} pos read successful",harmonic_motor_actuator_sockets_->motor_name_);
-    }
-    return 0;
-
-}
-
-void HarmonicMotorActuator::readMotorData() {
-
-    while (true) {
-
-        auto start_time = std::chrono::system_clock::now();
-
-        {
-            
-            if(reading_loop_started) {
-                int err = readData( &encoder_data_);
-
-                if (err == 0) {
-
-                    read_mutex_.lock();
-                    q_encoder_data_.push_back(encoder_data_);
-                    read_mutex_.unlock();
-
-                }
-                else {
-                    logger_->warn("incomplete data received, not pushing to sensor data q");
-                }
-            }
-            
-
-        }
-
-
-
-        auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
-                std::chrono::system_clock::now() - start_time);
-        logger_->debug("Time in execution [ readMotorData() ]: [{}] us", time_passed_in_read.count());
-        // logger_->flush();
-
-        std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
-
-    }
-
-}
-
-void HarmonicMotorActuator::getData(Json::Value &sensor_data) {
-
-    read_mutex_.lock();
-    reading_loop_started = true;
-
-    if (!q_encoder_data_.empty()) {
-
-
-        auto encoder_data_q_element = q_encoder_data_.back();
-        q_encoder_data_.pop_front();
-
-        logger_->debug("Read deque size after pop: {}", q_encoder_data_.size());
-        if (q_encoder_data_.size() > 10) {
-            //logger_->error("Read deque size : [{}]", q_encoder_data_.size());
-            q_encoder_data_.clear();
-        }
-
-        sensor_data["status"] = encoder_data_q_element.status_m;
-        sensor_data["err_code"] = encoder_data_q_element.err_code_m;
-        sensor_data["counts"] = encoder_data_q_element.pos_m;
-        sensor_data["velocity"] = encoder_data_q_element.vel_m;
-        sensor_data["timestamp"] = std::to_string(encoder_data_q_element.time_sys);
-        sensor_data["guard_err"] = encoder_data_q_element.guard_err_m;
-        sensor_data["read_status"] = true;
-        sensor_data["read_status_err_code"] = encoder_data_q_element.read_status_err_code;
-        sensor_data["read_status_encoder"] = encoder_data_q_element.read_status_encoder;
-        sensor_data["read_status_velocity"] = encoder_data_q_element.read_status_velocity;
-        
-        logger_->debug("[{}] Status: [{}], Error Code: [{}]", harmonic_motor_actuator_sockets_->motor_name_, encoder_data_q_element.status_m, encoder_data_q_element.err_code_m);
-        logger_->debug("[{}] Position: {} counts, Velocity: {} rpm", harmonic_motor_actuator_sockets_->motor_name_, encoder_data_q_element.pos_m, encoder_data_q_element.vel_m);
-        logger_->debug("[{}] Guard Err: {}", harmonic_motor_actuator_sockets_->motor_name_, encoder_data_q_element.guard_err_m);
-
-    } else {
-        sensor_data["read_status"] = false;
-        logger_->debug("[{}] Sensor Data Queue Empty. ", harmonic_motor_actuator_sockets_->motor_name_);
-    }
-
-
-    read_mutex_.unlock();
-}

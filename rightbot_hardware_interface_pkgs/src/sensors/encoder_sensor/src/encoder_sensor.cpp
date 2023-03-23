@@ -194,9 +194,10 @@ void EncoderSensor::readMotorData() {
         auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::system_clock::now() - start_time);
 
-        if (time_passed_in_read.count() > 5000){
-            logger_->debug("Time in execution [ readMotorData() ]: [{}] us", time_passed_in_read.count());
-        }
+        // if (time_passed_in_read.count() > 5000){
+        //     logger_->debug("Time in execution [ readMotorData() ]: [{}] us", time_passed_in_read.count());
+        // }
+        logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
         
 
         std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));

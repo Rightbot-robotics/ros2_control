@@ -15,6 +15,7 @@
 #include <spdlog/fmt/ostr.h>
 
 #include "harmonic_motor_actuator/harmonic_motor_actuator_sockets.hpp"
+#include <harmonic_motor_actuator/harmonic_encoder_sensor.hpp>
 
 #include "hardware_interface/actuator_interface.hpp"
 
@@ -25,27 +26,6 @@
 
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-
-class HarmonicEncoderData {
-
-public:
-
-    HarmonicEncoderData();
-
-    ~HarmonicEncoderData() = default;
-
-    uint16_t status_m;
-    uint16_t err_code_m;
-    int32_t pos_m;
-    double vel_m;
-    int guard_err_m;
-    uint64_t time_sys;
-    bool read_status_err_code;
-    bool read_status_encoder;
-    bool read_status_velocity;
-
-};
-
 
 class HarmonicMotorActuator : public hardware_interface::ActuatorInterface {
 
@@ -111,27 +91,10 @@ private:
 
     std::shared_ptr<spdlog::logger> logger_;
     HarmonicMotorActuatorSockets::HarmonicMotorActuatorSocketsSPtr harmonic_motor_actuator_sockets_;
+    HarmonicEncoderSensor::HarmonicEncoderSensorSPtr encoder_sensor_;
 
     Json::Value actuator_data_;
     std::string previous_mode;
-
-    // 
-    int motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, int timeout);
-    int motor_enc_read(int motor_id, int32_t *pos, int timeout);
-    int motor_vel_read(int motor_id, double *vel, int timeout);
-    double motor_cps_to_rpm(double counts_per_sec) ;
-    int node_guarding_response_read(uint16_t *response, int timeout);
-    int readData(HarmonicEncoderData *encoder_data) ;
-    void readMotorData();
-    void getData(Json::Value &sensor_data);
-
-    std::thread read_motor_data_thread_;
-
-    bool reading_loop_started = false;
-    HarmonicEncoderData encoder_data_;
-    std::deque<HarmonicEncoderData> q_encoder_data_;
-    HarmonicEncoderData encoder_data_q_element_;
-    std::mutex read_mutex_;
 
     double status_state_ = std::numeric_limits<double>::quiet_NaN();
     double error_code_state_ = std::numeric_limits<double>::quiet_NaN();
