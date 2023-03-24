@@ -146,6 +146,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
     enableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+    return CallbackReturn::SUCCESS;
 
 }
 
@@ -154,6 +155,8 @@ CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::Stat
     logger_->info("Motor Disable action for: [{}]",motor_name_);
     disableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    return CallbackReturn::SUCCESS;
 
 }
 
@@ -237,9 +240,13 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
 CallbackReturn HarmonicMotorActuator::on_shutdown(const rclcpp_lifecycle::State & previous_state){
 
+    return CallbackReturn::SUCCESS;
+
 }
 
 CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
+
+    return CallbackReturn::SUCCESS;
 
 }
 

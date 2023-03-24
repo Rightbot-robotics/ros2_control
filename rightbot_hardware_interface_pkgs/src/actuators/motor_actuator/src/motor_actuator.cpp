@@ -123,6 +123,8 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+    return CallbackReturn::SUCCESS;
+
 }
 
 CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
@@ -130,6 +132,9 @@ CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & prev
     logger_->info("Motor Disable action for: [{}]",motor_name_);
     motor_->motor_disable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    return CallbackReturn::SUCCESS;
+
 
 }
 
@@ -218,9 +223,13 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
 CallbackReturn MotorActuator::on_shutdown(const rclcpp_lifecycle::State & previous_state){
 
+    return CallbackReturn::SUCCESS;
+
 }
 
 CallbackReturn MotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
+
+    return CallbackReturn::SUCCESS;
 
 }
 
