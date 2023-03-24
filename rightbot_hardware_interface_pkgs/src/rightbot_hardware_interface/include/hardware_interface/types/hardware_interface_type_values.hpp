@@ -28,8 +28,6 @@ constexpr char HW_IF_EFFORT[] = "effort";
 
 constexpr char HW_IF_MAX_VELOCITY[] = "max_velocity";
 
-constexpr char HW_IF_DECELERATION[] = "deceleration";
-
 constexpr char HW_IF_BATTERY_VOLTAGE[] = "battery_voltage";
 
 constexpr char HW_IF_STATUS[] = "status";

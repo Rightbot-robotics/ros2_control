@@ -100,12 +100,10 @@ private:
     double position_command_ = 0.0;
     double max_velocity_command_ = 0.0;
     double acceleration_command_ = 0.0;
-    double deceleration_command_ = 0.0;
 
     double previous_position_command_ = 0.0;
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
-    double previous_deceleration_command_ = 0.0;
 
 
 };

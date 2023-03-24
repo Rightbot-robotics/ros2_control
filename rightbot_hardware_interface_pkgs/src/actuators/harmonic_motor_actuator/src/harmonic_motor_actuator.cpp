@@ -61,7 +61,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 4)
+    if (command_interfaces.size() != 3)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -72,8 +72,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_MAX_VELOCITY) &&
-            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
-            (command_interface.name != hardware_interface::HW_IF_DECELERATION)
+            (command_interface.name != hardware_interface::HW_IF_ACCELERATION)
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -163,15 +162,15 @@ std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_st
     // We can read a position and a velocity
     std::vector<hardware_interface::StateInterface> state_interfaces;
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &status_state_));
+      motor_name_, hardware_interface::HW_IF_STATUS, &status_state_));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &error_code_state_));
+      motor_name_, hardware_interface::HW_IF_ERROR_CODE, &error_code_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_VELOCITY, &velocity_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &node_guard_error_state_));
+      motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
 
     return state_interfaces;
 
@@ -184,11 +183,9 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &max_velocity_command_));
+      motor_name_, hardware_interface::HW_IF_MAX_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &acceleration_command_));
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &deceleration_command_));
+      motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
 
     return command_interfaces;
 
@@ -227,16 +224,13 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
     if(previous_acceleration_command_ != acceleration_command_){
         set_profile_acc(acceleration_command_);
-    }
-
-    if(previous_deceleration_command_ != deceleration_command_){
-        set_profile_deacc(deceleration_command_);
+        set_profile_deacc(acceleration_command_);
     }
     
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
-    previous_deceleration_command_ = deceleration_command_;
+
 
     return hardware_interface::return_type::OK;
 }
