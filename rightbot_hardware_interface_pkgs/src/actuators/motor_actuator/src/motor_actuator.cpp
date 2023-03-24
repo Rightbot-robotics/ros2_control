@@ -46,7 +46,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     
     if (command_interfaces.size() != 4)
     {
-        logger_->error("[{}] - Incorrect command interfaces", motor_name_);
+        logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     
@@ -60,7 +60,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (command_interface.name != hardware_interface::HW_IF_DECELERATION)
         )
        {
-            
+            logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
+
             return CallbackReturn::ERROR;
        }
 
@@ -70,7 +71,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     const auto & state_interfaces = info_.joints[0].state_interfaces;
     if (state_interfaces.size() != 7)
     {
-        logger_->error("[{}] - Incorrect state interfaces", motor_name_);
+        logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
@@ -85,7 +86,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR)
             )
        {
-            
+            logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
             return CallbackReturn::ERROR;
        }
 

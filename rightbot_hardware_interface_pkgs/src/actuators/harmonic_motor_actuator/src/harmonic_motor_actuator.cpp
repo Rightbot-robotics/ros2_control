@@ -61,31 +61,46 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 1)
+    if (command_interfaces.size() != 4)
     {
-        logger_->error("[{}] - Incorrect command interfaces", motor_name_);
+        logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
-    if (command_interfaces[0].name != hardware_interface::HW_IF_POSITION)
+
+    for (const auto & command_interface : command_interfaces)
     {
-        
-        return CallbackReturn::ERROR;
+        if (
+            (command_interface.name != hardware_interface::HW_IF_POSITION) &&
+            (command_interface.name != hardware_interface::HW_IF_MAX_VELOCITY) &&
+            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
+            (command_interface.name != hardware_interface::HW_IF_DECELERATION)
+        )
+       {
+            logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
+            
+            return CallbackReturn::ERROR;
+       }
+
     }
 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
-    if (state_interfaces.size() != 2)
+    if (state_interfaces.size() != 5)
     {
-        logger_->error("[{}] - Incorrect state interfaces", motor_name_);
+        logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
     {
         if (
             (state_interface.name != hardware_interface::HW_IF_POSITION) &&
-            (state_interface.name != hardware_interface::HW_IF_VELOCITY))
+            (state_interface.name != hardware_interface::HW_IF_VELOCITY) &&
+            (state_interface.name != hardware_interface::HW_IF_STATUS) && 
+            (state_interface.name != hardware_interface::HW_IF_ERROR_CODE) &&
+            (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR))
        {
-            
+            logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
+
             return CallbackReturn::ERROR;
        }
 
@@ -104,7 +119,7 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
     
     initMotor();
-	logger_->info("{}, initialization done", motor_name_);
+	// logger_->info("{}, initialization done", motor_name_);
 
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
 

@@ -175,8 +175,14 @@ const auto hardware_resources =
     </hardware>
     <joint name="joint3">
       <command_interface name="position"/>
+      <command_interface name="max_velocity"/>
+      <command_interface name="acceleration"/>
+      <command_interface name="deceleration"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>
+      <state_interface name="status"/>
+      <state_interface name="error_code"/>
+      <state_interface name="node_guard_error"/>
       <param name="can_id">14</param>
       <param name="axis">1</param>
     </joint>

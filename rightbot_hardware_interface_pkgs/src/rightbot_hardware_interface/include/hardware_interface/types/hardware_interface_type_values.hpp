@@ -40,6 +40,10 @@ constexpr char HW_IF_LATCHED_FAULT[] = "latched_fault";
 
 constexpr char HW_IF_NODE_GUARD_ERROR[] = "node_guard_error";
 
+constexpr char HW_IF_ERROR_CODE[] = "error_code";
+
+
+
 }  // namespace hardware_interface
 
 #endif  // HARDWARE_INTERFACE__TYPES__HARDWARE_INTERFACE_TYPE_VALUES_HPP_

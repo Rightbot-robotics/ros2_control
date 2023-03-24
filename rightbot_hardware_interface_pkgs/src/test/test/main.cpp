@@ -40,6 +40,8 @@ bool message_received = false;
 std::mutex sync_mutex; // for sync of message_received variable
 std::shared_ptr<spdlog::logger> logger_;
 
+#include "lifecycle_msgs/msg/state.hpp"
+
 
 void test_write() {
 
@@ -148,7 +150,16 @@ int main() {
     // logger_->info("test {}",hardware_info.joints[0].parameters.at("can_id"));
     hardware_interface::Actuator actuator_hw(std::move(interface));
     auto state = actuator_hw.initialize(hardware_info);
+
+    logger_->info("state {}", state.id());
+
     state = actuator_hw.configure();
+
+    logger_->info("state {}", state.id());
+
+    // if(state == CallbackReturn::SUCCESS){
+    //   logger_->info("configure done 1");
+    // }
 
     hardware_interface::Actuator actuator_hw_two(std::move(interface_two));
     auto state_two = actuator_hw_two.initialize(hardware_info_two);
@@ -157,6 +168,8 @@ int main() {
     hardware_interface::Actuator actuator_hw_three(std::move(interface_three));
     auto state_three = actuator_hw_three.initialize(hardware_info_three);
     state_three = actuator_hw_three.configure();
+
+  
 
 
     return 0;
