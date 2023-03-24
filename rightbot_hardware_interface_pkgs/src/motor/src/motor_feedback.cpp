@@ -16,6 +16,7 @@ MotorFeedback::MotorFeedback(Sockets::SocketsSPtr motor_sockets_) {
 
     status_register_fb_[1] = {0};
     battery_vol_fb_[1] = {0};
+    input_states_fb_[1] = {0};
     encoder_fb_[1] = {0};
     vel_fb_[1] = {0};
     manufacturer_reg_fb_[1] = {0};
@@ -43,7 +44,7 @@ double MotorFeedback::motor_cps_to_rpm(double counts_per_sec) {
     return m_per_sec;
 }
 
-int MotorFeedback::motor_status_n_voltage_read(int motor_id, uint16_t *status, float *battery_vol, int timeout) {
+int MotorFeedback::motor_status_n_voltage_n_input_states_read(int motor_id, uint16_t *status, float *battery_vol, uint16_t *input_states, int timeout){
     int err;
     my_can_frame f;
     err = PDO_read(motor_sockets->motor_status_pdo_fd, &f, timeout);
@@ -57,6 +58,7 @@ int MotorFeedback::motor_status_n_voltage_read(int motor_id, uint16_t *status, f
         *status = (f.data[0] << 0) | (f.data[1] << 8);
         *battery_vol = (f.data[2] << 0) | (f.data[3] << 8);
         *battery_vol = 0.1 * (*battery_vol);
+        *input_states = (f.data[4] << 0) | (f.data[5] << 8);
     }
 
     return err;
@@ -173,7 +175,7 @@ std::map<std::string, int> MotorFeedback::motorFeedback(int motor_id, MotorFeedb
 
     std::map<std::string, int> read_error_code;
 
-    err_pdo_1_ = motor_status_n_voltage_read(motor_id, status_register_fb_, battery_vol_fb_, 1);
+    err_pdo_1_ = motor_status_n_voltage_n_input_states_read(motor_id, status_register_fb_, battery_vol_fb_, input_states_fb_, 1);
     read_error_code.insert_or_assign("voltage", err_pdo_1_);
 
     err_pdo_2_ = motor_enc_read(motor_id, encoder_fb_, 1);
@@ -191,6 +193,8 @@ std::map<std::string, int> MotorFeedback::motorFeedback(int motor_id, MotorFeedb
     if (err_pdo_1_ == 0) {
         feedback_s_m->status_m = status_register_fb_[0];
         feedback_s_m->battery_vol_m = battery_vol_fb_[0];
+        feedback_s_m->input_states_m = input_states_fb_[0];
+
     } else {
 //        feedback_s_m->status_m = -1;
 //        feedback_s_m->battery_vol_m = -1;

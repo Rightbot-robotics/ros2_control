@@ -68,7 +68,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
-    if (state_interfaces.size() != 7)
+    if (state_interfaces.size() != 8)
     {
         logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -78,6 +78,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
         if (
             (state_interface.name != hardware_interface::HW_IF_STATUS) &&
             (state_interface.name != hardware_interface::HW_IF_BATTERY_VOLTAGE) &&
+            (state_interface.name != hardware_interface::HW_IF_INPUT_STATES) &&
             (state_interface.name != hardware_interface::HW_IF_POSITION) &&
             (state_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (state_interface.name != hardware_interface::HW_IF_MANUFACTURER_REGISTER) &&
@@ -144,8 +145,10 @@ std::vector<hardware_interface::StateInterface> MotorActuator::export_state_inte
     std::vector<hardware_interface::StateInterface> state_interfaces;
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_STATUS, &status_state_));
-      state_interfaces.emplace_back(hardware_interface::StateInterface(
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_BATTERY_VOLTAGE, &battery_voltage_state_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+            motor_name_, hardware_interface::HW_IF_INPUT_STATES, &input_states_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -186,6 +189,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
+    input_states_state_ = sensor_data["input_states"].asInt();
 
     position_state_ = sensor_data["counts"].asInt();
     velocity_state_ = sensor_data["velocity"].asDouble();

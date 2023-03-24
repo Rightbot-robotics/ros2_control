@@ -40,6 +40,8 @@ constexpr char HW_IF_NODE_GUARD_ERROR[] = "node_guard_error";
 
 constexpr char HW_IF_ERROR_CODE[] = "error_code";
 
+constexpr char HW_IF_INPUT_STATES[] = "input_states";
+
 
 
 }  // namespace hardware_interface
