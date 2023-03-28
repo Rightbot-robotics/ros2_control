@@ -106,7 +106,8 @@ private:
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
 
+    void Homing();
 
-};
+    };
 
 #endif // MOTOR_ACTUATOR_H_

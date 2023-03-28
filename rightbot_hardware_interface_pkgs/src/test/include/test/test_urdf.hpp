@@ -147,6 +147,7 @@ const auto hardware_resources =
       <state_interface name="node_guard_error"/>
       <param name="can_id">12</param>
       <param name="axis">1</param>
+      <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
     </joint>
   </ros2_control>
   <ros2_control name="TestActuatorHardwareTwo" type="actuator">
@@ -167,6 +168,7 @@ const auto hardware_resources =
       <state_interface name="node_guard_error"/>
       <param name="can_id">13</param>
       <param name="axis">1</param>
+      <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
     </joint>
   </ros2_control>
   <ros2_control name="TestHarmonicActuatorHardwareOne" type="actuator">
@@ -184,6 +186,7 @@ const auto hardware_resources =
       <state_interface name="node_guard_error"/>
       <param name="can_id">14</param>
       <param name="axis">1</param>
+      <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
     </joint>
   </ros2_control>
   

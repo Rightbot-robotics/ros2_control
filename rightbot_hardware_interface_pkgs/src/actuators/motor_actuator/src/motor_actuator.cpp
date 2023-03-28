@@ -237,6 +237,16 @@ CallbackReturn MotorActuator::on_error(const rclcpp_lifecycle::State & previous_
 
 }
 
+void MotorActuator::Homing(){
+
+    // 100 rpm , 10 rps2 base
+
+    motor_controls_->set_profile_velocity(motor_id_, 100);
+    motor_controls_->set_profile_acc(motor_id_, 10);
+    motor_controls_->set_profile_deacc(motor_id_, 10);
+    motor_controls_->set_relative_position(motor_id_, axis_, 85000);
+
+}
 
 void MotorActuator::requestData(){
     motor_controls_->motor_request();

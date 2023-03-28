@@ -105,4 +105,6 @@ if (BUILD_TESTING)
     ament_lint_auto_find_test_dependencies()
 endif ()
 
+# ament_export_targets(export_motor_actuator HAS_LIBRARY_TARGET)
+
 ament_package()

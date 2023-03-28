@@ -24,16 +24,12 @@ install(DIRECTORY include/
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(jsoncpp REQUIRED)
-find_package(actuator REQUIRED)
-find_package(motor REQUIRED)
-find_package(canopen_pkg REQUIRED)
-find_package(socketcan_pkg REQUIRED)
+
 find_package(rclcpp REQUIRED)
-find_package(pluginlib)
-find_package(rightbot_hardware_interface)
-find_package(encoder_sensor)
-find_package(sensor)
-find_package(motor_actuator)
+# find_package(pluginlib)
+find_package(hardware_interface)
+
+
 find_package(ros2_control_test_assets REQUIRED)
 
 
@@ -51,13 +47,10 @@ target_link_libraries(${PROJECT_NAME}_test
         )
 
 ament_target_dependencies(${PROJECT_NAME}_test
-        actuator
-        motor
-        canopen_pkg
-        socketcan_pkg
-        motor_actuator
+        
         ros2_control_test_assets
-        pluginlib
+        # pluginlib
+        hardware_interface
         )
 
 install(
