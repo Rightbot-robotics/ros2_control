@@ -68,7 +68,7 @@ install(
 )
 
 pluginlib_export_plugin_description_file(
-    ${PROJECT_NAME} harmonic_motor_actuator_plugin_description.xml)
+        hardware_interface harmonic_motor_actuator_plugin_description.xml)
 
 # add_executable(${PROJECT_NAME}_test
 #         test/test.cpp)

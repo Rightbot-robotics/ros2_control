@@ -67,7 +67,7 @@ install(
 )
 
 pluginlib_export_plugin_description_file(
-    ${PROJECT_NAME} motor_actuator_plugin_description.xml)
+    hardware_interface motor_actuator_plugin_description.xml)
 
 add_executable(${PROJECT_NAME}_test
         test/main.cpp)

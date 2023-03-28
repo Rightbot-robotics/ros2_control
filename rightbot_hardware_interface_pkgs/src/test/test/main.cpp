@@ -116,9 +116,9 @@ int main() {
     // write_thread.join();
     // subscribe_thread.join();
 
-    pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader("motor_actuator", "hardware_interface::ActuatorInterface");
+    pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader("hardware_interface", "hardware_interface::ActuatorInterface");
 
-    pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader_("harmonic_motor_actuator", "hardware_interface::ActuatorInterface");
+    pluginlib::ClassLoader<hardware_interface::ActuatorInterface> poly_loader_("hardware_interface", "hardware_interface::ActuatorInterface");
 
     std::string urdf_to_test =
     std::string(ros2_control_test_assets::urdf_head) +
