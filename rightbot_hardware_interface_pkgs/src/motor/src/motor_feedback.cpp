@@ -3,7 +3,7 @@
 
 MotorFeedback::MotorFeedback(Sockets::SocketsSPtr motor_sockets_) {
 
-    logger_ = spdlog::get("hardware_interface")->clone("motor_feedback");
+    // logger_ = spdlog::get("hardware_interface")->clone("motor_feedback");
 
     motor_sockets = motor_sockets_;
     init_enc = false;
@@ -74,7 +74,7 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
     err = PDO_read(motor_sockets->motor_enc_pdo_fd, &f, timeout);
     auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::system_clock::now() - start_time);
-    logger_->debug("Time in execution [ motor_enc_read() ]: [{}] us, err: [{}]", time_passed_in_read.count(), err);
+    // logger_->debug("Time in execution [ motor_enc_read() ]: [{}] us, err: [{}]", time_passed_in_read.count(), err);
 
     // err = PDO_read(motor_sockets->motor_enc_pdo_fd, &f, timeout);
 

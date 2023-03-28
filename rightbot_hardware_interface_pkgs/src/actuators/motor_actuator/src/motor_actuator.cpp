@@ -14,9 +14,9 @@ MotorActuator::~MotorActuator() = default;
 
 CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & info){
     // We hardcode the info
-    logger_ = spdlog::get("hardware_interface")->clone("motor_actuator");
+    // logger_ = spdlog::get("hardware_interface")->clone("motor_actuator");
    
-    logger_->info("Motor Actuator Init");
+    // logger_->info("Motor Actuator Init");
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       
@@ -27,9 +27,9 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
     
-    logger_->info("motor_name_ {}", motor_name_);
-    logger_->info("motor_id_ {}", motor_id_);
-    logger_->info("axis_ {}", axis_);
+    // logger_->info("motor_name_ {}", motor_name_);
+    // logger_->info("motor_id_ {}", motor_id_);
+    // logger_->info("axis_ {}", axis_);
 
     // motor_id_ = 12;
     // motor_name_ = "left_wheel";
@@ -46,7 +46,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     
     if (command_interfaces.size() != 3)
     {
-        logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
+        // logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     
@@ -59,7 +59,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) 
         )
        {
-            logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
+            // logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
 
             return CallbackReturn::ERROR;
        }
@@ -70,7 +70,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     const auto & state_interfaces = info_.joints[0].state_interfaces;
     if (state_interfaces.size() != 8)
     {
-        logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
+        // logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
@@ -86,14 +86,14 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR)
             )
        {
-            logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
+            // logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
             return CallbackReturn::ERROR;
        }
 
     }
     // fprintf(stderr, "TestSingleJointActuator configured successfully.\n");
 
-    logger_->info("[{}] - Intialiazation successful", motor_name_);
+    // logger_->info("[{}] - Intialiazation successful", motor_name_);
     
     return CallbackReturn::SUCCESS;
 }
@@ -120,7 +120,7 @@ CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previ
 
 CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
 
-    logger_->info("Motor Enable action for: [{}]",motor_name_);
+    // logger_->info("Motor Enable action for: [{}]",motor_name_);
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -130,7 +130,7 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 
 CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
-    logger_->info("Motor Disable action for: [{}]",motor_name_);
+    // logger_->info("Motor Disable action for: [{}]",motor_name_);
     motor_->motor_disable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -294,32 +294,32 @@ void MotorActuator::changeActuatorControlMode(Json::Value &actuator_control_mode
 
     if (actuator_control_mode["action"].asString() == "change_control_mode"){
         if (actuator_control_mode["control_mode"].asString() == "motor_reset"){
-            logger_->info("Fault reset for : [{}]",motor_name_);
+            // logger_->info("Fault reset for : [{}]",motor_name_);
             motor_->motor_reset(motor_id_);
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_quick_stop"){
-            logger_->info("Quick stop for : [{}]",motor_name_);
+            // logger_->info("Quick stop for : [{}]",motor_name_);
             motor_->motor_quick_stop(motor_id_);
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_disable"){
-            logger_->info("Disable action for : [{}]",motor_name_);
+            // logger_->info("Disable action for : [{}]",motor_name_);
             motor_->motor_disable(motor_id_);
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_enable"){
-            logger_->info("Enable action for : [{}]",motor_name_);
+            // logger_->info("Enable action for : [{}]",motor_name_);
             motor_->motor_enable(motor_id_);
             
         }
         else{
-            logger_->info("Control Mode not recognized for : [{}]",motor_name_);
+            // logger_->info("Control Mode not recognized for : [{}]",motor_name_);
         }
 
     }
     else{
-        logger_->info("Control Mode Action not recognized for : [{}]",motor_name_);
+        // logger_->info("Control Mode Action not recognized for : [{}]",motor_name_);
     }
 
 }
@@ -366,7 +366,7 @@ void MotorActuator::writeData(Json::Value &actuator_data) {
 
     }
     else{
-        logger_->info("'Write Data mode not recognized for motor [{}]",motor_sockets_->motor_name_);
+        // logger_->info("'Write Data mode not recognized for motor [{}]",motor_sockets_->motor_name_);
 
     }
 

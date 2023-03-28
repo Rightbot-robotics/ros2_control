@@ -89,7 +89,7 @@ private:
     int set_relative_position(int32_t pos, uint16_t nodeid);
     void goToInitPos();
 
-    std::shared_ptr<spdlog::logger> logger_;
+    // std::shared_ptr<spdlog::logger> logger_;
     HarmonicMotorActuatorSockets::HarmonicMotorActuatorSocketsSPtr harmonic_motor_actuator_sockets_;
     HarmonicEncoderSensor::HarmonicEncoderSensorSPtr encoder_sensor_;
 
