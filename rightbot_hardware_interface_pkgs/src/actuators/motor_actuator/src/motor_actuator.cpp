@@ -17,15 +17,21 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     // logger_ = spdlog::get("hardware_interface")->clone("motor_actuator");
    
     // logger_->info("Motor Actuator Init");
+    std::cout << "Motor Actuator Init" << std::endl;
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       
       return CallbackReturn::ERROR;
     }
 
-    motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
+    std::cout << "motor_name_: " << motor_name_ << std::endl;
+
+    motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
+    std::cout << "motor_id_: " << motor_id_ << std::endl;
+    
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+    std::cout << "axis_: " << axis_ << std::endl;
     
     // logger_->info("motor_name_ {}", motor_name_);
     // logger_->info("motor_id_ {}", motor_id_);
@@ -47,6 +53,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     if (command_interfaces.size() != 3)
     {
         // logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
+        std::cout << "Incorrect number of command interfaces. " << std::endl;
         return CallbackReturn::ERROR;
     }
     
@@ -60,6 +67,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
         )
        {
             // logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
+            std::cout << "Incorrect type of command interfaces. " << std::endl;
+
 
             return CallbackReturn::ERROR;
        }
@@ -71,6 +80,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     if (state_interfaces.size() != 8)
     {
         // logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
+        std::cout << "Incorrect number of state interfaces. " << std::endl;
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
@@ -87,6 +97,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             )
        {
             // logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
+            std::cout << "Incorrect type of state interfaces. " << std::endl;
             return CallbackReturn::ERROR;
        }
 
@@ -94,6 +105,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     // fprintf(stderr, "TestSingleJointActuator configured successfully.\n");
 
     // logger_->info("[{}] - Intialiazation successful", motor_name_);
+    std::cout << "Intialiazation successful. " << std::endl;
     
     return CallbackReturn::SUCCESS;
 }
