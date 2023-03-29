@@ -9,7 +9,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     ament_index_cpp
     controller_interface
     controller_manager_msgs
-    hardware_interface
+    rightbot_hardware_interface
     pluginlib
     rclcpp
 )

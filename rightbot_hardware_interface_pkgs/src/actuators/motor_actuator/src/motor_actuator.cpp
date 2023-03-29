@@ -154,6 +154,9 @@ CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & prev
 std::vector<hardware_interface::StateInterface> MotorActuator::export_state_interfaces(){
     
     // We can read a position and a velocity
+
+    // std::cout << "export_state_interfaces for: "<< motor_name_ << std::endl;
+
     std::vector<hardware_interface::StateInterface> state_interfaces;
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_STATUS, &status_state_));
@@ -179,6 +182,9 @@ std::vector<hardware_interface::StateInterface> MotorActuator::export_state_inte
 
 std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_interfaces(){
     // We can command in velocity
+
+    // std::cout << "export_command_interfaces for: "<< motor_name_ << std::endl;
+
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
