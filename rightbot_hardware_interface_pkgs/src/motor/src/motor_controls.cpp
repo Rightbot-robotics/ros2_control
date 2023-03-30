@@ -118,7 +118,7 @@ int MotorControls::set_profile_velocity(uint16_t node_id, uint32_t speed) {
     d.index = 0x6081;
     d.subindex = 0x00;
     d.data.size = 4;
-    d.data.data = speed;//in milliseconds
+    d.data.data = motor_rpm_to_cps(speed);//in milliseconds
     err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
 
     return err;
@@ -132,7 +132,7 @@ int MotorControls::set_profile_acc(uint16_t node_id, uint32_t acc) {
     d.index = 0x6083;
     d.subindex = 0x00;
     d.data.size = 4;
-    d.data.data = acc;//in milliseconds
+    d.data.data = motor_rps2_to_cps2(acc);//in milliseconds
     err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
 
     return err;
@@ -146,7 +146,7 @@ int MotorControls::set_profile_deacc(uint16_t node_id, uint32_t deacc) {
     d.index = 0x6084;
     d.subindex = 0x00;
     d.data.size = 4;
-    d.data.data = deacc;//in milliseconds
+    d.data.data = motor_rps2_to_cps2(deacc);//in milliseconds
     err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
 
     return err;

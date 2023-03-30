@@ -105,6 +105,8 @@ private:
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
 
+    double motor_ppr = 4096;
+
     void Homing();
 
     };

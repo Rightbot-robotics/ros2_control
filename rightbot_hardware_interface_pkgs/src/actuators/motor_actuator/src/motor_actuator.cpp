@@ -233,12 +233,12 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     }
 
     if(previous_max_velocity_command_ != max_velocity_command_){
-        motor_controls_->set_profile_velocity(motor_id_, motor_controls_->motor_rpm_to_cps(max_velocity_command_));
+        motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
     }
 
     if(previous_acceleration_command_ != acceleration_command_){
-        motor_controls_->set_profile_acc(motor_id_, motor_controls_->motor_rps2_to_cps2(acceleration_command_));
-        motor_controls_->set_profile_deacc(motor_id_, motor_controls_->motor_rps2_to_cps2(acceleration_command_));
+        motor_controls_->set_profile_acc(motor_id_, acceleration_command_);
+        motor_controls_->set_profile_deacc(motor_id_, acceleration_command_);
     }
     
     previous_position_command_ = position_command_;

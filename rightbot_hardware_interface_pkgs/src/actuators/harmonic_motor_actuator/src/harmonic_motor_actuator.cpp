@@ -218,7 +218,8 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     if(previous_position_command_ != position_command_){
-        set_relative_position( static_cast<uint32_t>( position_command_), motor_id_);
+		int counts = static_cast<uint32_t>((position_command_/360)*motor_ppr_);
+        set_relative_position( counts, motor_id_);
     }
 
     if(previous_max_velocity_command_ != max_velocity_command_){
@@ -247,6 +248,17 @@ CallbackReturn HarmonicMotorActuator::on_shutdown(const rclcpp_lifecycle::State 
 CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
 
     return CallbackReturn::SUCCESS;
+
+}
+
+void HarmonicMotorActuator::HarmonicMotorActuator(){
+
+    // 100 rpm , 10 rps2 base
+
+    motor_controls_->set_profile_velocity(motor_id_, 100);
+    motor_controls_->set_profile_acc(motor_id_, 10);
+    motor_controls_->set_profile_deacc(motor_id_, 10);
+    motor_controls_->set_relative_position(motor_id_, axis_, 85000);
 
 }
 
@@ -550,7 +562,7 @@ int HarmonicMotorActuator::set_profile_acc(float acc) {
 	d.index = 0x6083;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)rpm_to_countspersec(acc);
+	d.data.data = (int32_t)motor_rps2_to_cps2(acc);
 	err |= SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
@@ -564,7 +576,7 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 	d.index = 0x6084;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)rpm_to_countspersec(deacc);
+	d.data.data = (int32_t)motor_rps2_to_cps2(deacc);
 	err |= SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
@@ -573,6 +585,11 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 int HarmonicMotorActuator::rpm_to_countspersec(float rpm) {
 	int counts_per_min = (int)((rpm)*(EROB_CPR));
 	return counts_per_min/60.0;
+}
+
+int HarmonicMotorActuator::motor_rps2_to_cps2(float rpss) {
+    int m_cps2 = (int)(rpss * EROB_CPR);
+    return m_cps2;
 }
 
 int HarmonicMotorActuator::set_relative_position(int32_t pos, uint16_t nodeid) {

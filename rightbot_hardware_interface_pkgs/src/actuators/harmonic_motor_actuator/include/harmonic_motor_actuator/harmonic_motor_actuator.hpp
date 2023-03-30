@@ -53,7 +53,6 @@ public:
     CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
     std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
     std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
-    std::string get_name() const override { return "HarmonicMotorActuator"; }
     hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
     hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
@@ -85,6 +84,7 @@ private:
     int set_profile_acc(float acc);
     int set_profile_deacc(float deacc);
     int rpm_to_countspersec(float rpm);
+    int motor_rps2_to_cps2(float rpss);
 
     int set_relative_position(int32_t pos, uint16_t nodeid);
     void goToInitPos();
@@ -109,6 +109,10 @@ private:
     double previous_position_command_ = 0.0;
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
+
+    double motor_ppr_ = 524288;
+
+    void Homing();
 
 };
 
