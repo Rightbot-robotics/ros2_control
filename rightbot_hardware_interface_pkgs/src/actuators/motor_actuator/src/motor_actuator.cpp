@@ -198,13 +198,16 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
 
 hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
+    std::cout << "Motor Actuator read" << std::endl;
+
     Json::Value sensor_data;
     encoder_sensor->getData(sensor_data);
 
+
     if(sensor_data["read_status"].asBool() == false){
-        return hardware_interface::return_type::ERROR;
+        // return hardware_interface::return_type::ERROR;
     }
-    
+
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
     input_states_state_ = sensor_data["input_states"].asInt();
@@ -222,6 +225,8 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 }
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+        std::cout << "Motor Actuator write" << std::endl;
 
     if(previous_position_command_ != position_command_){
         motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>( position_command_));
