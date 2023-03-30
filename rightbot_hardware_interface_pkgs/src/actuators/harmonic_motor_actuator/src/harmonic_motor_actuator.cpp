@@ -219,7 +219,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
     if(previous_position_command_ != position_command_){
 		int counts = static_cast<uint32_t>((position_command_/360)*motor_ppr_);
-        set_relative_position( counts, motor_id_);
+        set_relative_position( counts);
     }
 
     if(previous_max_velocity_command_ != max_velocity_command_){
@@ -251,14 +251,16 @@ CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & p
 
 }
 
-void HarmonicMotorActuator::HarmonicMotorActuator(){
+void HarmonicMotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base
 
-    motor_controls_->set_profile_velocity(motor_id_, 100);
-    motor_controls_->set_profile_acc(motor_id_, 10);
-    motor_controls_->set_profile_deacc(motor_id_, 10);
-    motor_controls_->set_relative_position(motor_id_, axis_, 85000);
+	set_profile_velocity( 100);
+
+	set_profile_acc(10);
+    set_profile_deacc(10);
+   
+	set_relative_position( 85000);
 
 }
 
@@ -592,12 +594,12 @@ int HarmonicMotorActuator::motor_rps2_to_cps2(float rpss) {
     return m_cps2;
 }
 
-int HarmonicMotorActuator::set_relative_position(int32_t pos, uint16_t nodeid) {
+int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	
 	int err = 0;
 
 	SDO_data d;
-	d.nodeid = nodeid;
+	d.nodeid = motor_id_;
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
@@ -633,7 +635,7 @@ void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
 	else if ((previous_mode == "position") && (command_type == "position")) {
 
 		// logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
-		set_relative_position(static_cast<int32_t>(pos),motor_id_);
+		set_relative_position(static_cast<int32_t>(pos));
 	}
 	else if((previous_mode != "position") && (command_type == "position")){
 
@@ -642,7 +644,7 @@ void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
         set_profile_velocity(max_vel);
     	set_profile_acc(accel);
     	set_profile_deacc(decel);
-        set_relative_position(static_cast<int32_t>(pos),motor_id_);
+        set_relative_position(static_cast<int32_t>(pos));
     
 	}
 	else{
@@ -660,7 +662,7 @@ void HarmonicMotorActuator::goToInitPos(){
 	set_profile_deacc(8);
 
 	int err = 0;
-	err |= set_relative_position(0, motor_id_);
+	err |= set_relative_position(0);
 	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
 	err |= motorControlword(motor_id_, Start_Excercise);
 

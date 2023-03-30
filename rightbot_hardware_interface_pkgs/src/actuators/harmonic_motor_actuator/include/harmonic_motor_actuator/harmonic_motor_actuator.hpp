@@ -86,7 +86,7 @@ private:
     int rpm_to_countspersec(float rpm);
     int motor_rps2_to_cps2(float rpss);
 
-    int set_relative_position(int32_t pos, uint16_t nodeid);
+    int set_relative_position(int32_t pos);
     void goToInitPos();
 
     // std::shared_ptr<spdlog::logger> logger_;
