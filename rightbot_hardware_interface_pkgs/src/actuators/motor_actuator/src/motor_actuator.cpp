@@ -32,6 +32,10 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     
     axis_ = stoi(info.joints[0].parameters.at("axis"));
     std::cout << "axis_: " << axis_ << std::endl;
+
+    std::string config_path = info.joints[0].parameters.at("path");
+
+    init_json(config_path);
     
     // logger_->info("motor_name_ {}", motor_name_);
     // logger_->info("motor_id_ {}", motor_id_);
@@ -110,6 +114,37 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     return CallbackReturn::SUCCESS;
 }
 
+void MotorActuator::init_json(std::string path){
+
+    Json::Value config_data;
+    JsonRead config_parser("/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json");
+
+    if (!config_parser.parse())
+    throw std::invalid_argument("Parsing error in config of Controller Manager");
+
+    config_parser.getValue(config_data);
+
+    if(config_data["motor_actuator"]["using_default_max_velocity"].asString() == "yes"){
+        using_default_max_velocity_ = true;
+        default_max_velocity_ = config_data["motor_actuator"]["default_max_velocity"].asDouble();
+        std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
+    }
+    else{
+        using_default_max_velocity_ = false;
+    }
+
+    if(config_data["motor_actuator"]["using_default_acceleration"].asString() == "yes"){
+        using_default_acceleration_ = true;
+        default_acceleration_ = config_data["motor_actuator"]["default_acceleration"].asDouble();
+        std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
+    }
+    else{
+        using_default_acceleration_ = false;
+    }
+
+
+}
+
 CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previous_state){
     
     motor_sockets_ = std::make_shared<Sockets>(motor_id_, motor_name_);
@@ -135,6 +170,16 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     // logger_->info("Motor Enable action for: [{}]",motor_name_);
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    if(using_default_max_velocity_){
+        std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+        motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
+    }
+    if(using_default_acceleration_){
+        std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+        motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
+        motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
+
+    }
 
     return CallbackReturn::SUCCESS;
 
@@ -232,13 +277,17 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>( position_command_));
     }
 
-    if(previous_max_velocity_command_ != max_velocity_command_){
-        motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
+    if(!using_default_max_velocity_){
+        if(previous_max_velocity_command_ != max_velocity_command_){
+            motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
+        }
     }
 
-    if(previous_acceleration_command_ != acceleration_command_){
-        motor_controls_->set_profile_acc(motor_id_, acceleration_command_);
-        motor_controls_->set_profile_deacc(motor_id_, acceleration_command_);
+    if(!using_default_acceleration_){
+        if(previous_acceleration_command_ != acceleration_command_){
+            motor_controls_->set_profile_acc(motor_id_, acceleration_command_);
+            motor_controls_->set_profile_deacc(motor_id_, acceleration_command_);
+        }
     }
     
     previous_position_command_ = position_command_;

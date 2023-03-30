@@ -45,6 +45,9 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+
+	std::string config_path;
+	init_json(config_path);
     
     // logger_->info("motor_name_ {}", motor_name_);
     // logger_->info("motor_id_ {}", motor_id_);
@@ -146,6 +149,16 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
     enableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+	if(using_default_max_velocity_){
+        std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+		set_profile_velocity(default_max_velocity_);
+    }
+    if(using_default_acceleration_){
+        std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+		set_profile_acc(default_acceleration_);
+        set_profile_deacc(default_acceleration_);
+    }
+
     return CallbackReturn::SUCCESS;
 
 }
@@ -201,7 +214,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     // getData(sensor_data);
 
     if(sensor_data["read_status"].asBool() == false){
-        return hardware_interface::return_type::ERROR;
+        // return hardware_interface::return_type::ERROR;
     }
     
     status_state_ = sensor_data["status"].asInt();
@@ -222,14 +235,19 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
         set_relative_position( counts);
     }
 
-    if(previous_max_velocity_command_ != max_velocity_command_){
-        set_profile_velocity(max_velocity_command_);
-    }
+	if(!using_default_max_velocity_){
 
-    if(previous_acceleration_command_ != acceleration_command_){
-        set_profile_acc(acceleration_command_);
-        set_profile_deacc(acceleration_command_);
-    }
+		if(previous_max_velocity_command_ != max_velocity_command_){
+			set_profile_velocity(max_velocity_command_);
+		}
+	}
+
+	if(!using_default_acceleration_){
+		if(previous_acceleration_command_ != acceleration_command_){
+			set_profile_acc(acceleration_command_);
+			set_profile_deacc(acceleration_command_);
+		}
+	}
     
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
@@ -248,6 +266,48 @@ CallbackReturn HarmonicMotorActuator::on_shutdown(const rclcpp_lifecycle::State 
 CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
 
     return CallbackReturn::SUCCESS;
+
+}
+
+void HarmonicMotorActuator::init_json(std::string path){
+
+    Json::Value config_data;
+    JsonRead config_parser("/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json");
+
+    if (!config_parser.parse())
+    throw std::invalid_argument("Parsing error in config of Controller Manager");
+
+    config_parser.getValue(config_data);
+
+    if(config_data["harmonic_motor_actuator"]["using_default_max_velocity"].asString() == "yes"){
+        using_default_max_velocity_ = true;
+        default_max_velocity_ = config_data["harmonic_motor_actuator"]["default_max_velocity"].asDouble();
+        std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
+    }
+    else{
+        using_default_max_velocity_ = false;
+    }
+
+    if(config_data["harmonic_motor_actuator"]["using_default_acceleration"].asString() == "yes"){
+        using_default_acceleration_ = true;
+        default_acceleration_ = config_data["harmonic_motor_actuator"]["default_acceleration"].asDouble();
+        std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
+    }
+    else{
+        using_default_acceleration_ = false;
+    }
+
+	if(homing_active_){
+		homing_position_ = config_data["harmonic_motor_actuator"]["homing"]["homing_position"].asInt() ;
+		homing_max_velocity_ = config_data["harmonic_motor_actuator"]["homing"]["homing_velocity"].asDouble() ;
+		homing_acceleration_ = config_data["harmonic_motor_actuator"]["homing"]["homing_acceleration"].asDouble() ;
+
+		std::cout << "homing_position_: " << homing_position_ << std::endl;
+		std::cout << "homing_max_velocity_: " << homing_max_velocity_ << std::endl;
+		std::cout << "homing_acceleration_: " << homing_acceleration_ << std::endl;
+
+	}
+
 
 }
 

@@ -56,6 +56,8 @@ public:
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
 
+    void init_json(std::string path);
+
 
 private:
 
@@ -108,6 +110,11 @@ private:
     double motor_ppr = 4096;
 
     void Homing();
+
+    bool using_default_max_velocity_ = true;
+    bool using_default_acceleration_ = true;
+    double default_max_velocity_ = 2.0;
+    double default_acceleration_ = 1.0;
 
     };
 
