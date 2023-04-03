@@ -231,19 +231,23 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     if(previous_position_command_ != position_command_){
-		int counts = static_cast<uint32_t>((position_command_/360)*motor_ppr_);
+		double angle_in_degree = (position_command_*(180/3.14));
+		int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
+		std::cout << "setting set_relative_position: " << position_command_ <<  ". counts: " << counts << std::endl;
         set_relative_position( counts);
     }
 
 	if(!using_default_max_velocity_){
 
 		if(previous_max_velocity_command_ != max_velocity_command_){
+			std::cout << "setting set_profile_velocity: " << max_velocity_command_ << std::endl;
 			set_profile_velocity(max_velocity_command_);
 		}
 	}
 
 	if(!using_default_acceleration_){
 		if(previous_acceleration_command_ != acceleration_command_){
+			std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
 			set_profile_acc(acceleration_command_);
 			set_profile_deacc(acceleration_command_);
 		}
@@ -666,8 +670,8 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.data.data = (int32_t)pos;
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
-	// err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
-	// err |= motorControlword(motor_id_, Start_Relative);// for trigger
+	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
+	err |= motorControlword(motor_id_, Start_Relative);// for trigger
 
 	return err;
 }
@@ -675,7 +679,7 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 
 void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
 
-      actuator_data_["timeout"] = actuator_data["timeout"];
+    actuator_data_["timeout"] = actuator_data["timeout"];
     actuator_data_["mode"] = actuator_data["mode"];
     actuator_data_["velocity"] = actuator_data["velocity"];
     actuator_data_["relative_pos"] = actuator_data["relative_pos"];
