@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+    <name>rightbot_hardware_interface_pkgs</name>
+    <version>2.15.0</version>
+    <description>Rightbot Interface packages</description>
+    <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
+    <maintainer email="denis@stoglrobotics.de">Denis Štogl</maintainer>
+
+    <license>Apache License 2.0</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>rightbot_hardware_interface</depend>
+    <depend>harmonic_motor_actuator</depend>
+    <depend>motor_actuator</depend>
+    <depend>motor</depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>
