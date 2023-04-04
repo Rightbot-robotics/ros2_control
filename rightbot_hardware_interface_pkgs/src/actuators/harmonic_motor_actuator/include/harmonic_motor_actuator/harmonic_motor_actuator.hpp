@@ -108,9 +108,9 @@ private:
     double max_velocity_command_ = 0.0;
     double acceleration_command_ = 0.0;
 
-    double previous_position_command_ = 0.0;
-    double previous_max_velocity_command_ = 0.0;
-    double previous_acceleration_command_ = 0.0;
+    double previous_position_command_ = -1.0;
+    double previous_max_velocity_command_ = -1.0;
+    double previous_acceleration_command_ = -1.0;
 
     double motor_ppr_ = 524288;
 
