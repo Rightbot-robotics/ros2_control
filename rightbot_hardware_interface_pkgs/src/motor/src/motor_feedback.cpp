@@ -88,12 +88,13 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
         enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
               ((uint32_t) f.data[3] << 24);
         //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
-        if (init_enc) {
-            *pos = -enc - err_enc;
-        } else {
-            err_enc = -enc;
-            init_enc = true;
-        }
+        // if (init_enc) {
+        //     *pos = -enc - err_enc;
+        // } else {
+        //     err_enc = -enc;
+        //     init_enc = true;
+        // }
+        *pos = enc; 
         //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
     }
 

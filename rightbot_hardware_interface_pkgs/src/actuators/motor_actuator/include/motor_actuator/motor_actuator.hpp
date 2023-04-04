@@ -107,14 +107,30 @@ private:
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
 
-    double motor_ppr = 4096;
+    int motor_ppr = 4096;
 
-    void Homing();
+    bool Homing();
+    bool homing_active = false;
+    double homing_velocity = 0.0;
+    double homing_acceleration = 0.0;
+    double homing_position = 0.0;
+
+    bool initialization_done = false;
+    int initial_counts = 0;
 
     bool using_default_max_velocity_ = true;
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
+
+    double total_travel_distance = 0.9; // in m
+    double motor_gear_ratio = 7.5;
+    double travel_per_revolution = 0.314; // in m
+
+    Json::Value sensor_data;
+    bool homing_achieved = false;
+
+    std::mutex actuator_mutex_;
 
     };
 

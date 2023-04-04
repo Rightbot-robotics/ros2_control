@@ -36,22 +36,25 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     std::string config_path = info.joints[0].parameters.at("path");
 
     init_json(config_path);
-    
-    // logger_->info("motor_name_ {}", motor_name_);
-    // logger_->info("motor_id_ {}", motor_id_);
-    // logger_->info("axis_ {}", axis_);
 
-    // motor_id_ = 12;
-    // motor_name_ = "left_wheel";
-    // axis_ = 1;
+    int homing_status = stoi(info.joints[0].parameters.at("homing"));
+    if(homing_status == 1){
+        homing_active = true;
+        homing_velocity = stod(info.joints[0].parameters.at("homing_velocity"));
+        std::cout << "homing_velocity: " << homing_velocity << std::endl;
+        homing_acceleration = stod(info.joints[0].parameters.at("homing_acceleration"));
+        std::cout << "homing_acceleration: " << homing_acceleration << std::endl;
+        homing_position = stod(info.joints[0].parameters.at("homing_position"));
+        std::cout << "homing_position: " << homing_position << std::endl;
+    }
 
-    // can only control one joint
-    // if (info_.joints.size() != 1)
-    // {
-    //   return CallbackReturn::ERROR;
-    // }
-
-    // can only control in position 
+    total_travel_distance = stod(info.joints[0].parameters.at("total_travel_distance"));
+    std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
+    motor_gear_ratio = stod(info.joints[0].parameters.at("motor_gear_ratio"));
+    std::cout << "motor_gear_ratio: " << motor_gear_ratio << std::endl;
+    travel_per_revolution = stod(info.joints[0].parameters.at("travel_per_revolution"));
+    std::cout << "travel_per_revolution: " << travel_per_revolution << std::endl;
+    //
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
     if (command_interfaces.size() != 3)
@@ -170,6 +173,15 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     // logger_->info("Motor Enable action for: [{}]",motor_name_);
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    if(homing_active){
+        if(!Homing()){
+
+            return CallbackReturn::ERROR;
+        }
+        
+    }
+
     if(using_default_max_velocity_){
         std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
         motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
@@ -180,6 +192,8 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
         motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
 
     }
+
+    
 
     return CallbackReturn::SUCCESS;
 
@@ -243,15 +257,22 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
 
 hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-    std::cout << "Motor Actuator read" << std::endl;
+    // std::cout << "Motor Actuator read" << std::endl;
 
-    Json::Value sensor_data;
+    
     encoder_sensor->getData(sensor_data);
 
 
     if(sensor_data["read_status"].asBool() == false){
         // return hardware_interface::return_type::ERROR;
-    }
+    } 
+
+    // if(sensor_data["read_status_encoder"].asBool() == true){
+    //     if(!initialization_done && homing_achieved){
+    //         initialization_done = true;
+    //         initial_counts = sensor_data["counts"].asInt();
+    //     }
+    // }
 
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
@@ -271,10 +292,18 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-        std::cout << "Motor Actuator write" << std::endl;
+        // std::cout << "Motor Actuator write" << std::endl;
 
     if(previous_position_command_ != position_command_){
-        motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>( position_command_));
+        
+        std::cout << "initial position command: " << position_command_ << std::endl;
+        std::cout << "initial_counts: " << initial_counts << std::endl;
+        std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
+        std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
+        auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        std::cout << "final position command: " << position_command_final_ << std::endl;
+        motor_controls_->set_absolute_position(motor_id_, axis_, static_cast<uint32_t>( position_command_final_));
+        
     }
 
     if(!using_default_max_velocity_){
@@ -309,14 +338,66 @@ CallbackReturn MotorActuator::on_error(const rclcpp_lifecycle::State & previous_
 
 }
 
-void MotorActuator::Homing(){
+bool MotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base
 
-    motor_controls_->set_profile_velocity(motor_id_, 100);
-    motor_controls_->set_profile_acc(motor_id_, 10);
-    motor_controls_->set_profile_deacc(motor_id_, 10);
-    motor_controls_->set_relative_position(motor_id_, axis_, 85000);
+    Json::Value sensor_data_homing;
+
+    std::cout << "execute homing " << std::endl;
+
+    auto homing_distance_to_travel = static_cast<uint32_t>((homing_position/travel_per_revolution)*motor_ppr*motor_gear_ratio);
+    std::cout << "homing_distance_to_travel: " << homing_distance_to_travel << std::endl;
+
+    std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
+          
+    auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+    
+    motor_controls_->set_profile_velocity(motor_id_, homing_velocity);
+    motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
+    motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
+    motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>(homing_distance_to_travel));
+
+    while((time_passed_response_received_lift_down.count()<30000) && (homing_achieved == false)){
+
+        requestData();
+
+        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+        
+        encoder_sensor->getData(sensor_data_homing);
+
+        if(sensor_data_homing["read_status_encoder"].asBool() == true){
+            initial_counts = sensor_data_homing["counts"].asInt();
+        }
+
+        if(sensor_data_homing["battery_voltage"].asBool()){
+
+            // std::cout << "encoder counts value: " << initial_counts << std::endl;
+            // std::cout << "input states value: " << sensor_data_homing["input_states"].asInt() << std::endl;
+            auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
+            auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
+            // std::cout << "input states pos value: " << limit_switch_pos << std::endl;
+            // std::cout << "input states neg value: " << limit_switch_neg << std::endl;
+
+            if(limit_switch_pos != 0){ // when bit set
+                homing_achieved = true;
+            }
+        }
+
+        time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+        std::this_thread::sleep_for(std::chrono::microseconds(8000));
+
+    }
+    if(!homing_achieved){
+        std::cout << "homing timeout" << std::endl;
+        return false;
+    }
+    else{
+        std::cout << "homing achieved" << std::endl;
+        return true;
+    }
+
+    
 
 }
 

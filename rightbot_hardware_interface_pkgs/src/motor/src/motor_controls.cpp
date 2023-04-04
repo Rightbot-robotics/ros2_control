@@ -110,6 +110,41 @@ int MotorControls::set_relative_position_immediate(uint16_t node_id, int axis, u
     return err;
 }
 
+int MotorControls::set_absolute_position(uint16_t node_id, int axis, uint32_t position) {
+    int err = 0;
+
+    SDO_data d;
+    d.nodeid = node_id;
+    d.index = 0x607A;
+    d.subindex = 0x00;
+    d.data.size = 4;
+    d.data.data = axis * position;//in milliseconds
+    err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
+
+    md_control_register.control_s.switch_on = 1;
+    md_control_register.control_s.enable_voltage = 1;
+    md_control_register.control_s.quick_stop = 1;
+    md_control_register.control_s.enable_operation = 1;
+    md_control_register.control_s.absolute_or_relative = 0; // 1 for relative
+    md_control_register.control_s.new_setpoint = 0;
+    md_control_register.control_s.instantaneous_change_set = 1;
+
+    d.index = 0x6040;
+    d.subindex = 0x00;
+    d.data.size = 2;
+    d.data.data = md_control_register.control_word;
+    err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
+
+    md_control_register.control_s.absolute_or_relative = 0;
+    md_control_register.control_s.new_setpoint = 1;
+    d.index = 0x6040;
+    d.subindex = 0x00;
+    d.data.size = 2;
+    d.data.data = md_control_register.control_word;
+    err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
+    return err;
+}
+
 int MotorControls::set_profile_velocity(uint16_t node_id, uint32_t speed) {
     int err = 0;
 

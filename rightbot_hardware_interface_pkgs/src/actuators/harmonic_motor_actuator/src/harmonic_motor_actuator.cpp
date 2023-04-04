@@ -210,6 +210,8 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
 
 hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
+	// std::cout << "Motor Harmonic Actuator read" << std::endl;
+
     Json::Value sensor_data;
     // getData(sensor_data);
 
@@ -229,6 +231,8 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 }
 
 hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+	// std::cout << "Motor Harmonic Actuator write" << std::endl;
 
     if(previous_position_command_ != position_command_){
 		double angle_in_degree = (position_command_*(180/3.14));

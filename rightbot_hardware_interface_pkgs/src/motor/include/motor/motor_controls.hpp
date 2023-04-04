@@ -103,6 +103,8 @@ public:
 
     int set_relative_position_immediate(uint16_t node_id, int axis, uint32_t position);
 
+    int set_absolute_position(uint16_t node_id, int axis, uint32_t position);
+
     int motor_rpm_to_cps(float rpm);
 
     int motor_rps2_to_cps2(float rpss);

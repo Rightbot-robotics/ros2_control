@@ -3,8 +3,8 @@
         "motor_ppr" : 4096,
         "using_default_max_velocity": "yes",
         "using_default_acceleration": "yes",
-        "default_max_velocity": 2.0,
-        "default_acceleration": 1.0
+        "default_max_velocity": 50.0,
+        "default_acceleration": 10.0
     },
 
     "harmonic_motor_actuator": {
@@ -12,12 +12,7 @@
         "using_default_max_velocity": "yes",
         "using_default_acceleration": "yes",
         "default_max_velocity": 2.0,
-        "default_acceleration": 1.0, 
-        "homing": {
-            "homing_position": 0,
-            "homing_velocity": 2,
-            "homing_acceleration": 1
-        }
+        "default_acceleration": 1.0
     }
 
 }

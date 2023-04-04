@@ -53,10 +53,13 @@
         <param name="can_id">14</param>
         <param name="axis">1</param>
         <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
-        <param name="homing">"active"</param>
+        <param name="homing">1</param>
         <param name="homing_velocity">50</param>
         <param name="homing_acceleration">10</param>
-        <param name="homing_position">2000</param>
+        <param name="homing_position">0.9</param>
+        <param name="total_travel_distance">0.9</param>
+        <param name="motor_gear_ratio">7.5</param>
+        <param name="travel_per_revolution">0.314</param>
     
       </joint>
     </ros2_control>
