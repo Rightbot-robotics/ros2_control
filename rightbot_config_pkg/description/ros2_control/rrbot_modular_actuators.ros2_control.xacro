@@ -38,6 +38,8 @@
         <param name="total_travel_distance">0.747</param>
         <param name="motor_gear_ratio">1</param>
         <param name="travel_per_revolution">0.032</param>
+        <param name="default_max_velocity">50.0</param>
+        <param name="default_max_accleration">10.0</param>
     
       </joint>
     </ros2_control>

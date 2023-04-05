@@ -35,7 +35,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     std::string config_path = info.joints[0].parameters.at("path");
 
-    init_json(config_path);
+    // init_json(config_path);
 
     int homing_status = stoi(info.joints[0].parameters.at("homing"));
     if(homing_status == 1){
@@ -57,6 +57,11 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     homing_at_zero = stoi(info.joints[0].parameters.at("homing_at_zero"));
     std::cout << "homing_at_zero: " << homing_at_zero << std::endl;
+
+    default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
+    default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
+    std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
+    std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 
     //
     const auto & command_interfaces = info_.joints[0].command_interfaces;
