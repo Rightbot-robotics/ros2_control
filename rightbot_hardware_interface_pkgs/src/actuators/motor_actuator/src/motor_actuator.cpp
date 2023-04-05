@@ -267,7 +267,14 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
 hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     // std::cout << "Motor Actuator read" << std::endl;
+    // std::cout << "Motor Actuator read: " << motor_name_ <<std::endl;
 
+    if(motor_name_ == "h_gantry_joint"){
+        requestData();
+        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+		// std::cout << "read request" << std::endl;
+
+	}
     
     encoder_sensor->getData(sensor_data);
 
@@ -295,6 +302,15 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     latched_fault_state_ = sensor_data["latched_fault"].asInt();
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
+
+    // std::cout << "status_state_: " << status_state_ <<std::endl;
+	// std::cout << "battery_voltage_state_: " << battery_voltage_state_ <<std::endl;
+    // std::cout << "input_states_state_: " << input_states_state_ <<std::endl;
+	// std::cout << "position_state_: " << position_state_ <<std::endl;
+	// std::cout << "velocity_state_: " << velocity_state_ <<std::endl;
+    // std::cout << "manufacturer_register_state_: " << manufacturer_register_state_ <<std::endl;
+    // std::cout << "latched_fault_state_: " << latched_fault_state_ <<std::endl;
+	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
 
     return hardware_interface::return_type::OK;
 }

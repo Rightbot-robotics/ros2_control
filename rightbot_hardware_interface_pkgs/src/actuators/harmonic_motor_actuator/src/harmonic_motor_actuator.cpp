@@ -203,10 +203,9 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
 
 hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-	// std::cout << "Motor Harmonic Actuator read" << std::endl;
-
-    Json::Value sensor_data;
-    // getData(sensor_data);
+	// std::cout << "Motor Harmonic Actuator read: " << motor_name_ <<std::endl;
+	
+    encoder_sensor_->getData(sensor_data);
 
     if(sensor_data["read_status"].asBool() == false){
         // return hardware_interface::return_type::ERROR;
@@ -219,6 +218,13 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     velocity_state_ = sensor_data["velocity"].asDouble();
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
+
+	// std::cout << "status_state_: " << status_state_ <<std::endl;
+	// std::cout << "error_code_state_: " << error_code_state_ <<std::endl;
+	// std::cout << "position_state_: " << position_state_ <<std::endl;
+	// std::cout << "velocity_state_: " << velocity_state_ <<std::endl;
+	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
+
 
     return hardware_interface::return_type::OK;
 }

@@ -98,6 +98,8 @@ private:
     Json::Value actuator_data_;
     std::string previous_mode;
 
+    Json::Value sensor_data;
+
     double status_state_ = std::numeric_limits<double>::quiet_NaN();
     double error_code_state_ = std::numeric_limits<double>::quiet_NaN();
     double position_state_ = std::numeric_limits<double>::quiet_NaN();
