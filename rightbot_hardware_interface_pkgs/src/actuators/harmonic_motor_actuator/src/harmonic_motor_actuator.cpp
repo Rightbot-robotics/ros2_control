@@ -47,19 +47,12 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     axis_ = stoi(info.joints[0].parameters.at("axis"));
 
 	std::string config_path;
-	init_json(config_path);
+	// init_json(config_path);
     
-    // logger_->info("motor_name_ {}", motor_name_);
-    // logger_->info("motor_id_ {}", motor_id_);
-    // logger_->info("axis_ {}", axis_);
-
-    // fill motor data from json file here
-
-    // can only control one joint
-    // if (info_.joints.size() != 1)
-    // {
-    //   return CallbackReturn::ERROR;
-    // }
+    default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
+    default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
+    std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
+    std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
@@ -304,31 +297,6 @@ void HarmonicMotorActuator::init_json(std::string path){
     else{
         using_default_acceleration_ = false;
     }
-
-	if(homing_active_){
-		homing_position_ = config_data["harmonic_motor_actuator"]["homing"]["homing_position"].asInt() ;
-		homing_max_velocity_ = config_data["harmonic_motor_actuator"]["homing"]["homing_velocity"].asDouble() ;
-		homing_acceleration_ = config_data["harmonic_motor_actuator"]["homing"]["homing_acceleration"].asDouble() ;
-
-		std::cout << "homing_position_: " << homing_position_ << std::endl;
-		std::cout << "homing_max_velocity_: " << homing_max_velocity_ << std::endl;
-		std::cout << "homing_acceleration_: " << homing_acceleration_ << std::endl;
-
-	}
-
-
-}
-
-void HarmonicMotorActuator::Homing(){
-
-    // 100 rpm , 10 rps2 base
-
-	set_profile_velocity( 100);
-
-	set_profile_acc(10);
-    set_profile_deacc(10);
-   
-	set_relative_position( 85000);
 
 }
 
