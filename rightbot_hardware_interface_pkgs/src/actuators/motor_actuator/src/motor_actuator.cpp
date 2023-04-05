@@ -54,6 +54,10 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     std::cout << "motor_gear_ratio: " << motor_gear_ratio << std::endl;
     travel_per_revolution = stod(info.joints[0].parameters.at("travel_per_revolution"));
     std::cout << "travel_per_revolution: " << travel_per_revolution << std::endl;
+
+    homing_at_zero = stoi(info.joints[0].parameters.at("homing_at_zero"));
+    std::cout << "homing_at_zero: " << homing_at_zero << std::endl;
+
     //
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
@@ -300,9 +304,15 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         std::cout << "initial_counts: " << initial_counts << std::endl;
         std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
-        auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        if(homing_at_zero){
+            auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        } else {
+            auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        }
+        auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
         std::cout << "final position command: " << position_command_final_ << std::endl;
-        motor_controls_->set_absolute_position(motor_id_, axis_, static_cast<uint32_t>( position_command_final_));
+        motor_controls_->set_absolute_position(motor_id_, axis_, static_cast<int32_t>( position_command_final_));
         
     }
 
@@ -346,7 +356,7 @@ bool MotorActuator::Homing(){
 
     std::cout << "execute homing " << std::endl;
 
-    auto homing_distance_to_travel = static_cast<uint32_t>((homing_position/travel_per_revolution)*motor_ppr*motor_gear_ratio);
+    auto homing_distance_to_travel = static_cast<int32_t>((homing_position/travel_per_revolution)*motor_ppr*motor_gear_ratio);
     std::cout << "homing_distance_to_travel: " << homing_distance_to_travel << std::endl;
 
     std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
@@ -356,7 +366,7 @@ bool MotorActuator::Homing(){
     motor_controls_->set_profile_velocity(motor_id_, homing_velocity);
     motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
     motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
-    motor_controls_->set_relative_position(motor_id_, axis_, static_cast<uint32_t>(homing_distance_to_travel));
+    motor_controls_->set_relative_position(motor_id_, axis_, homing_distance_to_travel);
 
     while((time_passed_response_received_lift_down.count()<30000) && (homing_achieved == false)){
 
@@ -379,7 +389,15 @@ bool MotorActuator::Homing(){
             // std::cout << "input states pos value: " << limit_switch_pos << std::endl;
             // std::cout << "input states neg value: " << limit_switch_neg << std::endl;
 
-            if(limit_switch_pos != 0){ // when bit set
+            // if(limit_switch_pos != 0){ // when bit set
+            //     homing_achieved = true;
+            // }
+
+            if((homing_distance_to_travel > 0) && (limit_switch_pos != 0)){
+                homing_achieved = true;
+            }
+
+            if((homing_distance_to_travel < 0) && (limit_switch_neg != 0)){
                 homing_achieved = true;
             }
         }

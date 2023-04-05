@@ -111,6 +111,8 @@ private:
 
     bool Homing();
     bool homing_active = false;
+    int homing_at_zero = 0; // 0 is false 1 is true
+
     double homing_velocity = 0.0;
     double homing_acceleration = 0.0;
     double homing_position = 0.0;
@@ -131,6 +133,8 @@ private:
     bool homing_achieved = false;
 
     std::mutex actuator_mutex_;
+
+    char STATUS_IF_TRUE[5] = "true";
 
     };
 
