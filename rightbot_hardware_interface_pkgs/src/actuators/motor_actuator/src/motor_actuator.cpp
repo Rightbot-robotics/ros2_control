@@ -310,14 +310,19 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        int position_command_final_;
         if(homing_at_zero){
-            auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+            auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+            position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+            std::cout << "final position command (homing at zero): " << position_command_final_ << std::endl;
         } else {
-            auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+            auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+            position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+            std::cout << "final position command: (homing not at zero) " << position_command_final_ << std::endl;
         }
-        auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-        std::cout << "final position command: " << position_command_final_ << std::endl;
-        motor_controls_->set_absolute_position(motor_id_, axis_, static_cast<int32_t>( position_command_final_));
+        // auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+        // std::cout << "final position command: " << position_command_final_ << std::endl;
+        motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
     }
 
