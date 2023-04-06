@@ -253,7 +253,7 @@ void HarmonicEncoderSensor::readMotorData() {
         // logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
 
 
-        std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
+        std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
 
     }
 
@@ -273,6 +273,7 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
         // logger_->debug("Read deque size after pop: {}", q_encoder_data_.size());
         if (q_encoder_data_.size() > 10) {
             //logger_->error("Read deque size : [{}]", q_encoder_data_.size());
+            std::cout << "Read deque size: "<< q_encoder_data_.size() << std::endl;
             q_encoder_data_.clear();
         }
 

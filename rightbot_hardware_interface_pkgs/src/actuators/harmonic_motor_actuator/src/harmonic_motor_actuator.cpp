@@ -645,7 +645,7 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)pos;
+	d.data.data = (int32_t)pos*axis_;
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
