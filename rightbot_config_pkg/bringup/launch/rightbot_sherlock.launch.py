@@ -32,7 +32,7 @@ def generate_launch_description():
                 [
                     FindPackageShare("rightbot_config_pkg"),
                     "urdf",
-                    "rrbot_modular_actuators.urdf.xacro",
+                    "rightbot_sherlock.urdf.xacro",
                 ]
             ),
         ]
@@ -43,7 +43,7 @@ def generate_launch_description():
         [
             FindPackageShare("rightbot_config_pkg"),
             "config",
-            "rrbot_controllers.yaml",
+            "sherlock_controllers.yaml",
         ]
     )
     rviz_config_file = PathJoinSubstitution(
