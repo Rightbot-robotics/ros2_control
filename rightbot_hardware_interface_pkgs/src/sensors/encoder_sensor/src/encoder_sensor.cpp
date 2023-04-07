@@ -6,6 +6,7 @@ EncoderData::EncoderData() {
     status_m = 0;
     battery_vol_m = 0.0;
     input_states_m = 0;
+    actual_motor_current_m = 0.0;
     pos_m = 0;
     vel_m = 0.0;
     manufacturer_reg_m = 0;
@@ -47,6 +48,7 @@ void EncoderSensor::initialize(Json::Value &config_data, Sockets::SocketsSPtr mo
     feedback_s_m.status_m = 0;
     feedback_s_m.battery_vol_m = 0.0;
     feedback_s_m.input_states_m = 0;
+    feedback_s_m.actual_motor_current_m = 0.0;
     feedback_s_m.pos_m = 0;
     feedback_s_m.vel_m = 0.0;
     feedback_s_m.manufacturer_reg_m =0;
@@ -92,6 +94,7 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
         encoder_data->status_m = feedback_s_m.status_m;
         encoder_data->battery_vol_m = feedback_s_m.battery_vol_m;
         encoder_data->input_states_m = feedback_s_m.input_states_m;
+        encoder_data->actual_motor_current_m = feedback_s_m.actual_motor_current_m;
         encoder_data->read_status_voltage = true;
 
     }
@@ -230,6 +233,7 @@ void EncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["status"] = encoder_data_q_element.status_m;
         sensor_data["battery_voltage"] = encoder_data_q_element.battery_vol_m;
         sensor_data["input_states"] = encoder_data_q_element.input_states_m;
+        sensor_data["actual_motor_current"] = encoder_data_q_element.actual_motor_current_m;
         sensor_data["counts"] = encoder_data_q_element.pos_m;
         sensor_data["velocity"] = encoder_data_q_element.vel_m;
         sensor_data["manufacturer_register"] = encoder_data_q_element.manufacturer_reg_m;

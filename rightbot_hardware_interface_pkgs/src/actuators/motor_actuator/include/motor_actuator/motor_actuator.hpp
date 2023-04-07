@@ -93,6 +93,7 @@ private:
     double status_state_ = std::numeric_limits<double>::quiet_NaN();
     double battery_voltage_state_ = std::numeric_limits<double>::quiet_NaN();
     double input_states_state_ = std::numeric_limits<double>::quiet_NaN();
+    double actual_motor_current_state_ = std::numeric_limits<double>::quiet_NaN();
     double position_state_ = std::numeric_limits<double>::quiet_NaN();
     double velocity_state_ = std::numeric_limits<double>::quiet_NaN();
     double manufacturer_register_state_ = std::numeric_limits<double>::quiet_NaN();

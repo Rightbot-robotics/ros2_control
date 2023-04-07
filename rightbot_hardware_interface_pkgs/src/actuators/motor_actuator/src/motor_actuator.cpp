@@ -93,7 +93,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
-    if (state_interfaces.size() != 8)
+    if (state_interfaces.size() != 9)
     {
         // logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         std::cout << "Incorrect number of state interfaces. " << std::endl;
@@ -109,7 +109,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (state_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (state_interface.name != hardware_interface::HW_IF_MANUFACTURER_REGISTER) &&
             (state_interface.name != hardware_interface::HW_IF_LATCHED_FAULT) &&
-            (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR)
+            (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
+            (state_interface.name != hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT)
             )
        {
             // logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
@@ -242,6 +243,8 @@ std::vector<hardware_interface::StateInterface> MotorActuator::export_state_inte
       motor_name_, hardware_interface::HW_IF_LATCHED_FAULT, &latched_fault_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT, &actual_motor_current_state_));
 
     return state_interfaces;
 
@@ -293,6 +296,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
     input_states_state_ = sensor_data["input_states"].asInt();
+    actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
     position_state_ = sensor_data["counts"].asInt();
     velocity_state_ = sensor_data["velocity"].asDouble();

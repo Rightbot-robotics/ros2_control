@@ -33,6 +33,7 @@ public:
         uint16_t status_m;
         float battery_vol_m;
         uint16_t input_states_m;
+        float actual_motor_current_m;
         int32_t pos_m; // position loop params
         double vel_m;
         uint32_t manufacturer_reg_m;
@@ -46,7 +47,7 @@ public:
     int err_pdo_3_;
     int err_pdo_4_;
 
-    int motor_status_n_voltage_n_input_states_read(int motor_id, uint16_t *status, float *battery_vol, uint16_t *input_states, int timeout);
+    int motor_status_n_voltage_n_input_states_read(int motor_id, uint16_t *status, float *battery_vol, uint16_t *input_states, float *actual_motor_current, int timeout);
 
     int motor_enc_read(int motor_id, int32_t *pos, int timeout);
 
@@ -61,6 +62,7 @@ public:
     uint16_t status_register_fb_[1];
     float battery_vol_fb_[1];
     uint16_t input_states_fb_[1];
+    float actual_motor_current_fb_[1];
     int32_t encoder_fb_[1];
     double vel_fb_[1];
     uint32_t manufacturer_reg_fb_[1];
