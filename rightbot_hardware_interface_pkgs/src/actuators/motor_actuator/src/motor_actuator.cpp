@@ -78,7 +78,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     {
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
-            (command_interface.name != hardware_interface::HW_IF_MAX_VELOCITY) &&
+            (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) 
         )
        {
@@ -260,7 +260,7 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_MAX_VELOCITY, &max_velocity_command_));
+      motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
 
@@ -272,7 +272,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     // std::cout << "Motor Actuator read" << std::endl;
     // std::cout << "Motor Actuator read: " << motor_name_ <<std::endl;
 
-    if(motor_name_ == "h_gantry_joint"){
+    if(motor_name_ == "v_gantry_joint"){
         requestData();
         std::this_thread::sleep_for(std::chrono::microseconds(2000));
 		// std::cout << "read request" << std::endl;
@@ -298,7 +298,23 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     input_states_state_ = sensor_data["input_states"].asInt();
     actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
-    position_state_ = sensor_data["counts"].asInt();
+    // std::cout << "sensor data counts: " << sensor_data["counts"].asInt() << std::endl;
+
+
+    if(homing_at_zero){
+        
+        position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+
+        // std::cout << " (homing at zero) position_state_: " << position_state_ << std::endl;
+    } else {
+        
+        position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+    
+        // std::cout << " (homing not at zero) position_state_: " << position_state_ << std::endl;
+    }
+
+    // position_state_ = sensor_data["counts"].asInt();
+
     velocity_state_ = sensor_data["velocity"].asDouble();
 
     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();
@@ -325,10 +341,10 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     if(previous_position_command_ != position_command_){
         
-        std::cout << "initial position command: " << position_command_ << std::endl;
-        std::cout << "initial_counts: " << initial_counts << std::endl;
-        std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
-        std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
+        // std::cout << "initial position command: " << position_command_ << std::endl;
+        // std::cout << "initial_counts: " << initial_counts << std::endl;
+        // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
+        // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
         int position_command_final_;
         if(homing_at_zero){
@@ -345,15 +361,17 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
     }
-
-    if(!using_default_max_velocity_){
-        if(previous_max_velocity_command_ != max_velocity_command_){
+    
+    if(previous_max_velocity_command_ != max_velocity_command_){
+        std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
+        if(!using_default_max_velocity_){
             motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
         }
     }
 
-    if(!using_default_acceleration_){
-        if(previous_acceleration_command_ != acceleration_command_){
+    if(previous_acceleration_command_ != acceleration_command_){
+        std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
+        if(!using_default_acceleration_){
             motor_controls_->set_profile_acc(motor_id_, acceleration_command_);
             motor_controls_->set_profile_deacc(motor_id_, acceleration_command_);
         }

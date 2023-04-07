@@ -88,6 +88,7 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
     auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::system_clock::now() - start_time);
     // logger_->info("Time in execution [ readMotorFeedback() ]: [{}] us", time_passed_in_read.count());
+    // std::cout<< "read data encoder" << std::endl;
    
     if (0 == read_error_code_map["voltage"]) {
 

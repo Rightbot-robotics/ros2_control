@@ -13,14 +13,16 @@ controller_manager:
 position_trajectory_controller:
   ros__parameters:
     joints:
-      - h_gantry_joint
-      - base_rotation_joint
+      - v_gantry_joint
 
     command_interfaces:
       - position
+      - velocity
+      - acceleration
 
     state_interfaces:
       - position
+      - velocity
 
     state_publish_rate: 200.0 # Defaults to 50
     action_monitor_rate: 20.0 # Defaults to 20
