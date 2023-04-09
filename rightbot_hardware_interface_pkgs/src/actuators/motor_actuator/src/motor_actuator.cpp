@@ -13,11 +13,10 @@ MotorActuator::MotorActuator() {
 MotorActuator::~MotorActuator() = default;
 
 CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & info){
-    // We hardcode the info
-    // logger_ = spdlog::get("hardware_interface")->clone("motor_actuator");
-   
-    // logger_->info("Motor Actuator Init");
-    std::cout << "Motor Actuator Init" << std::endl;
+
+    logger_ = spdlog::get("hardware_interface")->clone("motor_actuator");
+
+    // std::cout << "Motor Actuator Init" << std::endl;
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       
@@ -25,13 +24,15 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     }
 
     motor_name_ = info_.joints[0].name;
-    std::cout << "motor_name_: " << motor_name_ << std::endl;
+    // std::cout << "motor_name_: " << motor_name_ << std::endl;
 
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
-    std::cout << "motor_id_: " << motor_id_ << std::endl;
+    // std::cout << "motor_id_: " << motor_id_ << std::endl;
     
     axis_ = stoi(info.joints[0].parameters.at("axis"));
-    std::cout << "axis_: " << axis_ << std::endl;
+    // std::cout << "axis_: " << axis_ << std::endl;
+
+    logger_->info("Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 
     std::string config_path = info.joints[0].parameters.at("path");
 
@@ -41,35 +42,46 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     if(homing_status == 1){
         homing_active = true;
         homing_velocity = stod(info.joints[0].parameters.at("homing_velocity"));
-        std::cout << "homing_velocity: " << homing_velocity << std::endl;
+        // std::cout << "homing_velocity: " << homing_velocity << std::endl;
         homing_acceleration = stod(info.joints[0].parameters.at("homing_acceleration"));
-        std::cout << "homing_acceleration: " << homing_acceleration << std::endl;
+        // std::cout << "homing_acceleration: " << homing_acceleration << std::endl;
         homing_position = stod(info.joints[0].parameters.at("homing_position"));
-        std::cout << "homing_position: " << homing_position << std::endl;
+        // std::cout << "homing_position: " << homing_position << std::endl;
+
+        logger_->info("Actuator: [{}]-> HOMING velocity:[{}], accleration:[{}], position: [{}]", motor_name_, homing_velocity, homing_acceleration, homing_position);
     }
 
     total_travel_distance = stod(info.joints[0].parameters.at("total_travel_distance"));
-    std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
+    // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
     motor_gear_ratio = stod(info.joints[0].parameters.at("motor_gear_ratio"));
-    std::cout << "motor_gear_ratio: " << motor_gear_ratio << std::endl;
+    // std::cout << "motor_gear_ratio: " << motor_gear_ratio << std::endl;
     travel_per_revolution = stod(info.joints[0].parameters.at("travel_per_revolution"));
-    std::cout << "travel_per_revolution: " << travel_per_revolution << std::endl;
+    // std::cout << "travel_per_revolution: " << travel_per_revolution << std::endl;
+
+    logger_->info("Actuator: [{}]-> Total travel distance:[{}], Motor gear ratio:[{}], Travel per revolution: [{}]", motor_name_, total_travel_distance, motor_gear_ratio, travel_per_revolution);
 
     homing_at_zero = stoi(info.joints[0].parameters.at("homing_at_zero"));
-    std::cout << "homing_at_zero: " << homing_at_zero << std::endl;
+    // std::cout << "homing_at_zero: " << homing_at_zero << std::endl;
+    if(homing_at_zero){
+        logger_->info("Actuator: [{}]-> Homing at zero", motor_name_);
+    }
+    else{
+        logger_->info("Actuator: [{}]-> Homing not at zero", motor_name_);
+    }
 
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
-    std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
-    std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
+    // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
+    // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 
-    //
+    logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
+
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
     if (command_interfaces.size() != 3)
     {
-        // logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
-        std::cout << "Incorrect number of command interfaces. " << std::endl;
+        logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
+        // std::cout << "Incorrect number of command interfaces. " << std::endl;
         return CallbackReturn::ERROR;
     }
     
@@ -82,8 +94,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) 
         )
        {
-            // logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
-            std::cout << "Incorrect type of command interfaces. " << std::endl;
+            logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
+            // std::cout << "Incorrect type of command interfaces. " << std::endl;
 
 
             return CallbackReturn::ERROR;
@@ -95,8 +107,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     const auto & state_interfaces = info_.joints[0].state_interfaces;
     if (state_interfaces.size() != 9)
     {
-        // logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
-        std::cout << "Incorrect number of state interfaces. " << std::endl;
+        logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
+        // std::cout << "Incorrect number of state interfaces. " << std::endl;
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
@@ -113,16 +125,16 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (state_interface.name != hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT)
             )
        {
-            // logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
-            std::cout << "Incorrect type of state interfaces. " << std::endl;
+            logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
+            // std::cout << "Incorrect type of state interfaces. " << std::endl;
             return CallbackReturn::ERROR;
        }
 
     }
     // fprintf(stderr, "TestSingleJointActuator configured successfully.\n");
 
-    // logger_->info("[{}] - Intialiazation successful", motor_name_);
-    std::cout << "Intialiazation successful. " << std::endl;
+    logger_->info("[{}] - Intialiazation successful", motor_name_);
+    // std::cout << "Intialiazation successful. " << std::endl;
     
     return CallbackReturn::SUCCESS;
 }
@@ -180,34 +192,35 @@ CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previ
 
 CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
 
-    // logger_->info("Motor Enable action for: [{}]",motor_name_);
+    logger_->info("Motor Enable action for: [{}]",motor_name_);
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     if(homing_active){
-        if(!Homing()){
+        // if(!Homing()){
 
-            return CallbackReturn::ERROR;
-        }
+        //     return CallbackReturn::ERROR;
+        // }
         
     }
-
-    
-    std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+ 
+    // std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+    logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
     motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
     
-    std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+    // std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+    logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
     motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
     motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
 
     
-    if(motor_name_ == "h_gantry_joint"){
-        std::cout << "h_gantry_joint setting default_max_velocity_: " << default_max_velocity_ << std::endl;
-        motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
-        std::cout << "h_gantry_joint setting default_acceleration_: " << default_acceleration_ << std::endl;
-        motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
-        motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
-    }
+    // if(motor_name_ == "h_gantry_joint"){
+    //     std::cout << "h_gantry_joint setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+    //     motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
+    //     std::cout << "h_gantry_joint setting default_acceleration_: " << default_acceleration_ << std::endl;
+    //     motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
+    //     motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
+    // }
 
     return CallbackReturn::SUCCESS;
 
@@ -215,7 +228,7 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 
 CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
-    // logger_->info("Motor Disable action for: [{}]",motor_name_);
+    logger_->info("Motor Disable action for: [{}]",motor_name_);
     motor_->motor_disable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -336,6 +349,10 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     // std::cout << "latched_fault_state_: " << latched_fault_state_ <<std::endl;
 	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
 
+    logger_->debug("[{}] Read status: [{}], battery_voltage: [{}], input_states: [{}]", motor_name_, status_state_, battery_voltage_state_, input_states_state_);
+    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
+    logger_->debug("[{}] Read manufacturer_register: [{}], latched_fault: [{}], node_guard_error: [{}]", motor_name_, manufacturer_register_state_, latched_fault_state_, node_guard_error_state_);
+
     return hardware_interface::return_type::OK;
 }
 
@@ -346,18 +363,20 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     if(previous_max_velocity_command_ != max_velocity_command_){
         
         if(!using_default_max_velocity_){
-            std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
+            // std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
             motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
         }
     }
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
-            std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
+            // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
+            logger_->debug("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
             if(!using_default_acceleration_ && (motor_name_!= "h_gantry_joint")){
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
-                std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
+                // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
+                logger_->debug("[{}] Acceleration command in rps2: [{}]", motor_name_, static_cast<float>(acceleration_command_final_));
                 motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_));
                 motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_));
             }
@@ -371,18 +390,22 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+
+        logger_->debug("[{}] Position command: [{}]", motor_name_, position_command_);
+
         int position_command_final_;
         if(homing_at_zero){
             auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
             position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-            std::cout << "final position command (homing at zero): " << position_command_final_ << std::endl;
+            // std::cout << "final position command (homing at zero): " << position_command_final_ << std::endl;
         } else {
             auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
             position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-            std::cout << "final position command: (homing not at zero) " << position_command_final_ << std::endl;
+            // std::cout << "final position command: (homing not at zero) " << position_command_final_ << std::endl;
         }
         // auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
         // std::cout << "final position command: " << position_command_final_ << std::endl;
+        logger_->debug("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
         motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
     }
@@ -412,10 +435,10 @@ bool MotorActuator::Homing(){
 
     Json::Value sensor_data_homing;
 
-    std::cout << "execute homing " << std::endl;
+    // std::cout << "execute homing " << std::endl;
 
     auto homing_distance_to_travel = static_cast<int32_t>((homing_position/travel_per_revolution)*motor_ppr*motor_gear_ratio);
-    std::cout << "homing_distance_to_travel: " << homing_distance_to_travel << std::endl;
+    // std::cout << "homing_distance_to_travel: " << homing_distance_to_travel << std::endl;
 
     std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
           
@@ -465,11 +488,13 @@ bool MotorActuator::Homing(){
 
     }
     if(!homing_achieved){
-        std::cout << "homing timeout" << std::endl;
+        // std::cout << "homing timeout" << std::endl;
+        logger_->error("[{}] Homing timeout", motor_name_);
         return false;
     }
     else{
-        std::cout << "homing achieved" << std::endl;
+        // std::cout << "homing achieved" << std::endl;
+        logger_->info("[{}] Homing achieved", motor_name_);
         return true;
     }
 

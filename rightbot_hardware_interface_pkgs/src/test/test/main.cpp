@@ -84,15 +84,15 @@ void signals() {
 
 int main() {
 
-     spdlog::init_thread_pool(8192, 1);
-     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt >();
-     console_sink->set_level(spdlog::level::info);
-     auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*100, 3);
-     rotating_sink->set_level(spdlog::level::debug);
-     std::vector<spdlog::sink_ptr> sinks {console_sink,rotating_sink};
-     auto root_logger = std::make_shared<spdlog::async_logger>("hardware_interface", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-     root_logger->set_level(spdlog::level::debug);
-     spdlog::register_logger(root_logger);
+    spdlog::init_thread_pool(8192, 1);
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt >();
+    console_sink->set_level(spdlog::level::info);
+    auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*100, 3);
+    rotating_sink->set_level(spdlog::level::debug);
+    std::vector<spdlog::sink_ptr> sinks {console_sink,rotating_sink};
+    auto root_logger = std::make_shared<spdlog::async_logger>("hardware_interface", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+    root_logger->set_level(spdlog::level::debug);
+    spdlog::register_logger(root_logger);
 
     logger_ = spdlog::get("hardware_interface")->clone("test_motor_actuator");
 

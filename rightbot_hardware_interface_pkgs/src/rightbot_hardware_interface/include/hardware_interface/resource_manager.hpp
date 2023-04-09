@@ -29,6 +29,12 @@
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
 
+
+#include "spdlog/spdlog.h"
+#include "spdlog/async.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+
 namespace hardware_interface
 {
 class ActuatorInterface;
@@ -374,6 +380,7 @@ private:
   mutable std::recursive_mutex resource_interfaces_lock_;
   mutable std::recursive_mutex claimed_command_interfaces_lock_;
   std::unique_ptr<ResourceStorage> resource_storage_;
+  std::shared_ptr<spdlog::logger> logger_;
 };
 
 }  // namespace hardware_interface

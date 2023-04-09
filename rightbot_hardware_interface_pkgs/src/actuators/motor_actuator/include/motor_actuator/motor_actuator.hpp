@@ -70,7 +70,7 @@ private:
     MotorControls::MotorControlsSPtr motor_controls_;
     EncoderSensor::EncoderSensorSPtr encoder_sensor ;
 
-    // std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<spdlog::logger> logger_;
     // bool motorCommand(int motor_id, std::string command_type, MotorControls::position_cmd_t position_cmd_element, MotorControls::velocity_cmd_t velocity_cmd_element);
     int motor_id_;
     int axis_;

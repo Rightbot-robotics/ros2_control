@@ -33,7 +33,7 @@ HarmonicMotorActuator::~HarmonicMotorActuator(){
 
 CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::HardwareInfo & info){
     // We hardcode the info
-    // logger_ = spdlog::get("hardware_interface")->clone("harmonic_motor_actuator");
+    logger_ = spdlog::get("hardware_interface")->clone("harmonic_motor_actuator");
    
     // logger_->info(" Harmonic Motor Actuator Init");
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
@@ -46,20 +46,24 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
 
+	logger_->info("Harmonic Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
+
 	std::string config_path;
 	// init_json(config_path);
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
-    std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
-    std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
+    // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
+    // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
+	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
+
 
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
     if (command_interfaces.size() != 3)
     {
-        // logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
+        logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
 
@@ -71,7 +75,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION)
         )
        {
-            // logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
+            logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
             
             return CallbackReturn::ERROR;
        }
@@ -82,7 +86,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     const auto & state_interfaces = info_.joints[0].state_interfaces;
     if (state_interfaces.size() != 6)
     {
-        // logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
+        logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
@@ -96,7 +100,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
 			(state_interface.name != hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT)
 			)
        {
-            // logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
+            logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
 
             return CallbackReturn::ERROR;
        }
@@ -104,7 +108,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     }
     // fprintf(stderr, "TestSingleJointActuator configured successfully.\n");
 
-    // logger_->info("[{}] - Intialiazation successful", motor_name_);
+    logger_->info("[{}] - Intialiazation successful", motor_name_);
     
     return CallbackReturn::SUCCESS;
 }
@@ -140,15 +144,17 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
 
 CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
 
-    // logger_->info("Motor Enable action for: [{}]",motor_name_);
+    logger_->info("Motor Enable action for: [{}]",motor_name_);
     enableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 	
-	std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+	// std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+	logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
 	set_profile_velocity(default_max_velocity_);
     
-	std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+	// std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
 
@@ -229,6 +235,10 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 	// std::cout << "velocity_state_: " << velocity_state_ <<std::endl;
 	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
 
+	logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
+    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
+    logger_->debug("[{}] Read node_guard_error_state_: [{}]", motor_name_, node_guard_error_state_);
+
 
     return hardware_interface::return_type::OK;
 }
@@ -241,18 +251,20 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		
 		
 		if(!using_default_max_velocity_){
-			std::cout << "setting set_profile_velocity: " << max_velocity_command_ << std::endl;
+			// std::cout << "setting set_profile_velocity: " << max_velocity_command_ << std::endl;
 			set_profile_velocity(max_velocity_command_);
 		}
 	}
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
 		if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
-			std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
+			// std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
+			logger_->debug("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
 
 			double degree_per_sec = (acceleration_command_*(180/3.14));
 			double revolution_per_sec = abs(degree_per_sec/360.0);
-			std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
+			// std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
+			logger_->debug("[{}] Acceleration command in rps2: [{}]", motor_name_, acceleration_command_);
 			if(!using_default_acceleration_){
 				set_profile_acc(acceleration_command_);
 				set_profile_deacc(acceleration_command_);
@@ -261,15 +273,13 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 	}
 
     if(previous_position_command_ != position_command_){
+		logger_->debug("[{}] Position command: [{}]", motor_name_, position_command_);
 		double angle_in_degree = (position_command_*(180/3.14));
 		int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
-		std::cout << "setting set_relative_position: " << position_command_ <<  ". counts: " << counts << std::endl;
+		// std::cout << "setting set_relative_position: " << position_command_ <<  ". counts: " << counts << std::endl;
+		logger_->debug("[{}] Position command in counts: [{}]", motor_name_, counts);
         set_relative_position( counts);
     }
-
-	
-
-	
     
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
