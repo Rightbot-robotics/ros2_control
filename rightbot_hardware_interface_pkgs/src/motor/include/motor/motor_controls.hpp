@@ -111,9 +111,9 @@ public:
 
     int set_profile_velocity(uint16_t node_id, uint32_t speed);
 
-    int set_profile_acc(uint16_t node_id, uint32_t acc);
+    int set_profile_acc(uint16_t node_id, float acc);
 
-    int set_profile_deacc(uint16_t node_id, uint32_t deacc);
+    int set_profile_deacc(uint16_t node_id, float deacc);
 
     int set_driving_motor_position_mode_params(uint16_t node_id, double position_loop_acc, double position_loop_deacc,
                                                double position_loop_speed);

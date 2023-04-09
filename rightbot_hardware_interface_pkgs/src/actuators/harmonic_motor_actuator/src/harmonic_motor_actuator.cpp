@@ -67,7 +67,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     {
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
-            (command_interface.name != hardware_interface::HW_IF_MAX_VELOCITY) &&
+            (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION)
         )
        {
@@ -80,7 +80,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
-    if (state_interfaces.size() != 5)
+    if (state_interfaces.size() != 6)
     {
         // logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -92,7 +92,9 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
             (state_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (state_interface.name != hardware_interface::HW_IF_STATUS) && 
             (state_interface.name != hardware_interface::HW_IF_ERROR_CODE) &&
-            (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR))
+            (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
+			(state_interface.name != hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT)
+			)
        {
             // logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
 
@@ -142,15 +144,13 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
     enableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-	if(using_default_max_velocity_){
-        std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
-		set_profile_velocity(default_max_velocity_);
-    }
-    if(using_default_acceleration_){
-        std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
-		set_profile_acc(default_acceleration_);
-        set_profile_deacc(default_acceleration_);
-    }
+	
+	std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+	set_profile_velocity(default_max_velocity_);
+    
+	std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+	set_profile_acc(default_acceleration_);
+	set_profile_deacc(default_acceleration_);
 
     return CallbackReturn::SUCCESS;
 
@@ -180,6 +180,8 @@ std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_st
       motor_name_, hardware_interface::HW_IF_VELOCITY, &velocity_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT, &actual_motor_current_state_));
 
     return state_interfaces;
 
@@ -192,7 +194,7 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_MAX_VELOCITY, &max_velocity_command_));
+      motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
 
@@ -213,6 +215,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     
     status_state_ = sensor_data["status"].asInt();
     error_code_state_ = sensor_data["err_code"].asInt();
+	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
     position_state_ = sensor_data["counts"].asInt();
     velocity_state_ = sensor_data["velocity"].asDouble();
@@ -220,6 +223,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
 
 	// std::cout << "status_state_: " << status_state_ <<std::endl;
+	// std::cout << "actual_motor_current_state_: " << actual_motor_current_state_ <<std::endl;
 	// std::cout << "error_code_state_: " << error_code_state_ <<std::endl;
 	// std::cout << "position_state_: " << position_state_ <<std::endl;
 	// std::cout << "velocity_state_: " << velocity_state_ <<std::endl;
@@ -233,6 +237,29 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
 	// std::cout << "Motor Harmonic Actuator write" << std::endl;
 
+	if(previous_max_velocity_command_ != max_velocity_command_){
+		
+		
+		if(!using_default_max_velocity_){
+			std::cout << "setting set_profile_velocity: " << max_velocity_command_ << std::endl;
+			set_profile_velocity(max_velocity_command_);
+		}
+	}
+
+    if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
+		if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
+			std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
+
+			double degree_per_sec = (acceleration_command_*(180/3.14));
+			double revolution_per_sec = abs(degree_per_sec/360.0);
+			std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
+			if(!using_default_acceleration_){
+				set_profile_acc(acceleration_command_);
+				set_profile_deacc(acceleration_command_);
+			}
+		}
+	}
+
     if(previous_position_command_ != position_command_){
 		double angle_in_degree = (position_command_*(180/3.14));
 		int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
@@ -240,21 +267,9 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
         set_relative_position( counts);
     }
 
-	if(!using_default_max_velocity_){
+	
 
-		if(previous_max_velocity_command_ != max_velocity_command_){
-			std::cout << "setting set_profile_velocity: " << max_velocity_command_ << std::endl;
-			set_profile_velocity(max_velocity_command_);
-		}
-	}
-
-	if(!using_default_acceleration_){
-		if(previous_acceleration_command_ != acceleration_command_){
-			std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
-			set_profile_acc(acceleration_command_);
-			set_profile_deacc(acceleration_command_);
-		}
-	}
+	
     
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
@@ -352,10 +367,11 @@ int HarmonicMotorActuator::motorConfigNode(int motor_id){
     // err |= motor_Transmit_PDO_n_Parameter(motor_id, 4, PDO_TX4_ID + motor_id);
 
 	// PDO TX1 Statusword and High Voltage Reference
-    num_PDOs = 2;
+    num_PDOs = 3;
     Epos_pdo_mapping status_and_err[] = {
             {0x6041, 0x00, 16},	// Statusword
-			{0x603F, 0x00, 16}	// Error Code
+			{0x603F, 0x00, 16},	// Error Code
+			{0x6078, 0x00, 16}	// Actual Motor Current
             // {0x6079, 0x00, 32}	// High Voltage Reference
     };
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_err);

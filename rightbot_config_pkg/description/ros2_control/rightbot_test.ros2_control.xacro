@@ -44,32 +44,33 @@
     </ros2_control>
 
 
-    <!-- <ros2_control name="TruckUnloading_base_rotation_joint" type="actuator">
+    <ros2_control name="TruckUnloading_rotation1_joint" type="actuator">
       <hardware>
         <plugin>harmonic_motor_actuator</plugin>
         <param name="example_param_hw_start_duration_sec">0</param>
         <param name="example_param_hw_stop_duration_sec">3.0</param>
         <param name="example_param_hw_slowdown">100</param>
       </hardware>
-      <joint name="base_rotation_joint">
+      <joint name="rotation1_joint">
         <command_interface name="position">
           <param name="min">-100</param>
           <param name="max">100</param>
         </command_interface>
-        <command_interface name="max_velocity"/>
+        <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
         <state_interface name="error_code"/>
         <state_interface name="node_guard_error"/>
-        <param name="can_id">17</param>
+        <state_interface name="actual_motor_current"/>
+        <param name="can_id">20</param>
         <param name="axis">-1</param>
         <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
         <param name="default_max_velocity">2</param>
         <param name="default_max_accleration">1</param>
       </joint>
-    </ros2_control> -->
+    </ros2_control>
 
   </xacro:macro>
 

@@ -159,7 +159,7 @@ int MotorControls::set_profile_velocity(uint16_t node_id, uint32_t speed) {
     return err;
 }
 
-int MotorControls::set_profile_acc(uint16_t node_id, uint32_t acc) {
+int MotorControls::set_profile_acc(uint16_t node_id, float acc) {
     int err = 0;
 
     SDO_data d;
@@ -173,7 +173,7 @@ int MotorControls::set_profile_acc(uint16_t node_id, uint32_t acc) {
     return err;
 }
 
-int MotorControls::set_profile_deacc(uint16_t node_id, uint32_t deacc) {
+int MotorControls::set_profile_deacc(uint16_t node_id, float deacc) {
     int err = 0;
 
     SDO_data d;

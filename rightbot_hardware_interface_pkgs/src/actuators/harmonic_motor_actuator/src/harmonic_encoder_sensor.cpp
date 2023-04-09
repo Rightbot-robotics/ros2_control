@@ -54,10 +54,12 @@ int HarmonicEncoderSensor::motor_request(void)
 	return socketcan_write(motor_sockets_->motor_sync_fd, 128, 1, data);
 }
 
-int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, int timeout) {
+int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, float *actual_motor_current, int timeout) {
     int err;
     my_can_frame f;
     err = PDO_read(motor_sockets_->motor_status_pdo_fd, &f, timeout);
+
+    uint16_t actual_motor_current_register_value;
 
     if (err != 0) {
         // Read error, or no data
@@ -67,6 +69,8 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
     if (f.id == (PDO_TX1_ID + motor_id)) {
         *status = (f.data[0] << 0) | (f.data[1] << 8);
         *err_code = (f.data[2] << 0) | (f.data[3] << 8);
+        actual_motor_current_register_value = (f.data[4] << 0) | (f.data[5] << 8);
+        *actual_motor_current = static_cast<float>(actual_motor_current_register_value)/1000;
         // *battery_vol = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
         // logger_->debug("test battery vol: [{}]", *battery_vol);
 
@@ -163,11 +167,13 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
     uint16_t status_register_fb_[1]= {0};
     uint16_t err_code_fb_[1] = {0};
+    float actual_motor_current_fb_[1] = {0};
     int32_t encoder_fb_[1]= {0};
     double vel_fb_[1]= {0};
     int guard_err_fb_= -1;
 
-    auto err_pdo_1_ = motor_status_n_voltage_read(motor_id_, status_register_fb_, err_code_fb_, 1);
+
+    auto err_pdo_1_ = motor_status_n_voltage_read(motor_id_, status_register_fb_, err_code_fb_, actual_motor_current_fb_, 1);
     auto err_pdo_2_ = motor_enc_read(motor_id_, encoder_fb_, 1);
     auto err_pdo_3_ = motor_vel_read(motor_id_, vel_fb_, 1);
     
@@ -177,6 +183,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
         encoder_data->status_m = status_register_fb_[0];
         encoder_data->err_code_m = err_code_fb_[0];
+        encoder_data->actual_motor_current_m = actual_motor_current_fb_[0];
         encoder_data->read_status_err_code = true;
 
     }
@@ -279,6 +286,7 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
 
         sensor_data["status"] = encoder_data_q_element.status_m;
         sensor_data["err_code"] = encoder_data_q_element.err_code_m;
+        sensor_data["actual_motor_current"] = encoder_data_q_element.actual_motor_current_m;
         sensor_data["counts"] = encoder_data_q_element.pos_m;
         sensor_data["velocity"] = encoder_data_q_element.vel_m;
         sensor_data["timestamp"] = to_string(encoder_data_q_element.time_sys);

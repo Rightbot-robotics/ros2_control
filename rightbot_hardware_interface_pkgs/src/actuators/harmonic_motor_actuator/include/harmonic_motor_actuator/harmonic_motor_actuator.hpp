@@ -102,6 +102,7 @@ private:
 
     double status_state_ = std::numeric_limits<double>::quiet_NaN();
     double error_code_state_ = std::numeric_limits<double>::quiet_NaN();
+    double actual_motor_current_state_ = std::numeric_limits<double>::quiet_NaN();
     double position_state_ = std::numeric_limits<double>::quiet_NaN();
     double velocity_state_ = std::numeric_limits<double>::quiet_NaN();
     double node_guard_error_state_ = std::numeric_limits<double>::quiet_NaN();
@@ -117,9 +118,11 @@ private:
     double motor_ppr_ = 524288;
 
     bool using_default_max_velocity_ = true;
-    bool using_default_acceleration_ = true;
+    bool using_default_acceleration_ = false;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
+
+    double acceleration_epsilon = 10e-4;
 
 };
 

@@ -22,6 +22,7 @@ public:
 
     uint16_t status_m;
     uint16_t err_code_m;
+    float actual_motor_current_m;
     int32_t pos_m;
     double vel_m;
     int guard_err_m;
@@ -49,7 +50,7 @@ public:
 
     int motor_request(void);
 
-    int motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, int timeout);
+    int motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, float *actual_motor_current, int timeout);
     int motor_enc_read(int motor_id, int32_t *pos, int timeout);
     int motor_vel_read(int motor_id, double *vel, int timeout);
     int node_guarding_response_read(uint16_t *response, int timeout);

@@ -192,18 +192,22 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
         
     }
 
-    if(using_default_max_velocity_){
-        std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
-        motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
-    }
-    if(using_default_acceleration_){
-        std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
-        motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
-        motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
-
-    }
+    
+    std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+    motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
+    
+    std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+    motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
+    motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
 
     
+    if(motor_name_ == "h_gantry_joint"){
+        std::cout << "h_gantry_joint setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+        motor_controls_->set_profile_velocity(motor_id_, default_max_velocity_);
+        std::cout << "h_gantry_joint setting default_acceleration_: " << default_acceleration_ << std::endl;
+        motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
+        motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
+    }
 
     return CallbackReturn::SUCCESS;
 
@@ -337,7 +341,28 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-        // std::cout << "Motor Actuator write" << std::endl;
+    // std::cout << "Motor Actuator write" << std::endl;
+
+    if(previous_max_velocity_command_ != max_velocity_command_){
+        
+        if(!using_default_max_velocity_){
+            std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
+            motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
+        }
+    }
+
+    if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
+        if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
+            std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
+            if(!using_default_acceleration_ && (motor_name_!= "h_gantry_joint")){
+                double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
+                acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
+                std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
+                motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_));
+                motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_));
+            }
+        }
+    }
 
     if(previous_position_command_ != position_command_){
         
@@ -360,21 +385,6 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         // std::cout << "final position command: " << position_command_final_ << std::endl;
         motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
-    }
-    
-    if(previous_max_velocity_command_ != max_velocity_command_){
-        std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
-        if(!using_default_max_velocity_){
-            motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
-        }
-    }
-
-    if(previous_acceleration_command_ != acceleration_command_){
-        std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
-        if(!using_default_acceleration_){
-            motor_controls_->set_profile_acc(motor_id_, acceleration_command_);
-            motor_controls_->set_profile_deacc(motor_id_, acceleration_command_);
-        }
     }
     
     previous_position_command_ = position_command_;

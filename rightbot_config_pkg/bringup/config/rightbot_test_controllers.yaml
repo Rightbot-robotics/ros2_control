@@ -14,6 +14,7 @@ position_trajectory_controller:
   ros__parameters:
     joints:
       - v_gantry_joint
+      - rotation1_joint
 
     command_interfaces:
       - position
