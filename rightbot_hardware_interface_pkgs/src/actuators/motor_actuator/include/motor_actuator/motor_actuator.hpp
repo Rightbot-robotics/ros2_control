@@ -121,7 +121,7 @@ private:
     bool initialization_done = false;
     int initial_counts = 0;
 
-    bool using_default_max_velocity_ = true;
+    bool using_default_max_velocity_ = false;
     bool using_default_acceleration_ = false;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;

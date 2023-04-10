@@ -223,8 +223,8 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
-    position_state_ = sensor_data["counts"].asInt();
-    velocity_state_ = sensor_data["velocity"].asDouble();
+    position_state_ = ((sensor_data["counts"].asInt()*3.14*2)/motor_ppr_);
+    velocity_state_ = ((sensor_data["velocity"].asDouble()*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
 
@@ -251,33 +251,40 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		
 		
 		if(!using_default_max_velocity_){
-			// std::cout << "setting set_profile_velocity: " << max_velocity_command_ << std::endl;
-			set_profile_velocity(max_velocity_command_);
+			// std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
+            logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
+           	double degree_per_sec = (max_velocity_command_*(180/3.14));
+			double revolution_per_min = abs((degree_per_sec*60)/360.0);
+            float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
+            // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
+            logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, max_velocity_command_final_);
+
+			set_profile_velocity(max_velocity_command_final_);
 		}
 	}
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
 		if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
 			// std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
-			logger_->debug("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+			logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
 
 			double degree_per_sec = (acceleration_command_*(180/3.14));
 			double revolution_per_sec = abs(degree_per_sec/360.0);
 			// std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
-			logger_->debug("[{}] Acceleration command in rps2: [{}]", motor_name_, acceleration_command_);
+			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, revolution_per_sec);
 			if(!using_default_acceleration_){
-				set_profile_acc(acceleration_command_);
-				set_profile_deacc(acceleration_command_);
+				set_profile_acc(revolution_per_sec*0.5);
+				set_profile_deacc(revolution_per_sec*0.5);
 			}
 		}
 	}
 
     if(previous_position_command_ != position_command_){
-		logger_->debug("[{}] Position command: [{}]", motor_name_, position_command_);
+		logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
 		double angle_in_degree = (position_command_*(180/3.14));
 		int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
 		// std::cout << "setting set_relative_position: " << position_command_ <<  ". counts: " << counts << std::endl;
-		logger_->debug("[{}] Position command in counts: [{}]", motor_name_, counts);
+		logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
         set_relative_position( counts);
     }
     

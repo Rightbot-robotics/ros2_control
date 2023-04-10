@@ -109,7 +109,7 @@ public:
 
     int motor_rps2_to_cps2(float rpss);
 
-    int set_profile_velocity(uint16_t node_id, uint32_t speed);
+    int set_profile_velocity(uint16_t node_id, float speed);
 
     int set_profile_acc(uint16_t node_id, float acc);
 

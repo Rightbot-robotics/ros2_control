@@ -197,10 +197,10 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     if(homing_active){
-        // if(!Homing()){
+        if(!Homing()){
 
-        //     return CallbackReturn::ERROR;
-        // }
+            return CallbackReturn::ERROR;
+        }
         
     }
  
@@ -289,7 +289,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     // std::cout << "Motor Actuator read" << std::endl;
     // std::cout << "Motor Actuator read: " << motor_name_ <<std::endl;
 
-    if(motor_name_ == "v_gantry_joint"){
+    if(motor_name_ == "h_gantry_joint"){
         requestData();
         std::this_thread::sleep_for(std::chrono::microseconds(2000));
 		// std::cout << "read request" << std::endl;
@@ -359,26 +359,32 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     // std::cout << "Motor Actuator write" << std::endl;
-
+    // logger_->info("[{}] Write Max velocity command: [{}]", motor_name_, max_velocity_command_);
     if(previous_max_velocity_command_ != max_velocity_command_){
         
-        if(!using_default_max_velocity_){
+        if(!using_default_max_velocity_ && (motor_name_ == "v_gantry_joint") ){
             // std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
-            motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_);
+            logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
+            double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
+            max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
+            // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
+            logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, max_velocity_command_final_);
+            
+            motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_final_);
         }
     }
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
             // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
-            logger_->debug("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
-            if(!using_default_acceleration_ && (motor_name_!= "h_gantry_joint")){
+            logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+            if(!using_default_acceleration_ && (motor_name_ == "v_gantry_joint")){
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
                 // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
-                logger_->debug("[{}] Acceleration command in rps2: [{}]", motor_name_, static_cast<float>(acceleration_command_final_));
-                motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_));
-                motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_));
+                logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, static_cast<float>(acceleration_command_final_));
+                motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_*0.5));
+                motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_*0.5));
             }
         }
     }
@@ -391,7 +397,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
         // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
 
-        logger_->debug("[{}] Position command: [{}]", motor_name_, position_command_);
+        logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
 
         int position_command_final_;
         if(homing_at_zero){
@@ -405,7 +411,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         }
         // auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
         // std::cout << "final position command: " << position_command_final_ << std::endl;
-        logger_->debug("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
+        logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
         motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
     }

@@ -112,12 +112,12 @@ private:
     double acceleration_command_ = 0.0;
 
     double previous_position_command_ = -1.0;
-    double previous_max_velocity_command_ = -1.0;
-    double previous_acceleration_command_ = -1.0;
+    double previous_max_velocity_command_ = 0.0;
+    double previous_acceleration_command_ = 0.0;
 
     double motor_ppr_ = 524288;
 
-    bool using_default_max_velocity_ = true;
+    bool using_default_max_velocity_ = false;
     bool using_default_acceleration_ = false;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;

@@ -145,7 +145,7 @@ int MotorControls::set_absolute_position(uint16_t node_id, int axis, uint32_t po
     return err;
 }
 
-int MotorControls::set_profile_velocity(uint16_t node_id, uint32_t speed) {
+int MotorControls::set_profile_velocity(uint16_t node_id, float speed) {
     int err = 0;
 
     SDO_data d;
