@@ -273,8 +273,8 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 			// std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
 			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, revolution_per_sec);
 			if(!using_default_acceleration_){
-				set_profile_acc(revolution_per_sec*0.5);
-				set_profile_deacc(revolution_per_sec*0.5);
+				set_profile_acc(revolution_per_sec*0.25);
+				set_profile_deacc(revolution_per_sec*0.25);
 			}
 		}
 	}
