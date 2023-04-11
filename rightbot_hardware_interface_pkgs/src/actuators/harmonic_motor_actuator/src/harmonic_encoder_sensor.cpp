@@ -99,9 +99,9 @@ int HarmonicEncoderSensor::motor_enc_read(int motor_id, int32_t *pos, int timeou
         //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
         // logger_->debug("Harmonic motor counts init: [{}]", enc);
         if (init_enc) {
-            *pos = -enc - err_enc;
+            *pos = enc - err_enc;
         } else {
-            err_enc = -enc;
+            err_enc = enc;
             init_enc = true;
         }
         //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
