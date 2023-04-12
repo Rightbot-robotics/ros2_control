@@ -290,12 +290,12 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     // std::cout << "Motor Actuator read" << std::endl;
     // std::cout << "Motor Actuator read: " << motor_name_ <<std::endl;
 
-    if(motor_name_ == "v_gantry_joint"){
-        requestData();
-        std::this_thread::sleep_for(std::chrono::microseconds(2000));
-		// std::cout << "read request" << std::endl;
+    // if(motor_name_ == "v_gantry_joint"){
+    //     requestData();
+    //     std::this_thread::sleep_for(std::chrono::microseconds(2000));
+	// 	// std::cout << "read request" << std::endl;
 
-	}
+	// }
     
     encoder_sensor->getData(sensor_data);
 

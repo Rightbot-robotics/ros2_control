@@ -85,7 +85,7 @@ public:
     std::deque<HarmonicEncoderData> q_encoder_data_;
     HarmonicEncoderData encoder_data_q_element_;
 
-    bool reading_loop_started;
+    bool reading_loop_started = true;
 
     bool init_enc = false;
     int err_enc = 0;

@@ -87,7 +87,7 @@ int main(int argc, char ** argv)
         auto read_time = std::chrono::duration_cast<std::chrono::microseconds>(read_end_time - start_time);
         auto update_time = std::chrono::duration_cast<std::chrono::microseconds>(update_end_time - read_end_time);
         auto write_time = std::chrono::duration_cast<std::chrono::microseconds>(write_end_time - update_end_time);
-        RCLCPP_INFO(cm->get_logger(), "controller manager time read: %d us update: %d us write: %d us", read_time.count(), update_time.count(), write_time.count());
+        // RCLCPP_INFO(cm->get_logger(), "controller manager time read: %d us update: %d us write: %d us", read_time.count(), update_time.count(), write_time.count());
 
         // wait until we hit the end of the period
         next_iteration_time += period;

@@ -212,6 +212,13 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
 hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
 	// std::cout << "Motor Harmonic Actuator read: " << motor_name_ <<std::endl;
+
+	if(motor_name_ == "base_rotation_joint"){
+        requestData();
+        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+		// std::cout << "read request" << std::endl;
+
+	}
 	
     encoder_sensor_->getData(sensor_data);
 
@@ -242,7 +249,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 
 	}
 	else {
-		logger_->warn("read status false");
+		logger_->warn("[{}] read status false", motor_name_);
 	}
 	
 
@@ -769,6 +776,8 @@ void HarmonicMotorActuator::sendNodeGuardingRequest(){
 }
 
 void HarmonicMotorActuator::requestData(){
+	
+	encoder_sensor_->motor_request();
 
 }
 
