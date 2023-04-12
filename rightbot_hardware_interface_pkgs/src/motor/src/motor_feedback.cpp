@@ -55,6 +55,8 @@ int MotorFeedback::motor_status_n_voltage_n_input_states_read(int motor_id, uint
         return err;
     }
 
+    int actual_motor_current_register_value;
+
     if (f.id == (PDO_TX1_ID + motor_id)) {
         *status = (f.data[0] << 0) | (f.data[1] << 8);
 
@@ -63,8 +65,8 @@ int MotorFeedback::motor_status_n_voltage_n_input_states_read(int motor_id, uint
 
         *input_states = (f.data[4] << 0) | (f.data[5] << 8);
 
-        *actual_motor_current = (f.data[6] << 0) | (f.data[7] << 8);
-        *actual_motor_current = 0.01 * (*actual_motor_current);
+        actual_motor_current_register_value = (f.data[6] << 0) | (f.data[7] << 8);
+        *actual_motor_current = 0.01 * static_cast<float>(actual_motor_current_register_value);
     }
 
     return err;

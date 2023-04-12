@@ -235,10 +235,16 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 	// std::cout << "velocity_state_: " << velocity_state_ <<std::endl;
 	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
 
-	logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
-    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
-    logger_->debug("[{}] Read node_guard_error_state_: [{}]", motor_name_, node_guard_error_state_);
+	if(sensor_data["read_status"].asBool() == true) {
+		logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
+	    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
+    	logger_->debug("[{}] Read node_guard_error_state_: [{}]", motor_name_, node_guard_error_state_);
 
+	}
+	else {
+		logger_->warn("read status false");
+	}
+	
 
     return hardware_interface::return_type::OK;
 }

@@ -350,7 +350,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     // std::cout << "latched_fault_state_: " << latched_fault_state_ <<std::endl;
 	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
 
-    logger_->debug("[{}] Read status: [{}], battery_voltage: [{}], input_states: [{}]", motor_name_, status_state_, battery_voltage_state_, input_states_state_);
+    logger_->debug("[{}] Read status: [{}], battery_voltage: [{}], input_states: [{}], actual_motor_current: [{}]", motor_name_, status_state_, battery_voltage_state_, input_states_state_, actual_motor_current_state_);
     logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
     logger_->debug("[{}] Read manufacturer_register: [{}], latched_fault: [{}], node_guard_error: [{}]", motor_name_, manufacturer_register_state_, latched_fault_state_, node_guard_error_state_);
 
