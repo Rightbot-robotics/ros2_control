@@ -76,9 +76,18 @@ int main(int argc, char ** argv)
         previous_time = current_time;
 
         // execute update loop
+        auto start_time = std::chrono::high_resolution_clock::now(); 
         cm->read(cm->now(), measured_period);
+        auto read_end_time = std::chrono::high_resolution_clock::now();
         cm->update(cm->now(), measured_period);
+        auto update_end_time = std::chrono::high_resolution_clock::now();
         cm->write(cm->now(), measured_period);
+        auto write_end_time = std::chrono::high_resolution_clock::now();
+
+        auto read_time = std::chrono::duration_cast<std::chrono::microseconds>(read_end_time - start_time);
+        auto update_time = std::chrono::duration_cast<std::chrono::microseconds>(update_end_time - read_end_time);
+        auto write_time = std::chrono::duration_cast<std::chrono::microseconds>(write_end_time - update_end_time);
+        RCLCPP_INFO(cm->get_logger(), "controller manager time read: %d us update: %d us write: %d us", read_time.count(), update_time.count(), write_time.count());
 
         // wait until we hit the end of the period
         next_iteration_time += period;
