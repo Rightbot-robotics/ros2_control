@@ -224,7 +224,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
     position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/motor_ppr_);// axis multiplication for read
-    velocity_state_ = ((sensor_data["velocity"].asDouble()*3.14)/30);
+    velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
 
@@ -682,7 +682,7 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
-	err |= motorControlword(motor_id_, Start_Relative);// for trigger
+	err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
 
 	return err;
 }

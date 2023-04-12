@@ -28,7 +28,9 @@ enum Epos_ctrl {
 	Enable_Operation = 0x0f,
 	Clear_Fault = 0x80, //clear motor fault during initialization
 	Start_Excercise = 0x1F, //start excercise (profile position mode)
-	Start_Relative = 0x5F
+	Start_Relative = 0x5F,
+	Start_Excercise_Pos_Immediate = 0x3F, 
+	Start_Relative_Pos_Immediate = 0x7F
 };
 
 enum Motor_mode {
