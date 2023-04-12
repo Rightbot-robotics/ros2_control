@@ -14,9 +14,10 @@ MotorActuator::~MotorActuator() = default;
 
 CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & info){
 
+    // We hardcode the info
     logger_ = spdlog::get("hardware_interface")->clone("motor_actuator");
-
-    // std::cout << "Motor Actuator Init" << std::endl;
+   
+    // logger_->info("Motor Actuator Init");
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       
@@ -554,32 +555,32 @@ void MotorActuator::changeActuatorControlMode(Json::Value &actuator_control_mode
 
     if (actuator_control_mode["action"].asString() == "change_control_mode"){
         if (actuator_control_mode["control_mode"].asString() == "motor_reset"){
-            // logger_->info("Fault reset for : [{}]",motor_name_);
+            logger_->info("Fault reset for : [{}]",motor_name_);
             motor_->motor_reset(motor_id_);
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_quick_stop"){
-            // logger_->info("Quick stop for : [{}]",motor_name_);
+            logger_->info("Quick stop for : [{}]",motor_name_);
             motor_->motor_quick_stop(motor_id_);
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_disable"){
-            // logger_->info("Disable action for : [{}]",motor_name_);
+            logger_->info("Disable action for : [{}]",motor_name_);
             motor_->motor_disable(motor_id_);
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_enable"){
-            // logger_->info("Enable action for : [{}]",motor_name_);
+            logger_->info("Enable action for : [{}]",motor_name_);
             motor_->motor_enable(motor_id_);
             
         }
         else{
-            // logger_->info("Control Mode not recognized for : [{}]",motor_name_);
+            logger_->info("Control Mode not recognized for : [{}]",motor_name_);
         }
 
     }
     else{
-        // logger_->info("Control Mode Action not recognized for : [{}]",motor_name_);
+        logger_->info("Control Mode Action not recognized for : [{}]",motor_name_);
     }
 
 }
@@ -626,7 +627,7 @@ void MotorActuator::writeData(Json::Value &actuator_data) {
 
     }
     else{
-        // logger_->info("'Write Data mode not recognized for motor [{}]",motor_sockets_->motor_name_);
+        logger_->info("'Write Data mode not recognized for motor [{}]",motor_sockets_->motor_name_);
 
     }
 

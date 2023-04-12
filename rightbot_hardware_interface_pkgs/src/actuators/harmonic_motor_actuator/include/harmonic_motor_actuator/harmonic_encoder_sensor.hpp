@@ -57,7 +57,7 @@ public:
 
     double motor_cps_to_rpm(double counts_per_sec);
 
-    // std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<spdlog::logger> logger_;
     HarmonicMotorActuatorSockets::HarmonicMotorActuatorSocketsSPtr motor_sockets_;
 
     std::string motor_name_;

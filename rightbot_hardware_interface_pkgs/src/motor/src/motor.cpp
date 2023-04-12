@@ -4,9 +4,9 @@
 Motor::Motor(Sockets::SocketsSPtr motor_sockets_) {
     // motor_sockets = std::make_shared<Sockets>(motor_id);
 
-    // logger_ = spdlog::get("hardware_interface")->clone("motor");
+    logger_ = spdlog::get("hardware_interface")->clone("motor");
 
-    // logger_->info("Motor Sockets ptr in Motor constructor: {}", motor_sockets_);
+//     logger_->info("Motor Sockets ptr in Motor constructor: {}", motor_sockets_);
     motor_sockets = motor_sockets_;
 //    logger_->flush();
     // motor_controls = std::make_shared<MotorControls>(motor_sockets_);
@@ -156,20 +156,20 @@ bool Motor::motor_init(int motor_id) {
 
     err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, motor_id, NMT_Enter_PreOperational);
     if (err != 0) {
-        // logger_->error("Err in NMT_change_state: NMT_Enter_PreOperational ");
+        logger_->error("Err in NMT_change_state: NMT_Enter_PreOperational ");
         return MOTOR_ERROR;
     }
 
     err |= motor_config_node(motor_id);
     if (err != 0) {
-        // logger_->error("Err in motor_config_node ");
+        logger_->error("Err in motor_config_node ");
         return MOTOR_ERROR;
     }
 
     //setting default mode
     err |= motor_setmode_sdo(motor_id, Motor_mode_Position);
     if (err != 0) {
-        // logger_->error("Err in motor_setmode_sdo ");
+        logger_->error("Err in motor_setmode_sdo ");
         return MOTOR_ERROR;
     }
 
@@ -286,11 +286,11 @@ bool Motor::motorCommand(int motor_id, std::string command_type, MotorControls::
 bool Motor::nmtChangeState(std::string state_name) {
     int err = 0;
     if (state_name == "nmt_enter_preoperational") {
-        // logger_->debug("NMT State Pre-Operational");
+        logger_->debug("NMT State Pre-Operational");
         err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, CANOPEN_BROADCAST_ID, NMT_Enter_PreOperational);
     }
     if (state_name == "nmt_start_node") {
-        // logger_->debug("NMT Start Node");
+        logger_->debug("NMT Start Node");
         err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, CANOPEN_BROADCAST_ID, NMT_Start_Node);
     }
 }

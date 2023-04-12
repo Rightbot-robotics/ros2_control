@@ -26,7 +26,7 @@ HarmonicEncoderSensor::~HarmonicEncoderSensor() {
 }
 
 void HarmonicEncoderSensor::initialize(HarmonicMotorActuatorSockets::HarmonicMotorActuatorSocketsSPtr motor_sockets) {
-    // logger_ = spdlog::get("hardware_interface")->clone("harmonic_encoder_sensor");
+    logger_ = spdlog::get("hardware_interface")->clone("harmonic_encoder_sensor");
     motor_sockets_ = motor_sockets;
     
     motor_id_ = motor_sockets_->motor_id_;
@@ -47,7 +47,7 @@ void HarmonicEncoderSensor::init_json() {
 int HarmonicEncoderSensor::motor_request(void)
 {
 
-    // logger_->debug("motor request");
+    logger_->debug("motor request");
 	Socketcan_t data[1];
 	data[0].size = 1;
 	data[0].data = 0x00;
@@ -222,7 +222,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
     int rt_value = -1;
     if(true == status) {
         rt_value = 0;
-	// logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
+	logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
     }
     return 0;
 
@@ -247,7 +247,7 @@ void HarmonicEncoderSensor::readMotorData() {
                     read_mutex_.unlock();
                 }
                 else {
-                    // logger_->warn("incomplete data received, not pushing to sensor data q");
+                    logger_->warn("incomplete data received, not pushing to sensor data q");
                 }
             }
             
@@ -257,7 +257,7 @@ void HarmonicEncoderSensor::readMotorData() {
         auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::system_clock::now() - start_time);
         // logger_->debug("Time in execution [ readMotorData() ]: [{}] us", time_passed_in_read.count());
-        // logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
+        logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
 
 
         std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
@@ -279,8 +279,8 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
 
         // logger_->debug("Read deque size after pop: {}", q_encoder_data_.size());
         if (q_encoder_data_.size() > 10) {
-            //logger_->error("Read deque size : [{}]", q_encoder_data_.size());
-            std::cout << "Read deque size: "<< q_encoder_data_.size() << std::endl;
+            logger_->error("Actuator [{}] Read deque size : [{}]", motor_sockets_->motor_name_, q_encoder_data_.size());
+            // std::cout << "Read deque size: "<< q_encoder_data_.size() << std::endl;
             q_encoder_data_.clear();
         }
 
@@ -302,7 +302,7 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
 
     } else {
         sensor_data["read_status"] = false;
-        // logger_->debug("[{}] Sensor Data Queue Empty. ", motor_sockets_->motor_name_);
+        logger_->debug("[{}] Sensor Data Queue Empty. ", motor_sockets_->motor_name_);
     }
 
 

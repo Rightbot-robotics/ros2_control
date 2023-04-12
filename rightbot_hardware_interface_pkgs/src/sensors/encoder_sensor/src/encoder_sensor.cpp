@@ -34,7 +34,7 @@ EncoderSensor::~EncoderSensor() {
 }
 
 void EncoderSensor::initialize(Json::Value &config_data, Sockets::SocketsSPtr motor_sockets){
-    // logger_ = spdlog::get("hardware_interface")->clone("encoder_sensor");
+    logger_ = spdlog::get("hardware_interface")->clone("encoder_sensor");
     motor_sockets_ = motor_sockets;
     motor_feedback_ = std::make_shared<MotorFeedback>(motor_sockets_);
     motor_id_ = config_data["motor_id"].asInt();
@@ -88,7 +88,6 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
     auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::system_clock::now() - start_time);
     // logger_->info("Time in execution [ readMotorFeedback() ]: [{}] us", time_passed_in_read.count());
-    // std::cout<< "read data encoder" << std::endl;
    
     if (0 == read_error_code_map["voltage"]) {
 
@@ -146,7 +145,7 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
     int rt_value = -1;
     if(true == status) {
         rt_value = 0;
-	// logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
+	logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
     }
     return 0;
 
@@ -190,7 +189,7 @@ void EncoderSensor::readMotorData() {
                     read_mutex_.unlock();
                 }
                 else {
-                    // logger_->warn("incomplete data received, not pushing to sensor data q");
+                    logger_->warn("incomplete data received, not pushing to sensor data q");
                 }
             }
             
@@ -204,7 +203,7 @@ void EncoderSensor::readMotorData() {
         // if (time_passed_in_read.count() > 5000){
         //     logger_->debug("Time in execution [ readMotorData() ]: [{}] us", time_passed_in_read.count());
         // }
-        // logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
+        logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
         
 
         std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
@@ -226,8 +225,8 @@ void EncoderSensor::getData(Json::Value &sensor_data) {
 
         // logger_->debug("Read deque size after pop: {}", q_encoder_data_.size());
         if (q_encoder_data_.size() > 10) {
-            //logger_->error("Read deque size : [{}]", q_encoder_data_.size());
-            std::cout << "Read deque size.: "<< q_encoder_data_.size() << std::endl;
+            logger_->error("Actuator [{}] Read deque size : [{}]", motor_sockets_->motor_name_, q_encoder_data_.size());
+            // std::cout << "Read deque size.: "<< q_encoder_data_.size() << std::endl;
             q_encoder_data_.clear();
         }
 
@@ -257,7 +256,7 @@ void EncoderSensor::getData(Json::Value &sensor_data) {
 
     } else {
         sensor_data["read_status"] = false;
-        // logger_->debug("Motor Data Queue Empty");
+        logger_->debug("Motor Data Queue Empty");
     }
 
 

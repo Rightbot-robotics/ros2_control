@@ -3,7 +3,7 @@
 
 MotorFeedback::MotorFeedback(Sockets::SocketsSPtr motor_sockets_) {
 
-    // logger_ = spdlog::get("hardware_interface")->clone("motor_feedback");
+    logger_ = spdlog::get("hardware_interface")->clone("motor_feedback");
 
     motor_sockets = motor_sockets_;
     init_enc = false;

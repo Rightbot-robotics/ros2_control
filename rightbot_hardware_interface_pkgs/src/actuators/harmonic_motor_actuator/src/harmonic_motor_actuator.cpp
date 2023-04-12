@@ -164,7 +164,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 
 CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
-    // logger_->info("Motor Disable action for: [{}]",motor_name_);
+    logger_->info("Motor Disable action for: [{}]",motor_name_);
     disableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -350,19 +350,19 @@ int HarmonicMotorActuator::initMotor(){
 
     err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational); 
 	if (err != 0) {
-        // logger_->debug("Err in NMT_change_state : NMT_Enter_PreOperational for {}", motor_name_);
+        logger_->debug("Err in NMT_change_state : NMT_Enter_PreOperational for {}", motor_name_);
 		return MOTOR_ERROR;
 	}
              
 	err |= motorConfigNode(motor_id_);
 	if (err != 0) {
-		// logger_->debug("Err in motorConfigNode for {}", motor_name_);
+		logger_->debug("Err in motorConfigNode for {}", motor_name_);
 		return MOTOR_ERROR;
 	}
 
 	err |= motorSetmode(Motor_mode_Position); 
 	if (err != 0) {
-		// logger_->debug("Err in motorSetmode for {}", motor_name_);
+		logger_->debug("Err in motorSetmode for {}", motor_name_);
 		return MOTOR_ERROR;
 	}
 
@@ -523,7 +523,7 @@ int HarmonicMotorActuator::setTPDO_cobid(uint16_t node_id, uint8_t n){
 	} else if (n==4) {
 		tpdo_id = 0x00000480;
 	} else {
-		// logger_->error("TPDO setting: PDO number not recognized for {}", motor_name_);
+		logger_->error("TPDO setting: PDO number not recognized for {}", motor_name_);
 	}
 
 	d.data.data = tpdo_id + node_id;
@@ -709,12 +709,12 @@ void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
 	}
 	else if ((previous_mode == "position") && (command_type == "position")) {
 
-		// logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
+		logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
 		set_relative_position(static_cast<int32_t>(pos));
 	}
 	else if((previous_mode != "position") && (command_type == "position")){
 
-		// logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
+		logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
 		motorSetmode(Motor_mode_Position);
         set_profile_velocity(max_vel);
     	set_profile_acc(accel);
@@ -723,7 +723,7 @@ void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
     
 	}
 	else{
-		// logger_->info("'Write Data mode [{}] not recognized for motor [{}]",command_type, harmonic_motor_actuator_sockets_->motor_name_);
+		logger_->info("'Write Data mode [{}] not recognized for motor [{}]",command_type, harmonic_motor_actuator_sockets_->motor_name_);
 	}
 
 	previous_mode = command_type;
@@ -770,32 +770,32 @@ void HarmonicMotorActuator::changeActuatorControlMode(Json::Value &actuator_cont
 
 	if (actuator_control_mode["action"].asString() == "change_control_mode"){
         if (actuator_control_mode["control_mode"].asString() == "motor_reset"){
-            // logger_->info("Fault reset for : [{}]",motor_name_);
+            logger_->info("Fault reset for : [{}]",motor_name_);
             resetFault();
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_quick_stop"){
-            // logger_->info("Quick stop for : [{}]",motor_name_);
+            logger_->info("Quick stop for : [{}]",motor_name_);
             quickStopMotor();
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_disable"){
-            // logger_->info("Disable action for : [{}]",motor_name_);
+            logger_->info("Disable action for : [{}]",motor_name_);
             disableMotor();
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_enable"){
-            // logger_->info("Enable action for : [{}]",motor_name_);
+            logger_->info("Enable action for : [{}]",motor_name_);
             enableMotor();
             
         }
         else{
-            // logger_->info("Control Mode not recognized for : [{}]",motor_name_);
+            logger_->info("Control Mode not recognized for : [{}]",motor_name_);
         }
 
     }
     else{
-        // logger_->info("Control Mode Action not recognized for : [{}]",motor_name_);
+        logger_->info("Control Mode Action not recognized for : [{}]",motor_name_);
     }
 
 

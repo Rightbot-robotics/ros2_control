@@ -26,7 +26,7 @@ Sockets::SocketsSPtr motor_sockets_1;
 MotorActuator::MotorActuatorSPtr motor_actuator_1;
 Json::Value actuator_data;
 std::mutex sync_mutex; // for sync of message_received variable
-// std::shared_ptr<spdlog::logger> logger_;
+std::shared_ptr<spdlog::logger> logger_;
 
 
 void test_write() {
@@ -76,14 +76,14 @@ int main() {
      auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*100, 3);
      rotating_sink->set_level(spdlog::level::debug);
      std::vector<spdlog::sink_ptr> sinks {console_sink,rotating_sink};
-    //  auto root_logger = std::make_shared<spdlog::async_logger>("hardware_interface", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-    //  root_logger->set_level(spdlog::level::debug);
-    //  spdlog::register_logger(root_logger);
+     auto root_logger = std::make_shared<spdlog::async_logger>("hardware_interface", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+     root_logger->set_level(spdlog::level::debug);
+     spdlog::register_logger(root_logger);
 
-    // logger_ = spdlog::get("hardware_interface")->clone("test_motor_actuator");
+    logger_ = spdlog::get("hardware_interface")->clone("test_motor_actuator");
 
-    // logger_->info("In Interface Initialization");
-    // logger_->flush();
+    logger_->info("In Interface Initialization");
+    logger_->flush();
 
     Json::Value config_data;/// load config data from json file here
 

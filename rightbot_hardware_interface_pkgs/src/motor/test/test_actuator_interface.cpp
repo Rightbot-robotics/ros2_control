@@ -60,10 +60,10 @@ int main(int argc, char *argv[]) {
                                                               spdlog::async_overflow_policy::block);
     root_logger->set_level(spdlog::level::debug);
     spdlog::register_logger(root_logger);
-// 
-//     logger_ = spdlog::get("hardware_interface")->clone("test_hardware_interface");
 
-//     logger_->debug("In Interface Initialization");
+    logger_ = spdlog::get("hardware_interface")->clone("test_hardware_interface");
+
+    logger_->debug("In Interface Initialization");
     std::shared_ptr<MotorInterface> node;
     node = std::make_shared<MotorInterface>();
     rclcpp::executors::MultiThreadedExecutor executor;

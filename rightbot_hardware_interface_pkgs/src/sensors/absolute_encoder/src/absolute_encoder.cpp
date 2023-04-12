@@ -203,7 +203,6 @@ void AbsoluteEncoder::getData(Json::Value &sensor_data){
         auto angle_data_q_element = q_angle_data_.back();
         q_angle_data_.pop_front();
 
-        logger_->debug("Read deque size after pop: {}", q_angle_data_.size());
         if (q_angle_data_.size() > 10) {
             logger_->warn("Read deque size : [{}]", q_angle_data_.size());
             q_angle_data_.clear();
