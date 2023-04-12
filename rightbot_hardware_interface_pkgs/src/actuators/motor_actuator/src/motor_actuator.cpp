@@ -332,7 +332,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
     // position_state_ = sensor_data["counts"].asInt();
 
-    velocity_state_ = ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
+    velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
 
     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();
 
