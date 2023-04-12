@@ -14,8 +14,8 @@ position_trajectory_controller:
   ros__parameters:
     joints:
       # - h_gantry_joint
-      - v_gantry_joint
       - base_rotation_joint
+      - v_gantry_joint
       - elbow_rotation_joint
       - wrist_rotation_joint
       - rotation1_joint
