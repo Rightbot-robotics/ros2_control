@@ -397,11 +397,11 @@ int HarmonicMotorActuator::motorConfigNode(int motor_id){
     // err |= motor_Transmit_PDO_n_Parameter(motor_id, 4, PDO_TX4_ID + motor_id);
 
 	// PDO TX1 Statusword and High Voltage Reference
-    num_PDOs = 3;
+    num_PDOs = 2;
     Epos_pdo_mapping status_and_err[] = {
             {0x6041, 0x00, 16},	// Statusword
-			{0x603F, 0x00, 16},	// Error Code
-			{0x6078, 0x00, 16}	// Actual Motor Current
+			{0x603F, 0x00, 16}	// Error Code
+			
             // {0x6079, 0x00, 32}	// High Voltage Reference
     };
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_err);
