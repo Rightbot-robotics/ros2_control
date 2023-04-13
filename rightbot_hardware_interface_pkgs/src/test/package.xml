@@ -18,8 +18,6 @@
     <depend>encoder_sensor</depend>
     <depend>pluginlib</depend>
     <depend>harmonic_motor_actuator</depend>
-    <depend>controller_manager</depend>
-    <depend>rightbot_config_pkg</depend>
 
     <test_depend>ament_lint_auto</test_depend>
     <test_depend>ament_lint_common</test_depend>

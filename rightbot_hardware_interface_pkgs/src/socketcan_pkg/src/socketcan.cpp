@@ -21,19 +21,6 @@
 #endif
 */
 
-int socketcan_fd_set_blocking(int fd, int blocking) {
-    /* Save the current flags */
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1)
-        return 0;
-
-    if (blocking)
-        flags &= ~O_NONBLOCK;
-    else
-        flags |= O_NONBLOCK;
-    return fcntl(fd, F_SETFL, flags) != -1;
-}
-
 
 int socketcan_open(uint32_t filter[], uint32_t filtermask[], uint32_t num_filters) {
     int fd = -1;
@@ -68,13 +55,9 @@ int socketcan_open(uint32_t filter[], uint32_t filtermask[], uint32_t num_filter
 
     // Set to non blocking
     fcntl(fd, F_SETFL, O_NONBLOCK);
-    
-    // Set to blocking
-    // socketcan_fd_set_blocking(fd, 1);
 
     return fd;
 }
-
 
 
 void socketcan_close(int fd) {
@@ -155,9 +138,6 @@ int socketcan_write(int fd, uint32_t id, uint8_t length, Socketcan_t data[]) {
         // Error, no data written
         printd(LOG_ERROR, "socketcan: Could not write data to CAN-bus\n");
         return SOCKETCAN_ERROR;
-    } else {
-        
     }
-    
     return 0;
 }
