@@ -107,6 +107,7 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
         // logger_->debug("Encoder_position: [{}]", feedback_s_m.pos_m);
         // logger_->debug("[{}] Encoder_position: [{}]", motor_sockets_->motor_name_, feedback_s_m.pos_m);
         encoder_data->read_status_encoder = true;
+        // logger_->debug("[{}] - enc read success",motor_name_);
     }
     else{
         encoder_data->read_status_encoder = false;
@@ -117,9 +118,10 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
         // logger_->debug("Encoder_Velocity: [{}]", feedback_s_m.vel_m);
         // logger_->debug("[{}] Encoder_velocity: [{}]", motor_sockets_->motor_name_, feedback_s_m.vel_m);
         encoder_data->read_status_velocity = true;
-    }
-    {
+        // logger_->debug("[{}] - vel read success",motor_name_);
+    }else {
         encoder_data->read_status_velocity = false;
+        logger_->debug("[{}] - vel read false",motor_name_);
     }
 
     if (0 == read_error_code_map["mf_register"]) {
@@ -225,7 +227,7 @@ void EncoderSensor::getData(Json::Value &sensor_data) {
 
         // logger_->debug("Read deque size after pop: {}", q_encoder_data_.size());
         if (q_encoder_data_.size() > 10) {
-            logger_->error("Actuator [{}] Read deque size : [{}]", motor_sockets_->motor_name_, q_encoder_data_.size());
+            logger_->debug("Actuator [{}] Read deque size : [{}]", motor_sockets_->motor_name_, q_encoder_data_.size());
             // std::cout << "Read deque size.: "<< q_encoder_data_.size() << std::endl;
             q_encoder_data_.clear();
         }
