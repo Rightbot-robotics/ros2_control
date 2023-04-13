@@ -30,7 +30,8 @@ enum Epos_ctrl {
 	Start_Excercise = 0x1F, //start excercise (profile position mode)
 	Start_Relative = 0x5F,
 	Start_Excercise_Pos_Immediate = 0x3F, 
-	Start_Relative_Pos_Immediate = 0x7F
+	Start_Relative_Pos_Immediate = 0x7F,
+	Switch_On_And_Enable_Operation_Pos_Immediate = 0x2F
 };
 
 enum Motor_mode {

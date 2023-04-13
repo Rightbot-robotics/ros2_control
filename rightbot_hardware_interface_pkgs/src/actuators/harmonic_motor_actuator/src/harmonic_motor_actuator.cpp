@@ -213,12 +213,12 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 
 	// std::cout << "Motor Harmonic Actuator read: " << motor_name_ <<std::endl;
 
-	if(motor_name_ == "base_rotation_joint"){
-        requestData();
-        std::this_thread::sleep_for(std::chrono::microseconds(2000));
-		// std::cout << "read request" << std::endl;
+	// if(motor_name_ == "base_rotation_joint"){
+    //     requestData();
+    //     std::this_thread::sleep_for(std::chrono::microseconds(2000));
+	// 	// std::cout << "read request" << std::endl;
 
-	}
+	// }
 	
     encoder_sensor_->getData(sensor_data);
 
@@ -694,8 +694,9 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.data.data = (int32_t)pos*axis_;
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
-	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
 	err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
+	std::this_thread::sleep_for(std::chrono::microseconds(500));
+	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
 
 	return err;
 }
