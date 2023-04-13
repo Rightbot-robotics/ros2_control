@@ -1,7 +1,7 @@
 #include <canopen_pkg/SDO.h>
 #include <socketcan_pkg/socketcan.h>
 #include <socketcan_pkg/printd.h>
-
+#include <iostream>
 
 #define SDO_RESPONSE_ERROR     0x80
 #define SDO_RESPONSE_WRITE_OK  0x60
@@ -58,10 +58,15 @@ int SDO_write(int fd, const SDO_data *d) {
         printd(LOG_ERROR, "socketcan SDO: Could not write to the CAN-bus fd=%d.\n", fd);
         return err;
     }
+    else{
+        // std::cout << " SDO write success " << std::endl;
+    }
 
     cob_r = SDO_TX + d->nodeid;
     msb = (d->index >> 8 & 0xff);
     lsb = (d->index & 0xff);
+
+    bool is_ack_received = false;
 
     // Wait for result
     for (int i = 0; i < buffer; i++) {
@@ -73,17 +78,23 @@ int SDO_write(int fd, const SDO_data *d) {
             // Response recived
             if (f.data[0] == SDO_RESPONSE_WRITE_OK) {
                 //printf("ok\n\n");
-                return 0;
-            } else {
-                printd(LOG_ERROR, "socketcan SDO: response error node=%d index=0x%x subindex=0x%x\n", d->nodeid,
-                       d->index, d->subindex);
-                return SOCKETCAN_ERROR;
+                is_ack_received = true;
+                break;
             }
         }
     }
 
-    printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x\n", d->nodeid, d->index);
-    return SOCKETCAN_TIMEOUT;
+    if(is_ack_received) {
+        return 0;
+    }
+    else {
+        printd(LOG_ERROR, "socketcan SDO: response error node=%d index=0x%x subindex=0x%x\n", d->nodeid,
+                d->index, d->subindex);
+        return SOCKETCAN_TIMEOUT;
+    }
+
+    // printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x\n", d->nodeid, d->index);
+    // return SOCKETCAN_TIMEOUT;
 }
 
 
