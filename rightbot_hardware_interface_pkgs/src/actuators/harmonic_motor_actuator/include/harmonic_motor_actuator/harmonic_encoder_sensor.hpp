@@ -89,6 +89,8 @@ public:
 
     bool init_enc = false;
     int err_enc = 0;
+    int position_demand_value = 0;
+    int prev_position_demand_value = 0;
 
     
 };

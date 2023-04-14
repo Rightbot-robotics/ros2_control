@@ -286,8 +286,8 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 			// std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
 			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, revolution_per_sec);
 			if(!using_default_acceleration_){
-				set_profile_acc(revolution_per_sec*0.25);
-				set_profile_deacc(revolution_per_sec*0.25);
+				set_profile_acc(revolution_per_sec*0.5);
+				set_profile_deacc(revolution_per_sec*0.5);
 			}
 		}
 	}
@@ -414,9 +414,10 @@ int HarmonicMotorActuator::motorConfigNode(int motor_id){
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 2, num_PDOs, vel);
 
     // PDO TX3 Encoder Counts
-    num_PDOs = 1;
+    num_PDOs = 2;
     Epos_pdo_mapping enc[] = {
-            {0x6064, 0x00, 32} // Position Actual value
+            {0x6064, 0x00, 32}, // Position Actual value,
+			{0x6062, 0x00, 32}// Position demand value
     };
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 3, num_PDOs, enc);
     //err |= motor_Transmit_PDO_n_Mapping(motor_id, 3, 0, NULL);

@@ -384,8 +384,8 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
                 // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
                 logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, static_cast<float>(acceleration_command_final_));
-                motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_*0.25));
-                motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_*0.25));
+                motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_*0.5));
+                motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_*0.5));
             }
         }
     }

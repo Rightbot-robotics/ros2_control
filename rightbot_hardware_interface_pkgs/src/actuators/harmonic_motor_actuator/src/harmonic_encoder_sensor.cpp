@@ -98,12 +98,21 @@ int HarmonicEncoderSensor::motor_enc_read(int motor_id, int32_t *pos, int timeou
               ((uint32_t) f.data[3] << 24);
         //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
         // logger_->debug("Harmonic motor counts init: [{}]", enc);
+        position_demand_value =  ((uint32_t) f.data[4] << 0) | ((uint32_t) f.data[5] << 8) | ((uint32_t) f.data[6] << 16) |
+              ((uint32_t) f.data[7] << 24);
+        
         if (init_enc) {
             *pos = enc - err_enc;
         } else {
             err_enc = enc;
             init_enc = true;
         }
+
+        if(prev_position_demand_value != position_demand_value){
+            logger_->info("[{}] new position demand value {}, current_count {}",motor_name_ , position_demand_value, *pos);
+            prev_position_demand_value = position_demand_value;
+        }
+
         //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
     }
 
