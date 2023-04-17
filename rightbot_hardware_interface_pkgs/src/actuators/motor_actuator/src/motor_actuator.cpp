@@ -368,10 +368,11 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
             double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
             max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
+            float scaled_max_vel = 0.5f * max_velocity_command_final_;
             // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
-            logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, max_velocity_command_final_);
+            logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
             
-            motor_controls_->set_profile_velocity(motor_id_, max_velocity_command_final_);
+            motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
         }
     }
 
@@ -383,9 +384,10 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
                 // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
-                logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, static_cast<float>(acceleration_command_final_));
-                motor_controls_->set_profile_acc(motor_id_, static_cast<float>(acceleration_command_final_*0.5));
-                motor_controls_->set_profile_deacc(motor_id_, static_cast<float>(acceleration_command_final_*0.5));
+                float scaled_acceleration = static_cast<float>(acceleration_command_final_* 0.5f);
+                logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
+                motor_controls_->set_profile_acc(motor_id_, scaled_acceleration);
+                motor_controls_->set_profile_deacc(motor_id_, scaled_acceleration);
             }
         }
     }

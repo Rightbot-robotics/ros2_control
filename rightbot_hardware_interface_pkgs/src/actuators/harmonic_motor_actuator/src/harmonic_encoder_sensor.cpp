@@ -109,7 +109,7 @@ int HarmonicEncoderSensor::motor_enc_read(int motor_id, int32_t *pos, int timeou
         }
 
         if(prev_position_demand_value != position_demand_value){
-            logger_->info("[{}] new position demand value {}, current_count {}",motor_name_ , position_demand_value, *pos);
+            // logger_->info("[{}] new position demand value {}, current_count {}",motor_name_ , position_demand_value, *pos);
             prev_position_demand_value = position_demand_value;
         }
 

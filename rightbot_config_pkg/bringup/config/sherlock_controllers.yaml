@@ -30,7 +30,7 @@ position_trajectory_controller:
       - position
       - velocity
 
-    state_publish_rate: 200.0 # Defaults to 50
+    state_publish_rate: 100.0 # Defaults to 50
     action_monitor_rate: 20.0 # Defaults to 20
 
     allow_partial_joints_goal: false # Defaults to false
