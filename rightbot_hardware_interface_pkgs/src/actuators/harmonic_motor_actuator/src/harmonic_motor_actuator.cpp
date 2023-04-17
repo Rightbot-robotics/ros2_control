@@ -269,7 +269,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
            	double degree_per_sec = (max_velocity_command_*(180/3.14));
 			double revolution_per_min = abs((degree_per_sec*60)/360.0);
             float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
-			float scaled_max_vel = 0.5f * max_velocity_command_final_;
+			float scaled_max_vel = 1.0f * max_velocity_command_final_;
             // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
             logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
@@ -285,7 +285,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 			double degree_per_sec = (acceleration_command_*(180/3.14));
 			double revolution_per_sec = abs(degree_per_sec/360.0);
 			// std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
-			float scaled_acceleration = revolution_per_sec * 0.5f;
+			float scaled_acceleration = revolution_per_sec * 1.0f;
 			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
 			if(!using_default_acceleration_){
 				set_profile_acc(scaled_acceleration);
