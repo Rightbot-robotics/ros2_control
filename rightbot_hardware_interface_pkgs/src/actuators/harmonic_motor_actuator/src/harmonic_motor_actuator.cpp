@@ -313,13 +313,15 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
 CallbackReturn HarmonicMotorActuator::on_shutdown(const rclcpp_lifecycle::State & previous_state){
 
-    return CallbackReturn::SUCCESS;
+    disableMotor();
+	return CallbackReturn::SUCCESS;
 
 }
 
 CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
 
-    return CallbackReturn::SUCCESS;
+    disableMotor();
+	return CallbackReturn::SUCCESS;
 
 }
 
