@@ -181,6 +181,12 @@ void EncoderSensor::readMotorData() {
         {
             
             if(reading_loop_started) {
+
+                // if(motor_name_ == "base_rotation_joint"){
+                //     motor_feedback_->motor_request();
+                //     std::this_thread::sleep_for(std::chrono::microseconds(2000));
+                // }
+
                 int err = readData(motor_id_, &encoder_data_);
 
                 if (err == 0) {
@@ -208,7 +214,7 @@ void EncoderSensor::readMotorData() {
         logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
         
 
-        std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
+        std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
 
     }
 
