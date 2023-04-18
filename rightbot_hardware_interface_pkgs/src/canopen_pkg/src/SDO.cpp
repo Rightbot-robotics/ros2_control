@@ -32,8 +32,8 @@ uint8_t SDO_calculate_ccd(char rw, int size) {
 int SDO_write(int fd, const SDO_data *d) {
     int err;
     int fillerbytes;
-    const int timeout = 10;
-    const int buffer = 5;
+    const int timeout = 30;
+    const int buffer = 15;
     uint16_t cob, cob_r;
     uint8_t ccd, msb, lsb;
     my_can_frame f;
