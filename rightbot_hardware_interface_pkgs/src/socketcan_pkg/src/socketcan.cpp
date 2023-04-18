@@ -22,8 +22,9 @@
 */
 
 
-int socketcan_open(uint32_t filter[], uint32_t filtermask[], uint32_t num_filters) {
+int socketcan_open(std::string can_interface, uint32_t filter[], uint32_t filtermask[], uint32_t num_filters) {
     int fd = -1;
+    
     // Create the socket
     fd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (fd == -1) {
@@ -31,9 +32,11 @@ int socketcan_open(uint32_t filter[], uint32_t filtermask[], uint32_t num_filter
         return fd;
     }
 
+    const char *can = can_interface.c_str();
+
     // Locate the interface you wish to use
     struct ifreq ifr;
-    strcpy(ifr.ifr_name, "can0");
+    strcpy(ifr.ifr_name, can);
     ioctl(fd, SIOCGIFINDEX, &ifr); // ifr.ifr_ifindex gets filled with that device's index
 
     // Set Filter for this conection

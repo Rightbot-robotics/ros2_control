@@ -2,7 +2,7 @@
 #define SOCKETCAN_H
 
 #include <inttypes.h>
-
+#include <string>
 
 #define SOCKETCAN_ERROR   -1
 #define SOCKETCAN_TIMEOUT -2
@@ -29,7 +29,7 @@ typedef struct {
  * \return              file pointer on success, -1 on error
  *
  */
-int socketcan_open(uint32_t filter[], uint32_t filtermask[], uint32_t num_filters);
+int socketcan_open(std::string can_interface, uint32_t filter[], uint32_t filtermask[], uint32_t num_filters);
 
 
 /** Closes the connection to the CAN-bus */
