@@ -252,8 +252,13 @@ void HarmonicEncoderSensor::readMotorData() {
 
                 if(motor_name_ == "base_rotation_joint"){
                     motor_request();
-                    std::this_thread::sleep_for(std::chrono::microseconds(2000));
+                    
                 }
+                if(motor_name_ == "elbow_rotation_joint"){
+                    motor_request();
+                    
+                }
+                std::this_thread::sleep_for(std::chrono::microseconds(2000));
                 
                 int err = readData( &encoder_data_);
 
@@ -277,7 +282,7 @@ void HarmonicEncoderSensor::readMotorData() {
         logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
 
 
-        std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
+        std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
 
     }
 
