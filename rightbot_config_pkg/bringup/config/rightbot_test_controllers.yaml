@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 50  # Hz
+    update_rate: 100  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -13,8 +13,11 @@ controller_manager:
 position_trajectory_controller:
   ros__parameters:
     joints:
-      - v_gantry_joint
+      - base_rotation_joint
+      - elbow_rotation_joint
+      - wrist_rotation_joint
       - rotation1_joint
+      - rotation2_joint
 
     command_interfaces:
       - position
