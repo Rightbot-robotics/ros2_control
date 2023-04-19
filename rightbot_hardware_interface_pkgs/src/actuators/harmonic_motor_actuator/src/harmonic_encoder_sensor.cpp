@@ -282,7 +282,7 @@ void HarmonicEncoderSensor::readMotorData() {
         logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
 
 
-        std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
+        std::this_thread::sleep_for(std::chrono::microseconds(100000 - time_passed_in_read.count()));
 
     }
 
