@@ -363,7 +363,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     // logger_->info("[{}] Write Max velocity command: [{}]", motor_name_, max_velocity_command_);
     if(previous_max_velocity_command_ != max_velocity_command_){
         
-        if(!using_default_max_velocity_ && (motor_name_ == "v_gantry_joint") ){
+        if(!using_default_max_velocity_){
             // std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
             double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
