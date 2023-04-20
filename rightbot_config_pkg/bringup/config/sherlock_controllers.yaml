@@ -13,7 +13,7 @@ controller_manager:
 position_trajectory_controller:
   ros__parameters:
     joints:
-      # - h_gantry_joint
+      - h_gantry_joint
       - base_rotation_joint
       - v_gantry_joint
       - elbow_rotation_joint
