@@ -380,7 +380,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
             // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
             logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
-            if(!using_default_acceleration_ && (motor_name_ == "v_gantry_joint")){
+            if(!using_default_acceleration_){
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
                 // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
