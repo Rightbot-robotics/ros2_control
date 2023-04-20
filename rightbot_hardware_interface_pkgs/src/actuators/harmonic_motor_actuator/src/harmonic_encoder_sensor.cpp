@@ -59,7 +59,7 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
     my_can_frame f;
     err = PDO_read(motor_sockets_->motor_status_pdo_fd, &f, timeout);
 
-    uint16_t actual_motor_current_register_value;
+    uint16_t actual_motor_current_register_value = 0;
 
     if (err != 0) {
         // Read error, or no data
