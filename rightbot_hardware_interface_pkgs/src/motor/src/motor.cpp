@@ -75,11 +75,12 @@ int Motor::motor_config_node(int motor_id) {
     err |= motor_Transmit_PDO_n_Parameter(motor_id, 4, PDO_TX4_ID + motor_id);
 
     // PDO TX1 Statusword and High Voltage Reference
-    num_PDOs = 3;
+    num_PDOs = 4;
     Epos_pdo_mapping status_and_vol[] = {
             {0x6041, 0x00, 16},   // Statusword
             {0x2201, 0x00, 16},   // High Voltage Reference
-		    {0x2190, 0x00, 16}   // Input States Register for Reading gpio status
+		    {0x2190, 0x00, 16},   // Input States Register for Reading gpio status
+            {0x221C, 0x00, 16}
 	};
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_vol);
 

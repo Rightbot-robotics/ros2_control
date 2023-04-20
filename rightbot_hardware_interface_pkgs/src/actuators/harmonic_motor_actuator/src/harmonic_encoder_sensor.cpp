@@ -59,7 +59,7 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
     my_can_frame f;
     err = PDO_read(motor_sockets_->motor_status_pdo_fd, &f, timeout);
 
-    uint16_t actual_motor_current_register_value = 0;
+    uint16_t actual_motor_current_register_value;
 
     if (err != 0) {
         // Read error, or no data
@@ -69,7 +69,7 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
     if (f.id == (PDO_TX1_ID + motor_id)) {
         *status = (f.data[0] << 0) | (f.data[1] << 8);
         *err_code = (f.data[2] << 0) | (f.data[3] << 8);
-        // actual_motor_current_register_value = (f.data[4] << 0) | (f.data[5] << 8);
+        actual_motor_current_register_value = (f.data[4] << 0) | (f.data[5] << 8);
         *actual_motor_current = static_cast<float>(actual_motor_current_register_value)/1000;
         // *battery_vol = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
         // logger_->debug("test battery vol: [{}]", *battery_vol);
