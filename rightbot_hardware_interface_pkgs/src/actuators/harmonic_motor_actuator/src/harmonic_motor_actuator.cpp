@@ -590,6 +590,10 @@ int HarmonicMotorActuator::disableMotor(void) {
 
 	//Stop PDO-communication
 	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
+
+	encoder_sensor_->stop_read_thread();
+	
+	std::this_thread::sleep_for(std::chrono::microseconds(50000));
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	
 	//Close PDO-communication

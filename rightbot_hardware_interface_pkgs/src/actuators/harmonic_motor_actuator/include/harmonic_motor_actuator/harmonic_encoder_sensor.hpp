@@ -92,6 +92,9 @@ public:
     int position_demand_value = 0;
     int prev_position_demand_value = 0;
 
+    void stop_read_thread();
+    bool stop_read_thread_flag = false;
+
     
 };
 
