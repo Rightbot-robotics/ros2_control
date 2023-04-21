@@ -205,7 +205,7 @@ int Motor::motor_enable(int motor_id) {
 int Motor::motor_disable(int motor_id) {
 
     int err = 0;
-    err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, motor_id, NMT_Enter_PreOperational);
+    // err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, motor_id, NMT_Enter_PreOperational);
 
     SDO_data d;
     d.nodeid = motor_id;
@@ -216,7 +216,7 @@ int Motor::motor_disable(int motor_id) {
 
     err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
 
-    err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, motor_id, NMT_Start_Node);
+    // err |= NMT_change_state(motor_sockets->nmt_motor_cfg_fd, motor_id, NMT_Start_Node);
 
     return err;
 
