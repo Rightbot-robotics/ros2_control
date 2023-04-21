@@ -370,6 +370,8 @@ public:
    */
   void activate_all_components();
 
+  void reset_component(std::string component_name);
+
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
 

@@ -1121,4 +1121,35 @@ void ResourceManager::activate_all_components()
   }
 }
 
+void ResourceManager::reset_component(std::string component_name)
+{
+  bool component_available = false;
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+    // set_component_state(component.get_name(), active_state);
+    if(current_component_ == component_name){
+      component.fault_reset();
+      //
+      // component.
+      component_available = true;
+
+    }
+    if(!component_available){
+      RCUTILS_LOG_INFO_NAMED(
+      "resource_manager", "[reset component] Component '%s' not available ", component_name.c_str());
+
+    }
+  }
+
+  // for (auto & component : resource_storage_->sensors_)
+  // {
+  //   set_component_state(component.get_name(), active_state);
+  // }
+  // for (auto & component : resource_storage_->systems_)
+  // {
+  //   set_component_state(component.get_name(), active_state);
+  // }
+}
+
 }  // namespace hardware_interface

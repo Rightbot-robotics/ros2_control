@@ -1,0 +1,12 @@
+bool request
+---
+float64 drift_x
+float64 drift_y
+float64 drift_yaw
+float64 drift_map_x
+float64 drift_map_y
+float64 drift_relative_yaw
+int64 tag_x
+int64 tag_y
+---
+bool feedback

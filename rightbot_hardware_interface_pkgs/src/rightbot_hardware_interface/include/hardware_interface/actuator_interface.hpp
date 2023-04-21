@@ -192,6 +192,14 @@ public:
   /**
    * \return state.
    */
+
+  virtual void fault_reset() = 0;
+
+  /// fault reset
+  /**
+   * \return name.
+   */
+
   const rclcpp_lifecycle::State & get_state() const { return lifecycle_state_; }
 
   /// Set life-cycle state of the actuator hardware.

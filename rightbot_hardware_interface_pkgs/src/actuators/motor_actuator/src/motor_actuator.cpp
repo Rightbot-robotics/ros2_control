@@ -438,6 +438,11 @@ CallbackReturn MotorActuator::on_error(const rclcpp_lifecycle::State & previous_
 
 }
 
+void MotorActuator::fault_reset(){
+    logger_->debug("[{}] - RESET FAULT", motor_name_);
+	motor_->motor_reset(motor_id_);
+}
+
 bool MotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base

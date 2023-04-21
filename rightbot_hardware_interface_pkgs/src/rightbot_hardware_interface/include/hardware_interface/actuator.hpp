@@ -92,6 +92,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period);
 
+  HARDWARE_INTERFACE_PUBLIC
+  void fault_reset();
+
 private:
   std::unique_ptr<ActuatorInterface> impl_;
 };

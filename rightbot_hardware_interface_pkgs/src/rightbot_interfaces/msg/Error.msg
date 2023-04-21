@@ -1,0 +1,4 @@
+uint64 error
+uint64 sub_error
+string error_type
+string sub_error_type

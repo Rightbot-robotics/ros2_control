@@ -51,6 +51,8 @@
 #include "rclcpp/node_interfaces/node_parameters_interface.hpp"
 #include "rclcpp/parameter.hpp"
 
+#include "rightbot_interfaces/srv/motor_recovery.hpp"
+
 namespace controller_manager
 {
 using ControllersListIterator = std::vector<controller_manager::ControllerSpec>::const_iterator;
@@ -184,6 +186,17 @@ public:
   // Per controller update rate support
   CONTROLLER_MANAGER_PUBLIC
   unsigned int get_update_rate() const;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void handle_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Response> response
+  );
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::MotorRecovery>> motor_recovery_server;
+
 
 protected:
   CONTROLLER_MANAGER_PUBLIC

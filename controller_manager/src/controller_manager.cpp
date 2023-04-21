@@ -164,6 +164,12 @@ ControllerManager::ControllerManager(
   init_resource_manager(robot_description);
 
   init_services();
+
+  motor_recovery_server =
+      create_service<rightbot_interfaces::srv::MotorRecovery>("motor_recovery", std::bind(
+          &ControllerManager::handle_service,
+          this,
+          std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 ControllerManager::ControllerManager(
@@ -2027,5 +2033,19 @@ controller_interface::return_type ControllerManager::check_preceeding_controller
   }
   return controller_interface::return_type::OK;
 };
+
+void ControllerManager::handle_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Response> response
+)
+{ 
+  RCLCPP_INFO(get_logger(), "Motor recovery service for '%s'", request->motor_name.c_str());
+
+  resource_manager_->reset_component(request->motor_name);
+
+  response->status = true;
+
+}
 
 }  // namespace controller_manager

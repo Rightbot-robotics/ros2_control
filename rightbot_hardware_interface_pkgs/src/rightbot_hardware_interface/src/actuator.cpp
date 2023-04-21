@@ -248,4 +248,9 @@ return_type Actuator::write(const rclcpp::Time & time, const rclcpp::Duration & 
   return result;
 }
 
+void Actuator::fault_reset(){
+  impl_->fault_reset();
+
+}
+
 }  // namespace hardware_interface
