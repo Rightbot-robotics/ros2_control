@@ -29,6 +29,9 @@ HarmonicMotorActuator::HarmonicMotorActuator() {
 
 HarmonicMotorActuator::~HarmonicMotorActuator(){
 
+	motorControlword(motor_id_, Disable_Voltage);
+
+
 }
 
 CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::HardwareInfo & info){

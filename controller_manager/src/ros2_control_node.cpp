@@ -97,6 +97,9 @@ int main(int argc, char ** argv)
 
   executor->add_node(cm);
   executor->spin();
+
+  
+
   cm_thread.join();
   rclcpp::shutdown();
   return 0;
