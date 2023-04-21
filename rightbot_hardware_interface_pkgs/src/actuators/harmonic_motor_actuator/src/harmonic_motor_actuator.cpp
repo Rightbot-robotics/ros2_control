@@ -592,7 +592,7 @@ int HarmonicMotorActuator::disableMotor(void) {
 	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 
 	encoder_sensor_->stop_read_thread();
-	
+
 	std::this_thread::sleep_for(std::chrono::microseconds(50000));
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	
@@ -715,9 +715,9 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	}
 	else if ((motor_name_ == "rotation2_joint") && (trigger_once == false)){
 
-		err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
-		std::this_thread::sleep_for(std::chrono::microseconds(500));
-		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
+		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
+		// std::this_thread::sleep_for(std::chrono::microseconds(500));
+		err |= motorControlword(motor_id_, Start_Excercise);// for trigger
 
 		trigger_once = true;
 	}
