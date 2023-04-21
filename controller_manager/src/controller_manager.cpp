@@ -2028,4 +2028,9 @@ controller_interface::return_type ControllerManager::check_preceeding_controller
   return controller_interface::return_type::OK;
 };
 
+void ControllerManager::exit()
+{
+  resource_manager_->deactivate_all_components();
+}
+
 }  // namespace controller_manager

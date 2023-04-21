@@ -369,6 +369,8 @@ public:
    * are activated per default.
    */
   void activate_all_components();
+  void deactivate_all_components();
+
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

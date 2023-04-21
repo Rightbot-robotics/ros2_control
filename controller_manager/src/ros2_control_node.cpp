@@ -98,8 +98,9 @@ int main(int argc, char ** argv)
   executor->add_node(cm);
   executor->spin();
 
+  cm->exit();
+  RCLCPP_INFO(cm->get_logger(), "Controller manager exited");
   
-
   cm_thread.join();
   rclcpp::shutdown();
   return 0;

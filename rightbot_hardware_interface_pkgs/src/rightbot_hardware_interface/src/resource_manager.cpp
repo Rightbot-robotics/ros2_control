@@ -1121,4 +1121,13 @@ void ResourceManager::activate_all_components()
   }
 }
 
+void ResourceManager::deactivate_all_components()
+{
+  for (auto & component : resource_storage_->actuators_)
+  {
+    component.deactivate();
+  }
+  
+}
+
 }  // namespace hardware_interface
