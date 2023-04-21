@@ -171,10 +171,15 @@ void EncoderSensor::updateData() {
 
 }
 
+void EncoderSensor::stop_read_thread() {
+    stop_read_thread_flag = true;
+    
+}
+
 void EncoderSensor::readMotorData() {
 
 
-    while (true) {
+    while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
 

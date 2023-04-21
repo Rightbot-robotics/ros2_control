@@ -87,6 +87,10 @@ public:
 
     bool reading_loop_started = true;
 
+    void stop_read_thread();
+    bool stop_read_thread_flag = false;
+
+
 };
 
 #endif // ENCODER_SENSOR_H_
