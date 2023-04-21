@@ -708,9 +708,9 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 
 	if(motor_name_ != "rotation2_joint"){
 
-		err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
-		std::this_thread::sleep_for(std::chrono::microseconds(500));
 		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
+		std::this_thread::sleep_for(std::chrono::microseconds(500));
+		err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
 
 	}
 	else if ((motor_name_ == "rotation2_joint") && (trigger_once == false)){
