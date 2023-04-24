@@ -8,23 +8,6 @@ PLUGINLIB_EXPORT_CLASS(HarmonicMotorActuator, hardware_interface::ActuatorInterf
 
 HarmonicMotorActuator::HarmonicMotorActuator() {
 
-    // motor initializations
-    // logger_ = spdlog::get("hardware_interface")->clone("harmonic_motor_actuator");
-
-    // harmonic_motor_actuator_sockets_ = motor_sockets;
-
-	// motor_id_ = harmonic_motor_actuator_sockets_->motor_id_;
-    // motor_name_ = harmonic_motor_actuator_sockets_->motor_name_;
-
-	// previous_mode = "not_set";
-
-	// initMotor();
-	// logger_->info("{}, initialization done", motor_name_);
-	// enableMotor();
-	// logger_->info("{}, enabled", motor_name_);
-
-	// goToInitPos();
-
 }
 
 HarmonicMotorActuator::~HarmonicMotorActuator(){
@@ -97,7 +80,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
             (state_interface.name != hardware_interface::HW_IF_STATUS) && 
             (state_interface.name != hardware_interface::HW_IF_ERROR_CODE) &&
             (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
-			(state_interface.name != hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT)
+			(state_interface.name != hardware_interface::HW_IF_EFFORT)
 			)
        {
             logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
@@ -116,44 +99,28 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
 CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State & previous_state){
     
     previous_mode = "not_set";
-
     harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
     
     initMotor();
-	// logger_->info("{}, initialization done", motor_name_);
-
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
-
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
-	// enableMotor();
-	// logger_->info("{}, enabled", motor_name_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
-
-    Json::Value config_data;
-    config_data["motor_id"] = motor_id_;
-    config_data["motor_name"] = motor_name_;
-    config_data["motor_axis"] = axis_;
-
-    // harmonic_encoder_sensor = std::make_shared<HarmonicEncoderSensor>();
-    // harmonic_encoder_sensor->initialize(config_data, motor_sockets_);
-    // read_motor_data_thread_ = std::thread(&HarmonicMotorActuator::readMotorData, this);
     
     return CallbackReturn::SUCCESS;
 }
 
 CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
 
+	//
     logger_->info("Motor Enable action for: [{}]",motor_name_);
     enableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-	
-	// std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
+	//
 	logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
 	set_profile_velocity(default_max_velocity_);
     
-	// std::cout << "setting default_acceleration_: " << default_acceleration_ << std::endl;
+	//
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
@@ -164,6 +131,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 
 CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
+	//
     logger_->info("Motor Disable action for: [{}]",motor_name_);
     disableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -187,7 +155,7 @@ std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_st
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT, &actual_motor_current_state_));
+      motor_name_, hardware_interface::HW_IF_EFFORT, &actual_motor_current_state_));
 
     return state_interfaces;
 
@@ -249,7 +217,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 
 	}
 	else {
-		logger_->warn("[{}] read status false", motor_name_);
+		logger_->debug("[{}] read status false", motor_name_);
 	}
 	
 

@@ -123,7 +123,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (state_interface.name != hardware_interface::HW_IF_MANUFACTURER_REGISTER) &&
             (state_interface.name != hardware_interface::HW_IF_LATCHED_FAULT) &&
             (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
-            (state_interface.name != hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT)
+            (state_interface.name != hardware_interface::HW_IF_EFFORT)
             )
        {
             logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
@@ -262,7 +262,7 @@ std::vector<hardware_interface::StateInterface> MotorActuator::export_state_inte
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_ACTUAL_MOTOR_CURRENT, &actual_motor_current_state_));
+      motor_name_, hardware_interface::HW_IF_EFFORT, &actual_motor_current_state_));
 
     return state_interfaces;
 

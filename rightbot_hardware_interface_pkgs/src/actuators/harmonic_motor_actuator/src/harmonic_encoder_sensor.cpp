@@ -71,6 +71,8 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
         *err_code = (f.data[2] << 0) | (f.data[3] << 8);
         actual_motor_current_register_value = (f.data[4] << 0) | (f.data[5] << 8);
         *actual_motor_current = static_cast<float>(actual_motor_current_register_value)/1000;
+        logger_->debug("[{}] Motor current: [{}]", motor_name_, *actual_motor_current);
+
         // *battery_vol = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
         // logger_->debug("test battery vol: [{}]", *battery_vol);
 

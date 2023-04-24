@@ -29,6 +29,7 @@ position_trajectory_controller:
     state_interfaces:
       - position
       - velocity
+      - effort
 
     state_publish_rate: 100.0 # Defaults to 50
     action_monitor_rate: 20.0 # Defaults to 20
