@@ -198,13 +198,13 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    // if(homing_active){
-    //     if(!Homing()){
+    if(homing_active){
+        if(!Homing()){
 
-    //         return CallbackReturn::ERROR;
-    //     }
+            return CallbackReturn::ERROR;
+        }
         
-    // }
+    }
  
     // std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
     logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
