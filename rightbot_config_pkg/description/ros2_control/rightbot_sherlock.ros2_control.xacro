@@ -3,7 +3,7 @@
 
   <xacro:macro name="rightbot_sherlock" params="name prefix slowdown:=2.0">
 
-     <ros2_control name="TruckUnloading_h_gantry_joint" type="actuator">
+     <!-- <ros2_control name="TruckUnloading_h_gantry_joint" type="actuator">
       <hardware>
         <plugin>motor_actuator</plugin>
         <param name="example_param_hw_start_duration_sec">0</param>
@@ -17,6 +17,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
@@ -40,7 +41,7 @@
         <param name="default_max_velocity">50.0</param>
         <param name="default_max_accleration">10.0</param>
       </joint>
-    </ros2_control>
+    </ros2_control> -->
 
     <ros2_control name="TruckUnloading_base_rotation_joint" type="actuator">
       <hardware>
@@ -56,6 +57,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
@@ -84,6 +86,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
@@ -124,6 +127,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
@@ -152,6 +156,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
@@ -180,6 +185,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>
@@ -208,6 +214,7 @@
         </command_interface>
         <command_interface name="velocity"/>
         <command_interface name="acceleration"/>
+        <command_interface name="control_state"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="status"/>

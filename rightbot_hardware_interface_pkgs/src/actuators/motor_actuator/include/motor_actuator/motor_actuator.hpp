@@ -103,10 +103,12 @@ private:
     double position_command_ = 0.0;
     double max_velocity_command_ = 0.0;
     double acceleration_command_ = 0.0;
+    double control_state_command_ = 0.0;
 
     double previous_position_command_ = 0.0;
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
+    double previous_control_state_command_ = 0.0;
 
     int motor_ppr = 4096;
 
@@ -138,6 +140,12 @@ private:
     std::mutex actuator_mutex_;
 
     char STATUS_IF_TRUE[5] = "true";
+
+    enum Control_mode {
+	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection
+	ACTUATOR_DISABLE = 1, //Contour position mode=1 - mode selection
+	ACTUATOR_QUICK_STOP = 2
+    };
 
     };
 

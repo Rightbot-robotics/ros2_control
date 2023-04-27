@@ -64,7 +64,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 3)
+    if (command_interfaces.size() != 4)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -75,7 +75,8 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-            (command_interface.name != hardware_interface::HW_IF_ACCELERATION)
+            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
+			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE)
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -206,6 +207,8 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
       motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
 
     return command_interfaces;
 
@@ -252,7 +255,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 
 	}
 	else {
-		logger_->warn("[{}] read status false", motor_name_);
+		logger_->debug("[{}] read status false", motor_name_);
 	}
 	
 
@@ -262,6 +265,23 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
 	// std::cout << "Motor Harmonic Actuator write" << std::endl;
+
+	if(previous_control_state_command_ != control_state_command_){
+        logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
+		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
+            logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
+            enableMotor();
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
+            logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+            disableMotor();
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
+            logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
+            quickStopMotor();
+        } else {
+            logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+        }
+		trigger_once = false;
+	}
 
 	if(previous_max_velocity_command_ != max_velocity_command_){
 		
@@ -309,6 +329,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
+	previous_control_state_command_ = control_state_command_;
 
 
     return hardware_interface::return_type::OK;

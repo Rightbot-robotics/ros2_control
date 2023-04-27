@@ -79,7 +79,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 3)
+    if (command_interfaces.size() != 4)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         // std::cout << "Incorrect number of command interfaces. " << std::endl;
@@ -92,7 +92,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) 
+            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
+            (command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) 
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -197,13 +198,13 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    if(homing_active){
-        if(!Homing()){
+    // if(homing_active){
+    //     if(!Homing()){
 
-            return CallbackReturn::ERROR;
-        }
+    //         return CallbackReturn::ERROR;
+    //     }
         
-    }
+    // }
  
     // std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
     logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
@@ -284,6 +285,8 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
       motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
 
     return command_interfaces;
 }
@@ -362,8 +365,23 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-    // std::cout << "Motor Actuator write" << std::endl;
-    // logger_->info("[{}] Write Max velocity command: [{}]", motor_name_, max_velocity_command_);
+    if(previous_control_state_command_ != control_state_command_){
+        logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
+        if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
+            logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
+            motor_->motor_enable(motor_id_);
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
+            logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+            motor_->motor_disable(motor_id_);
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
+            logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
+            motor_->motor_quick_stop(motor_id_);
+        } else {
+            logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+        }
+
+    }
+
     if(previous_max_velocity_command_ != max_velocity_command_){
         
         if(!using_default_max_velocity_){
@@ -425,6 +443,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
+    previous_control_state_command_ = control_state_command_;
     
     return hardware_interface::return_type::OK;
 }

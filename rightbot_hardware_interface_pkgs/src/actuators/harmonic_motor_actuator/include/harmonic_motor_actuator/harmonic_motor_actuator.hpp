@@ -110,10 +110,12 @@ private:
     double position_command_ = 0.0;
     double max_velocity_command_ = 0.0;
     double acceleration_command_ = 0.0;
+    double control_state_command_ = 0.0;
 
     double previous_position_command_ = -1.0;
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
+    double previous_control_state_command_ = 0.0;
 
     double motor_ppr_ = 524288;
 
@@ -125,6 +127,12 @@ private:
     double acceleration_epsilon = 10e-4;
 
     bool trigger_once = false;
+
+    enum Control_mode {
+	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection
+	ACTUATOR_DISABLE = 1, //Contour position mode=1 - mode selection
+	ACTUATOR_QUICK_STOP = 2
+    };
 
 };
 
