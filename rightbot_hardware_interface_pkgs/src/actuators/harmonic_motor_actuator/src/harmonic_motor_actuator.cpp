@@ -654,11 +654,11 @@ int HarmonicMotorActuator::quickStopMotor(void) {
 	int err = 0;
 
 	//Stop PDO-communication
-	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
+	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 	err |= motorControlword(motor_id_, Quickstop);
 	
 	//Close PDO-communication
-	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
+	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 
 	return err;
 }
