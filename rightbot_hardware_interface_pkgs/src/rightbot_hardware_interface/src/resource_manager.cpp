@@ -1121,18 +1121,27 @@ void ResourceManager::activate_all_components()
   }
 }
 
+void ResourceManager::deactivate_all_components()
+{
+  for (auto & component : resource_storage_->actuators_)
+  {
+    component.deactivate();
+  }
+
+}
+
 void ResourceManager::reset_component(std::string component_name)
 {
   bool component_available = false;
   for (auto & component : resource_storage_->actuators_)
   {
     std::string current_component_ = component.get_name();
-    
+
     if(current_component_ == component_name){
 
       RCUTILS_LOG_INFO_NAMED(
       "resource_manager", "Component '%s' reset.", current_component_.c_str());
-      
+
       component.fault_reset();
       component_available = true;
     }

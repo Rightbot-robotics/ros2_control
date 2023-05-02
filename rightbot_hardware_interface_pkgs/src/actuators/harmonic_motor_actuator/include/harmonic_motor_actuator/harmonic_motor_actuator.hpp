@@ -125,6 +125,8 @@ private:
 
     double acceleration_epsilon = 10e-4;
 
+    bool trigger_once = false;
+
 };
 
 

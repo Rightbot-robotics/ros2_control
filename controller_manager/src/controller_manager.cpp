@@ -170,7 +170,7 @@ ControllerManager::ControllerManager(
           &ControllerManager::handle_service,
           this,
           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  
+
 }
 
 ControllerManager::ControllerManager(
@@ -2035,12 +2035,17 @@ controller_interface::return_type ControllerManager::check_preceeding_controller
   return controller_interface::return_type::OK;
 };
 
+void ControllerManager::exit()
+{
+  resource_manager_->deactivate_all_components();
+}
+
 void ControllerManager::handle_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
     const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Response> response
 )
-{ 
+{
   RCLCPP_INFO(get_logger(), "Motor recovery service for '%s'", request->motor_name.c_str());
 
   if(request->function_name == "RESET_FAULT"){
@@ -2050,7 +2055,7 @@ void ControllerManager::handle_service(
   else {
     RCLCPP_INFO(get_logger(), "Function name '%s' not recognized", request->function_name.c_str());
   }
-  
+
 
   response->status = true;
 

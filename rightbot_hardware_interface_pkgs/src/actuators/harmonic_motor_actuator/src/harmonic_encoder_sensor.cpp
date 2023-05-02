@@ -239,10 +239,16 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
 }
 
+void HarmonicEncoderSensor::stop_read_thread() {
+    stop_read_thread_flag = true;
+    
+}
+
+
 void HarmonicEncoderSensor::readMotorData() {
 
 
-    while (true) {
+    while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
 

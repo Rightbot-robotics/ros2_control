@@ -230,8 +230,11 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
     logger_->info("Motor Disable action for: [{}]",motor_name_);
+
+    encoder_sensor->stop_read_thread();
+    std::this_thread::sleep_for(std::chrono::microseconds(50000));
+
     motor_->motor_disable(motor_id_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     return CallbackReturn::SUCCESS;
 

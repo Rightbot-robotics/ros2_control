@@ -369,6 +369,8 @@ public:
    * are activated per default.
    */
   void activate_all_components();
+  void deactivate_all_components();
+
 
   void reset_component(std::string component_name);
 

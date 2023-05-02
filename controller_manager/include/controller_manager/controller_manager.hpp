@@ -188,6 +188,9 @@ public:
   unsigned int get_update_rate() const;
 
   CONTROLLER_MANAGER_PUBLIC
+  void exit();
+
+  CONTROLLER_MANAGER_PUBLIC
   void handle_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
