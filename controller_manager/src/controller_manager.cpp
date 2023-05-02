@@ -165,12 +165,6 @@ ControllerManager::ControllerManager(
 
   init_services();
 
-  motor_recovery_server =
-      create_service<rightbot_interfaces::srv::MotorRecovery>("motor_recovery", std::bind(
-          &ControllerManager::handle_service,
-          this,
-          std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
 }
 
 ControllerManager::ControllerManager(
@@ -274,6 +268,12 @@ void ControllerManager::init_services()
       "~/set_hardware_component_state",
       std::bind(&ControllerManager::set_hardware_component_state_srv_cb, this, _1, _2),
       rmw_qos_profile_services_hist_keep_all, best_effort_callback_group_);
+
+  motor_recovery_server =
+    create_service<rightbot_interfaces::srv::MotorRecovery>("motor_recovery", std::bind(
+        &ControllerManager::handle_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_controller(
