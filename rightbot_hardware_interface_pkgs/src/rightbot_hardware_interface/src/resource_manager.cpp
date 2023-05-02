@@ -1127,29 +1127,23 @@ void ResourceManager::reset_component(std::string component_name)
   for (auto & component : resource_storage_->actuators_)
   {
     std::string current_component_ = component.get_name();
-    // set_component_state(component.get_name(), active_state);
+    
     if(current_component_ == component_name){
-      component.fault_reset();
-      //
-      // component.
-      component_available = true;
 
-    }
-    if(!component_available){
       RCUTILS_LOG_INFO_NAMED(
-      "resource_manager", "[reset component] Component '%s' not available ", component_name.c_str());
-
+      "resource_manager", "Component '%s' reset.", current_component_.c_str());
+      
+      component.fault_reset();
+      component_available = true;
     }
   }
 
-  // for (auto & component : resource_storage_->sensors_)
-  // {
-  //   set_component_state(component.get_name(), active_state);
-  // }
-  // for (auto & component : resource_storage_->systems_)
-  // {
-  //   set_component_state(component.get_name(), active_state);
-  // }
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[reset component] Component '%s' not available ", component_name.c_str());
+
+  }
+
 }
 
 }  // namespace hardware_interface

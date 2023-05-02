@@ -170,6 +170,7 @@ ControllerManager::ControllerManager(
           &ControllerManager::handle_service,
           this,
           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  
 }
 
 ControllerManager::ControllerManager(
@@ -2042,7 +2043,14 @@ void ControllerManager::handle_service(
 { 
   RCLCPP_INFO(get_logger(), "Motor recovery service for '%s'", request->motor_name.c_str());
 
-  resource_manager_->reset_component(request->motor_name);
+  if(request->function_name == "RESET_FAULT"){
+    RCLCPP_INFO(get_logger(), "Function name '%s'", request->function_name.c_str());
+    resource_manager_->reset_component(request->motor_name);
+  }
+  else {
+    RCLCPP_INFO(get_logger(), "Function name '%s' not recognized", request->function_name.c_str());
+  }
+  
 
   response->status = true;
 
