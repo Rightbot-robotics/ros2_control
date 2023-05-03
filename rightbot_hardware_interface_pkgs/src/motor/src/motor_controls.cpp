@@ -187,6 +187,37 @@ int MotorControls::set_profile_deacc(uint16_t node_id, float deacc) {
     return err;
 }
 
+int MotorControls::set_gpio(uint16_t node_id, int n) {
+
+    int err = 0;
+
+	SDO_data d;
+	d.nodeid = node_id;
+	d.index = 0x2194;
+	d.subindex = 0x00;
+	d.data.size = 2;
+	// d.data.data = (1 << n);
+    d.data.data = n ; // switch on multiple pin simultaneously
+	err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
+
+	return err;
+}
+
+int MotorControls::clear_gpio(uint16_t node_id) {
+
+    int err = 0;
+
+	SDO_data d;
+	d.nodeid = node_id;
+	d.index = 0x2194;
+	d.subindex = 0x00;
+	d.data.size = 2;
+	d.data.data = 0;
+	err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
+
+	return err;
+}
+
 int MotorControls::set_driving_motor_position_mode_params(uint16_t node_id, double position_loop_acc,
                                                           double position_loop_deacc, double position_loop_speed) {
     int err = 0;

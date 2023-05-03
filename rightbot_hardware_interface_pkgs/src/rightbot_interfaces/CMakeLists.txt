@@ -33,6 +33,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "srv/Error.srv"
         "srv/MotorRecovery.srv"
         "srv/Waypoints.srv"
+        "srv/Gripper.srv"
         "msg/Error.msg"
         "msg/SystemStatus.msg"
         "msg/ManualRecovery.msg"

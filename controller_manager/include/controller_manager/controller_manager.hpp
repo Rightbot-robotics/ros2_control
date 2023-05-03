@@ -52,6 +52,7 @@
 #include "rclcpp/parameter.hpp"
 
 #include "rightbot_interfaces/srv/motor_recovery.hpp"
+#include "rightbot_interfaces/srv/gripper.hpp"
 
 namespace controller_manager
 {
@@ -199,6 +200,16 @@ public:
 
   CONTROLLER_MANAGER_PUBLIC
   std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::MotorRecovery>> motor_recovery_server;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void handle_gripper_pump_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+  );
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::Gripper>> gripper_server;
 
 
 protected:

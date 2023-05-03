@@ -274,6 +274,13 @@ void ControllerManager::init_services()
         &ControllerManager::handle_service,
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  gripper_server =
+    create_service<rightbot_interfaces::srv::Gripper>("gripper_pump_control", std::bind(
+        &ControllerManager::handle_gripper_pump_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+   
+  
 }
 
 controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_controller(
@@ -2060,5 +2067,20 @@ void ControllerManager::handle_service(
   response->status = true;
 
 }
+
+void ControllerManager::handle_gripper_pump_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+)
+{
+  //
+  RCLCPP_INFO(get_logger(), "GRIPPER/PUMP service.");
+
+  resource_manager_->pump_control(request->pump_one, request->pump_two);
+
+  resource_manager_->gripper_control(request->gripper_one, request->gripper_two);
+
+} 
 
 }  // namespace controller_manager
