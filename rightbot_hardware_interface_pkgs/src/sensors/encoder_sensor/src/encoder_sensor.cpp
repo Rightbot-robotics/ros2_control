@@ -171,10 +171,15 @@ void EncoderSensor::updateData() {
 
 }
 
+void EncoderSensor::stop_read_thread() {
+    stop_read_thread_flag = true;
+    
+}
+
 void EncoderSensor::readMotorData() {
 
 
-    while (true) {
+    while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
 
@@ -214,7 +219,7 @@ void EncoderSensor::readMotorData() {
         logger_->debug("Actuator [{}] Time in execution [ readMotorData() ]: [{}] us",motor_name_ , time_passed_in_read.count());
         
 
-        std::this_thread::sleep_for(std::chrono::microseconds(100000 - time_passed_in_read.count()));
+        std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
 
     }
 

@@ -44,6 +44,8 @@ constexpr char HW_IF_INPUT_STATES[] = "input_states";
 
 constexpr char HW_IF_ACTUAL_MOTOR_CURRENT[] = "actual_motor_current";
 
+constexpr char HW_IF_CONTROL_STATE[] = "control_state";
+
 
 
 }  // namespace hardware_interface

@@ -185,6 +185,9 @@ public:
   CONTROLLER_MANAGER_PUBLIC
   unsigned int get_update_rate() const;
 
+  CONTROLLER_MANAGER_PUBLIC
+  void exit();
+
 protected:
   CONTROLLER_MANAGER_PUBLIC
   void init_services();

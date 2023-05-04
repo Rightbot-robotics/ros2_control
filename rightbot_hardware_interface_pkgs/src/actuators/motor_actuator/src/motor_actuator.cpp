@@ -79,7 +79,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 3)
+    if (command_interfaces.size() != 4)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         // std::cout << "Incorrect number of command interfaces. " << std::endl;
@@ -92,7 +92,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) 
+            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
+            (command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) 
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -230,8 +231,11 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 CallbackReturn MotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
     logger_->info("Motor Disable action for: [{}]",motor_name_);
+
+    encoder_sensor->stop_read_thread();
+    std::this_thread::sleep_for(std::chrono::microseconds(50000));
+
     motor_->motor_disable(motor_id_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     return CallbackReturn::SUCCESS;
 
@@ -281,6 +285,8 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
       motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
 
     return command_interfaces;
 }
@@ -359,11 +365,26 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-    // std::cout << "Motor Actuator write" << std::endl;
-    // logger_->info("[{}] Write Max velocity command: [{}]", motor_name_, max_velocity_command_);
+    if(previous_control_state_command_ != control_state_command_){
+        logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
+        if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
+            logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
+            motor_->motor_enable(motor_id_);
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
+            logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+            motor_->motor_disable(motor_id_);
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
+            logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
+            motor_->motor_quick_stop(motor_id_);
+        } else {
+            logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+        }
+
+    }
+
     if(previous_max_velocity_command_ != max_velocity_command_){
         
-        if(!using_default_max_velocity_ && (motor_name_ == "v_gantry_joint") ){
+        if(!using_default_max_velocity_){
             // std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
             double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
@@ -380,7 +401,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
             // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
             logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
-            if(!using_default_acceleration_ && (motor_name_ == "v_gantry_joint")){
+            if(!using_default_acceleration_){
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
                 // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
@@ -422,6 +443,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
+    previous_control_state_command_ = control_state_command_;
     
     return hardware_interface::return_type::OK;
 }
@@ -474,8 +496,8 @@ bool MotorActuator::Homing(){
 
             // std::cout << "encoder counts value: " << initial_counts << std::endl;
             // std::cout << "input states value: " << sensor_data_homing["input_states"].asInt() << std::endl;
-            auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
-            auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
+            auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
+            auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
             // std::cout << "input states pos value: " << limit_switch_pos << std::endl;
             // std::cout << "input states neg value: " << limit_switch_neg << std::endl;
 

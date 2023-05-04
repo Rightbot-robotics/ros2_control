@@ -12,6 +12,9 @@ HarmonicMotorActuator::HarmonicMotorActuator() {
 
 HarmonicMotorActuator::~HarmonicMotorActuator(){
 
+	motorControlword(motor_id_, Disable_Voltage);
+
+
 }
 
 CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::HardwareInfo & info){
@@ -44,7 +47,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 3)
+    if (command_interfaces.size() != 4)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -55,7 +58,8 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-            (command_interface.name != hardware_interface::HW_IF_ACCELERATION)
+            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
+			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE)
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -171,6 +175,8 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
       motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
 
     return command_interfaces;
 
@@ -228,6 +234,23 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
 	// std::cout << "Motor Harmonic Actuator write" << std::endl;
 
+	if(previous_control_state_command_ != control_state_command_){
+        logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
+		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
+            logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
+            enableMotor();
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
+            logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+            disableMotor();
+        } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
+            logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
+            quickStopMotor();
+        } else {
+            logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+        }
+		trigger_once = false;
+	}
+
 	if(previous_max_velocity_command_ != max_velocity_command_){
 		
 		
@@ -274,6 +297,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
+	previous_control_state_command_ = control_state_command_;
 
 
     return hardware_interface::return_type::OK;
@@ -554,11 +578,15 @@ int HarmonicMotorActuator::disableMotor(void) {
 	int err = 0;
 
 	//Stop PDO-communication
-	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
+	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
+
+	encoder_sensor_->stop_read_thread();
+
+	std::this_thread::sleep_for(std::chrono::microseconds(50000));
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	
 	//Close PDO-communication
-	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
+	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 
 	return err;
 }
@@ -594,11 +622,11 @@ int HarmonicMotorActuator::quickStopMotor(void) {
 	int err = 0;
 
 	//Stop PDO-communication
-	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
+	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 	err |= motorControlword(motor_id_, Quickstop);
 	
 	//Close PDO-communication
-	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
+	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 
 	return err;
 }
@@ -667,9 +695,21 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.data.data = (int32_t)pos*axis_;
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
-	err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
-	std::this_thread::sleep_for(std::chrono::microseconds(500));
-	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
+	if(motor_name_ != "rotation2_joint"){
+
+		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
+		std::this_thread::sleep_for(std::chrono::microseconds(500));
+		err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
+
+	}
+	else if ((motor_name_ == "rotation2_joint") && (trigger_once == false)){
+
+		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
+		// std::this_thread::sleep_for(std::chrono::microseconds(500));
+		err |= motorControlword(motor_id_, Start_Excercise);// for trigger
+
+		trigger_once = true;
+	}
 
 	return err;
 }
