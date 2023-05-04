@@ -118,6 +118,7 @@ private:
     double previous_control_state_command_ = 0.0;
 
     double motor_ppr_ = 524288;
+    int init_counts_rotation2 = 0;
 
     bool using_default_max_velocity_ = false;
     bool using_default_acceleration_ = false;
@@ -127,6 +128,8 @@ private:
     double acceleration_epsilon = 10e-4;
 
     bool trigger_once = false;
+
+    bool reinitialize_reading = true;
 
     enum Control_mode {
 	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection

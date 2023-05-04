@@ -44,6 +44,12 @@ void HarmonicEncoderSensor::init_json() {
 
 }
 
+void HarmonicEncoderSensor::reading_re_init(){
+    
+    init_enc = false;
+
+}
+
 int HarmonicEncoderSensor::motor_request(void)
 {
 

@@ -323,6 +323,12 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
 		// std::cout << "setting set_relative_position: " << position_command_ <<  ". counts: " << counts << std::endl;
 		logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
+
+		if(motor_name_ == "rotation2_joint"){
+			counts = counts + init_counts_rotation2;
+			logger_->info("[{}] Position command in counts: [{}] after init counts", motor_name_, counts);
+		}
+		
         set_relative_position( counts);
     }
     

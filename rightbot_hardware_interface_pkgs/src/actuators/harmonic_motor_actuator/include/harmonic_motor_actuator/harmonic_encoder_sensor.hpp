@@ -95,6 +95,8 @@ public:
     void stop_read_thread();
     bool stop_read_thread_flag = false;
 
+    void reading_re_init();
+
     
 };
 
