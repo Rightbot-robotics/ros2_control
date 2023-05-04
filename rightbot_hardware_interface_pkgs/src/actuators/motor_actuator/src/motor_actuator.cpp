@@ -527,8 +527,8 @@ bool MotorActuator::Homing(){
 
             // std::cout << "encoder counts value: " << initial_counts << std::endl;
             // std::cout << "input states value: " << sensor_data_homing["input_states"].asInt() << std::endl;
-            auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
-            auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
+            auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
+            auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
             // std::cout << "input states pos value: " << limit_switch_pos << std::endl;
             // std::cout << "input states neg value: " << limit_switch_neg << std::endl;
 
