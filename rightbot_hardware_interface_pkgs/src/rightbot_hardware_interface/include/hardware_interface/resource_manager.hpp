@@ -372,6 +372,11 @@ public:
   void deactivate_all_components();
 
 
+  void reset_component(std::string component_name);
+
+  void pump_control(bool pump_one, bool pump_two);
+  void gripper_control(bool gripper_one, bool gripper_two);
+
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
 

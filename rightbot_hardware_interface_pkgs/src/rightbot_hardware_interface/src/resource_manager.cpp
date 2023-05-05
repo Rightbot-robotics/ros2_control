@@ -1127,7 +1127,122 @@ void ResourceManager::deactivate_all_components()
   {
     component.deactivate();
   }
-  
+
+}
+
+void ResourceManager::reset_component(std::string component_name)
+{
+  bool component_available = false;
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    if(current_component_ == component_name){
+
+      RCUTILS_LOG_INFO_NAMED(
+      "resource_manager", "Component '%s' reset.", current_component_.c_str());
+
+      component.fault_reset();
+      component_available = true;
+    }
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[reset component] Component '%s' not available ", component_name.c_str());
+
+  }
+
+}
+
+void ResourceManager::pump_control(bool pump_one, bool pump_two)
+{
+  bool component_available = false;
+
+  double set_value = 0.0;
+  if(pump_one && !pump_two){
+    set_value = 1.0;
+  } else if (!pump_one && pump_two){
+    set_value = 2.0;
+  } else if (pump_one && pump_two) {
+    set_value = 3.0;
+  } else if (!pump_one && !pump_two) {
+    set_value = 0.0;
+  } else {
+    RCUTILS_LOG_ERROR_NAMED(
+    "resource_manager", "[pump control] Command not recognized");
+  }
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    if(current_component_ == "TruckUnloading_v_gantry_joint"){
+      component_available = true;
+
+      auto command_interfaces = component.export_command_interfaces();
+      for (auto & current_interface : command_interfaces){
+
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_GPIO){
+          current_interface.set_value(set_value);
+          RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[pump control] Setting gpio interface value '%d' ", set_value);
+        }
+      }
+    }
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[pump control] Component [TruckUnloading_v_gantry_joint] not available ");
+
+  }
+
+}
+
+void ResourceManager::gripper_control(bool gripper_one, bool gripper_two)
+{
+  bool component_available = false;
+
+  double set_value = 0.0;
+  if(gripper_one && !gripper_two){
+    set_value = 1.0;
+  } else if (!gripper_one && gripper_two){
+    set_value = 2.0;
+  } else if (gripper_one && gripper_two) {
+    set_value = 3.0;
+  } else if (!gripper_one && !gripper_two) {
+    set_value = 0.0;
+  } else {
+    RCUTILS_LOG_ERROR_NAMED(
+    "resource_manager", "[gripper control] Command not recognized");
+  }
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    if(current_component_ == "TruckUnloading_h_gantry_joint"){
+      component_available = true;
+
+      auto command_interfaces = component.export_command_interfaces();
+      for (auto & current_interface : command_interfaces){
+
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_GPIO){
+          current_interface.set_value(set_value);
+          RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[gripper control] Setting gpio interface value '%d' ", set_value);
+        }
+      }
+    }
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[gripper control] Component [TruckUnloading_h_gantry_joint] not available ");
+
+  }
+
 }
 
 }  // namespace hardware_interface

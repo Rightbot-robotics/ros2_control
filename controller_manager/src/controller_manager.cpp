@@ -164,6 +164,7 @@ ControllerManager::ControllerManager(
   init_resource_manager(robot_description);
 
   init_services();
+
 }
 
 ControllerManager::ControllerManager(
@@ -267,6 +268,19 @@ void ControllerManager::init_services()
       "~/set_hardware_component_state",
       std::bind(&ControllerManager::set_hardware_component_state_srv_cb, this, _1, _2),
       rmw_qos_profile_services_hist_keep_all, best_effort_callback_group_);
+
+  motor_recovery_server =
+    create_service<rightbot_interfaces::srv::MotorRecovery>("motor_recovery", std::bind(
+        &ControllerManager::handle_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  gripper_server =
+    create_service<rightbot_interfaces::srv::Gripper>("gripper_pump_control", std::bind(
+        &ControllerManager::handle_gripper_pump_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+   
+  
 }
 
 controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_controller(
@@ -2032,5 +2046,41 @@ void ControllerManager::exit()
 {
   resource_manager_->deactivate_all_components();
 }
+
+void ControllerManager::handle_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Response> response
+)
+{
+  RCLCPP_INFO(get_logger(), "Motor recovery service for '%s'", request->motor_name.c_str());
+
+  if(request->function_name == "RESET_FAULT"){
+    RCLCPP_INFO(get_logger(), "Function name '%s'", request->function_name.c_str());
+    resource_manager_->reset_component(request->motor_name);
+  }
+  else {
+    RCLCPP_INFO(get_logger(), "Function name '%s' not recognized", request->function_name.c_str());
+  }
+
+
+  response->status = true;
+
+}
+
+void ControllerManager::handle_gripper_pump_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+)
+{
+  //
+  RCLCPP_INFO(get_logger(), "GRIPPER/PUMP service.");
+
+  resource_manager_->pump_control(request->pump_one, request->pump_two);
+
+  resource_manager_->gripper_control(request->gripper_one, request->gripper_two);
+
+} 
 
 }  // namespace controller_manager

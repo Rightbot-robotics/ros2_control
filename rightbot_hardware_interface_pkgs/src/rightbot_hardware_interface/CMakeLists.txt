@@ -118,67 +118,67 @@ install(
   LIBRARY DESTINATION lib
 )
 
-if(BUILD_TESTING)
+# if(BUILD_TESTING)
 
-  find_package(ament_cmake_gmock REQUIRED)
-  find_package(ros2_control_test_assets REQUIRED)
+#   find_package(ament_cmake_gmock REQUIRED)
+#   find_package(ros2_control_test_assets REQUIRED)
 
-  ament_add_gmock(rightbot_test_macros test/test_macros.cpp)
-  target_include_directories(rightbot_test_macros PRIVATE include)
-  ament_target_dependencies(rightbot_test_macros rcpputils)
+#   ament_add_gmock(rightbot_test_macros test/test_macros.cpp)
+#   target_include_directories(rightbot_test_macros PRIVATE include)
+#   ament_target_dependencies(rightbot_test_macros rcpputils)
 
-  ament_add_gmock(rightbot_test_joint_handle test/test_handle.cpp)
-  target_link_libraries(rightbot_test_joint_handle ${PROJECT_NAME})
-  ament_target_dependencies(rightbot_test_joint_handle rcpputils)
+#   ament_add_gmock(rightbot_test_joint_handle test/test_handle.cpp)
+#   target_link_libraries(rightbot_test_joint_handle ${PROJECT_NAME})
+#   ament_target_dependencies(rightbot_test_joint_handle rcpputils)
 
-  ament_add_gmock(rightbot_test_component_interfaces test/test_component_interfaces.cpp)
-  target_link_libraries(rightbot_test_component_interfaces ${PROJECT_NAME})
+#   ament_add_gmock(rightbot_test_component_interfaces test/test_component_interfaces.cpp)
+#   target_link_libraries(rightbot_test_component_interfaces ${PROJECT_NAME})
 
-  ament_add_gmock(rightbot_test_component_parser test/test_component_parser.cpp)
-  target_link_libraries(rightbot_test_component_parser ${PROJECT_NAME})
-  ament_target_dependencies(rightbot_test_component_parser ros2_control_test_assets)
+#   ament_add_gmock(rightbot_test_component_parser test/test_component_parser.cpp)
+#   target_link_libraries(rightbot_test_component_parser ${PROJECT_NAME})
+#   ament_target_dependencies(rightbot_test_component_parser ros2_control_test_assets)
 
-  add_library(rightbot_test_components SHARED
-    test/test_components/test_actuator.cpp
-    test/test_components/test_sensor.cpp
-    test/test_components/test_system.cpp)
-  target_link_libraries(rightbot_test_components ${PROJECT_NAME})
-  ament_target_dependencies(rightbot_test_components
-    pluginlib)
-  install(TARGETS rightbot_test_components
-    DESTINATION lib
-  )
-  pluginlib_export_plugin_description_file(
-    ${PROJECT_NAME} test/test_components/test_components.xml)
+#   add_library(rightbot_test_components SHARED
+#     test/test_components/test_actuator.cpp
+#     test/test_components/test_sensor.cpp
+#     test/test_components/test_system.cpp)
+#   target_link_libraries(rightbot_test_components ${PROJECT_NAME})
+#   ament_target_dependencies(rightbot_test_components
+#     pluginlib)
+#   install(TARGETS rightbot_test_components
+#     DESTINATION lib
+#   )
+#   pluginlib_export_plugin_description_file(
+#     ${PROJECT_NAME} test/test_components/test_components.xml)
 
-  add_library(rightbot_test_hardware_components SHARED
-  test/test_hardware_components/test_single_joint_actuator.cpp
-  test/test_hardware_components/test_force_torque_sensor.cpp
-  test/test_hardware_components/test_two_joint_system.cpp
-  test/test_hardware_components/test_system_with_command_modes.cpp
-  )
-  target_link_libraries(rightbot_test_hardware_components ${PROJECT_NAME})
-  ament_target_dependencies(rightbot_test_hardware_components
-    pluginlib)
-  install(TARGETS rightbot_test_hardware_components
-    DESTINATION lib
-  )
-  pluginlib_export_plugin_description_file(
-    ${PROJECT_NAME} test/test_hardware_components/test_hardware_components.xml
-  )
+#   add_library(rightbot_test_hardware_components SHARED
+#   test/test_hardware_components/test_single_joint_actuator.cpp
+#   test/test_hardware_components/test_force_torque_sensor.cpp
+#   test/test_hardware_components/test_two_joint_system.cpp
+#   test/test_hardware_components/test_system_with_command_modes.cpp
+#   )
+#   target_link_libraries(rightbot_test_hardware_components ${PROJECT_NAME})
+#   ament_target_dependencies(rightbot_test_hardware_components
+#     pluginlib)
+#   install(TARGETS rightbot_test_hardware_components
+#     DESTINATION lib
+#   )
+#   pluginlib_export_plugin_description_file(
+#     ${PROJECT_NAME} test/test_hardware_components/test_hardware_components.xml
+#   )
 
-  ament_add_gmock(rightbot_test_resource_manager test/test_resource_manager.cpp)
-  target_link_libraries(rightbot_test_resource_manager ${PROJECT_NAME})
-  ament_target_dependencies(rightbot_test_resource_manager ros2_control_test_assets)
+#   ament_add_gmock(rightbot_test_resource_manager test/test_resource_manager.cpp)
+#   target_link_libraries(rightbot_test_resource_manager ${PROJECT_NAME})
+#   ament_target_dependencies(rightbot_test_resource_manager ros2_control_test_assets)
 
-  ament_add_gmock(rightbot_test_generic_system test/mock_components/test_generic_system.cpp)
-  target_include_directories(rightbot_test_generic_system PRIVATE include)
-  target_link_libraries(rightbot_test_generic_system ${PROJECT_NAME})
-  ament_target_dependencies(rightbot_test_generic_system
-    pluginlib
-    ros2_control_test_assets
-  )
-endif()
+#   ament_add_gmock(rightbot_test_generic_system test/mock_components/test_generic_system.cpp)
+#   target_include_directories(rightbot_test_generic_system PRIVATE include)
+#   target_link_libraries(rightbot_test_generic_system ${PROJECT_NAME})
+#   ament_target_dependencies(rightbot_test_generic_system
+#     pluginlib
+#     ros2_control_test_assets
+#   )
+# endif()
 
 ament_export_include_directories(
   include

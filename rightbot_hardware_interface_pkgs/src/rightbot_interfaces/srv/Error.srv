@@ -1,0 +1,6 @@
+bool reset_error
+bool get_error_list
+---
+uint64 error
+uint64 sub_error
+string[] error_list

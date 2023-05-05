@@ -12,6 +12,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     rightbot_hardware_interface
     pluginlib
     rclcpp
+    rightbot_interfaces
 )
 
 find_package(ament_cmake REQUIRED)

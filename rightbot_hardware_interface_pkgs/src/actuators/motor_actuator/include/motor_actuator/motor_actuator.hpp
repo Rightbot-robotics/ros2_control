@@ -56,6 +56,8 @@ public:
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
 
+    void fault_reset() override;
+
     void init_json(std::string path);
 
 
@@ -104,11 +106,13 @@ private:
     double max_velocity_command_ = 0.0;
     double acceleration_command_ = 0.0;
     double control_state_command_ = 0.0;
+    double gpio_command_ = 0.0;
 
     double previous_position_command_ = 0.0;
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
     double previous_control_state_command_ = 0.0;
+    double previous_gpio_command_ = 0.0;
 
     int motor_ppr = 4096;
 

@@ -1,0 +1,4 @@
+uint64 left_motor
+uint64 right_motor
+uint64 lift_motor
+uint64 rotate_motor

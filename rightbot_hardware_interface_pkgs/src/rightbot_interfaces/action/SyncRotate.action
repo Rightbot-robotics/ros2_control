@@ -1,0 +1,17 @@
+float64 robot_rotate_angle
+float64 plate_rotate_angle
+int64 timeout
+int64 mode
+int64 rotation_type
+---
+float64 robot_rotate_angle
+float64 plate_rotate_angle
+int64 timeout
+int64 mode
+int64 rotation_type
+---
+float64 robot_rotate_angle
+float64 plate_rotate_angle
+int64 timeout
+int64 mode
+int64 rotation_type
