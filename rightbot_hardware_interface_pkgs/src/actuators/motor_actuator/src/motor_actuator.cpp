@@ -200,10 +200,10 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     if(homing_active){
-        // if(!Homing()){
+        if(!Homing()){
 
-        //     return CallbackReturn::ERROR;
-        // }
+            return CallbackReturn::ERROR;
+        }
         
     }
  
@@ -308,17 +308,25 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     
     encoder_sensor->getData(sensor_data);
 
+    if(!initialization_done){
+        logger_->info("[{}] CAN buffer clear command", motor_name_);
+        encoder_sensor->clear_can_buffer();
+        initialization_done = true;
+    }
+
 
     if(sensor_data["read_status"].asBool() == false){
         // return hardware_interface::return_type::ERROR;
     } 
 
-    if(sensor_data["read_status_encoder"].asBool() == true){
-        if(!initialization_done){
-            initialization_done = true;
-            initial_counts = sensor_data["counts"].asInt();
-        }
-    }
+    
+
+    // if(sensor_data["read_status_encoder"].asBool() == true){
+    //     if(!initialization_done){
+    //         initialization_done = true;
+    //         initial_counts = sensor_data["counts"].asInt();
+    //     }
+    // }
 
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
@@ -513,9 +521,9 @@ bool MotorActuator::Homing(){
 
     while((time_passed_response_received_lift_down.count()<30000) && (homing_achieved == false)){
 
-        requestData();
+        // requestData();
 
-        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+        // std::this_thread::sleep_for(std::chrono::microseconds(2000));
         
         encoder_sensor->getData(sensor_data_homing);
 
@@ -546,7 +554,7 @@ bool MotorActuator::Homing(){
         }
 
         time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-        std::this_thread::sleep_for(std::chrono::microseconds(8000));
+        std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     }
     if(!homing_achieved){
