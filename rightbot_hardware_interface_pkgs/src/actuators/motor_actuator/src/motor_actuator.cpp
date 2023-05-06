@@ -200,10 +200,10 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     if(homing_active){
-        if(!Homing()){
+        // if(!Homing()){
 
-            return CallbackReturn::ERROR;
-        }
+        //     return CallbackReturn::ERROR;
+        // }
         
     }
  
@@ -313,12 +313,12 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         // return hardware_interface::return_type::ERROR;
     } 
 
-    // if(sensor_data["read_status_encoder"].asBool() == true){
-    //     if(!initialization_done && homing_achieved){
-    //         initialization_done = true;
-    //         initial_counts = sensor_data["counts"].asInt();
-    //     }
-    // }
+    if(sensor_data["read_status_encoder"].asBool() == true){
+        if(!initialization_done){
+            initialization_done = true;
+            initial_counts = sensor_data["counts"].asInt();
+        }
+    }
 
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
