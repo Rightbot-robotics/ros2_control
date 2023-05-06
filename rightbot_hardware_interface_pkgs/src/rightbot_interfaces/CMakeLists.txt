@@ -38,6 +38,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/SystemStatus.msg"
         "msg/ManualRecovery.msg"
         "msg/Waypoints.msg"
+        "msg/RosControlError.msg"
         )
 
 ament_package()

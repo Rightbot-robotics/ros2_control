@@ -53,6 +53,7 @@
 
 #include "rightbot_interfaces/srv/motor_recovery.hpp"
 #include "rightbot_interfaces/srv/gripper.hpp"
+#include "rightbot_interfaces/msg/ros_control_error.hpp"
 
 namespace controller_manager
 {
