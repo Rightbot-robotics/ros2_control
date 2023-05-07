@@ -93,6 +93,10 @@ public:
     void clear_can_buffer();
     bool clear_can_buffer_flag = false;
 
+    void readToClearBuffer();
+
+    bool sending_motor_request_internally = false;
+
 };
 
 #endif // ENCODER_SENSOR_H_

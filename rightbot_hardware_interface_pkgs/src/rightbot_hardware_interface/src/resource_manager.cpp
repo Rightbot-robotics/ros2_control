@@ -1248,4 +1248,14 @@ void ResourceManager::gripper_control(bool gripper_one, bool gripper_two)
 
 }
 
+
+void ResourceManager::clear_can_buffer(){
+  for (auto & component : resource_storage_->actuators_)
+  {
+    component.clear_can_buffer();
+
+  }
+
+}
+
 }  // namespace hardware_interface

@@ -499,6 +499,13 @@ void MotorActuator::fault_reset(){
 	motor_->motor_reset(motor_id_);
 }
 
+void MotorActuator::clear_can_buffer(){
+
+    encoder_sensor->readToClearBuffer();
+
+    //
+}
+
 bool MotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base
@@ -521,9 +528,9 @@ bool MotorActuator::Homing(){
 
     while((time_passed_response_received_lift_down.count()<30000) && (homing_achieved == false)){
 
-        // requestData();
+        requestData();
 
-        // std::this_thread::sleep_for(std::chrono::microseconds(2000));
+        std::this_thread::sleep_for(std::chrono::microseconds(2000));
         
         encoder_sensor->getData(sensor_data_homing);
 
@@ -557,6 +564,7 @@ bool MotorActuator::Homing(){
         std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     }
+
     if(!homing_achieved){
         // std::cout << "homing timeout" << std::endl;
         logger_->error("[{}] Homing timeout", motor_name_);

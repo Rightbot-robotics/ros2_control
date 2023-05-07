@@ -181,6 +181,23 @@ void EncoderSensor::clear_can_buffer(){
 
 }
 
+void EncoderSensor::readToClearBuffer(){
+    bool exit = false;
+
+    reading_loop_started = false;
+    while(!exit){
+
+        int err = readData(motor_id_, &encoder_data_);
+
+        exit = !encoder_data_.read_status_encoder;
+
+    }
+    logger_->info("[{}] CAN buffer cleared", motor_name_);
+
+    sending_motor_request_internally = true;
+    
+}
+
 void EncoderSensor::readMotorData() {
 
 
@@ -192,20 +209,18 @@ void EncoderSensor::readMotorData() {
             
             if(reading_loop_started) {
 
-                if(motor_name_ == "h_gantry_joint"){
-                    if(!clear_can_buffer_flag){
-                        motor_feedback_->motor_request();
-                        std::this_thread::sleep_for(std::chrono::microseconds(2000));
-                    }
+                if((motor_name_ == "h_gantry_joint") && (sending_motor_request_internally)){
+                    motor_feedback_->motor_request();
+                    std::this_thread::sleep_for(std::chrono::microseconds(2000));
                     
                 }
 
                 int err = readData(motor_id_, &encoder_data_);
 
-                if(clear_can_buffer_flag && !(encoder_data_.read_status_encoder)){
-                    logger_->info("[{}] CAN buffer cleared", motor_name_);
-                    clear_can_buffer_flag = false;
-                }
+                // if(clear_can_buffer_flag && !(encoder_data_.read_status_encoder)){
+                //     logger_->info("[{}] CAN buffer cleared", motor_name_);
+                //     clear_can_buffer_flag = false;
+                // }
 
                 if (err == 0) {
 
