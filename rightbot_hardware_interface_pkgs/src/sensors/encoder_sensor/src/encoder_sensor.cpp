@@ -185,11 +185,13 @@ void EncoderSensor::readToClearBuffer(){
     bool exit = false;
 
     reading_loop_started = false;
+    logger_->info("[{}] readToClearBuffer", motor_name_);
     while(!exit){
 
         int err = readData(motor_id_, &encoder_data_);
 
         exit = !encoder_data_.read_status_encoder;
+        logger_->info("[{}] [clear buffer] read_status_encoder: [{}]", motor_name_, encoder_data_.read_status_encoder);
 
     }
     logger_->info("[{}] CAN buffer cleared", motor_name_);
