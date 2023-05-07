@@ -1177,7 +1177,10 @@ void ResourceManager::pump_control(bool pump_one, bool pump_two)
   {
     std::string current_component_ = component.get_name();
 
-    if(current_component_ == "TruckUnloading_v_gantry_joint"){
+    //RCUTILS_LOG_INFO_NAMED(
+    //"resource_manager", "[reset component] Current component '%s' ", current_component_.c_str());
+    
+    if(current_component_ == "Hardware_TruckUnloading_v_gantry_joint"){
       component_available = true;
 
       auto command_interfaces = component.export_command_interfaces();
@@ -1186,7 +1189,7 @@ void ResourceManager::pump_control(bool pump_one, bool pump_two)
         if(current_interface.get_interface_name() == hardware_interface::HW_IF_GPIO){
           current_interface.set_value(set_value);
           RCUTILS_LOG_INFO_NAMED(
-            "resource_manager", "[pump control] Setting gpio interface value '%d' ", set_value);
+            "resource_manager", "[pump control] Setting gpio interface value '%f' ", set_value);
         }
       }
     }
@@ -1194,7 +1197,7 @@ void ResourceManager::pump_control(bool pump_one, bool pump_two)
 
   if(!component_available){
     RCUTILS_LOG_INFO_NAMED(
-    "resource_manager", "[pump control] Component [TruckUnloading_v_gantry_joint] not available ");
+    "resource_manager", "[pump control] Component [Hardware_TruckUnloading_v_gantry_joint] not available ");
 
   }
 
@@ -1240,6 +1243,16 @@ void ResourceManager::gripper_control(bool gripper_one, bool gripper_two)
   if(!component_available){
     RCUTILS_LOG_INFO_NAMED(
     "resource_manager", "[gripper control] Component [TruckUnloading_h_gantry_joint] not available ");
+
+  }
+
+}
+
+
+void ResourceManager::clear_can_buffer(){
+  for (auto & component : resource_storage_->actuators_)
+  {
+    component.clear_can_buffer();
 
   }
 

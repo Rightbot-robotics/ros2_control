@@ -322,6 +322,10 @@ void HarmonicMotorActuator::fault_reset(){
 	resetFault();
 }
 
+void HarmonicMotorActuator::clear_can_buffer(){
+
+}
+
 void HarmonicMotorActuator::init_json(std::string path){
 
     Json::Value config_data;

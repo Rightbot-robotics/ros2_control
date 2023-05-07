@@ -214,6 +214,8 @@ void ControllerManager::init_resource_manager(const std::string & robot_descript
   {
     resource_manager_->activate_all_components();
   }
+
+  resource_manager_->clear_can_buffer();
 }
 
 void ControllerManager::init_services()
