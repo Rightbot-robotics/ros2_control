@@ -151,6 +151,9 @@ private:
 	ACTUATOR_QUICK_STOP = 2
     };
 
+    int motor_ppr_ = 4096;
+
+
     };
 
 #endif // MOTOR_ACTUATOR_H_

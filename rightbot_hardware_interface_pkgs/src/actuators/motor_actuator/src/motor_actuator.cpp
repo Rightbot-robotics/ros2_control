@@ -308,8 +308,8 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
-        position_state_ = sensor_data["counts"].asInt();
-        velocity_state_ = axis_* (sensor_data["velocity"].asDouble());
+        position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/(motor_ppr_*motor_gear_ratio));
+        velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
     }
     
     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();
@@ -345,30 +345,51 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     if(previous_max_velocity_command_ != max_velocity_command_){
         
         if(!using_default_max_velocity_){
-            // std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
-            logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
-            double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
-            max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
-            float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
-            logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+
+            if(homing_active){
+                logger_->info("[{}] Max velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
+                double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
+                max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
+                float scaled_max_vel = 1.0f * max_velocity_command_final_;
+                logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+
+                motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
+            } else {
+                logger_->info("[{}] Max velocity command in degree/s: [{}]", motor_name_, max_velocity_command_);
+                double degree_per_sec = (max_velocity_command_*(180/3.14));
+                double revolution_per_min = abs((degree_per_sec*60)/360.0);
+                float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
+                float scaled_max_vel = 1.0f * max_velocity_command_final_;
+                logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+                motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
+
+            }
             
-            motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
         }
     }
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
-            // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
-            logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+
             if(!using_default_acceleration_){
-                double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
-                acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
-                // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
-                float scaled_acceleration = static_cast<float>(acceleration_command_final_* 1.0f);
-                logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
-                motor_controls_->set_profile_acc(motor_id_, scaled_acceleration);
-                motor_controls_->set_profile_deacc(motor_id_, scaled_acceleration);
+                if(homing_active){
+                    logger_->info("[{}] Acceleration command in m/s2: [{}]", motor_name_, acceleration_command_);
+                    double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
+                    acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
+                    float scaled_acceleration = static_cast<float>(acceleration_command_final_* 1.0f);
+                    logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
+                    motor_controls_->set_profile_acc(motor_id_, scaled_acceleration);
+                    motor_controls_->set_profile_deacc(motor_id_, scaled_acceleration);
+                }
+                else{
+
+                    double degree_per_sec = (acceleration_command_*(180/3.14));
+                    double revolution_per_sec = abs(degree_per_sec/360.0);
+                    // std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
+                    float scaled_acceleration = revolution_per_sec * 1.0f;
+                    logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
+
+                }
             }
         }
     }
