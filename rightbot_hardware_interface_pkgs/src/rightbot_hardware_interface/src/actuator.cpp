@@ -253,4 +253,9 @@ void Actuator::fault_reset(){
 
 }
 
+void Actuator::clear_can_buffer(){
+  impl_->clear_can_buffer();
+
+}
+
 }  // namespace hardware_interface

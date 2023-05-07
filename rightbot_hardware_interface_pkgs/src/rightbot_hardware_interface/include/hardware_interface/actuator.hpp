@@ -95,6 +95,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   void fault_reset();
 
+  HARDWARE_INTERFACE_PUBLIC
+  void clear_can_buffer();
+
 private:
   std::unique_ptr<ActuatorInterface> impl_;
 };

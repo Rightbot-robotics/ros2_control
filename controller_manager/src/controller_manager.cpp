@@ -214,6 +214,8 @@ void ControllerManager::init_resource_manager(const std::string & robot_descript
   {
     resource_manager_->activate_all_components();
   }
+
+  resource_manager_->clear_can_buffer();
 }
 
 void ControllerManager::init_services()
@@ -2077,9 +2079,9 @@ void ControllerManager::handle_gripper_pump_service(
   //
   RCLCPP_INFO(get_logger(), "GRIPPER/PUMP service.");
 
-  resource_manager_->pump_control(request->pump_one, request->pump_two);
+  resource_manager_->driver_one_gpio_control(request->pump_one, request->gripper_one);
 
-  resource_manager_->gripper_control(request->gripper_one, request->gripper_two);
+  resource_manager_->driver_two_gpio_control(request->pump_two, request->gripper_two);
 
 } 
 

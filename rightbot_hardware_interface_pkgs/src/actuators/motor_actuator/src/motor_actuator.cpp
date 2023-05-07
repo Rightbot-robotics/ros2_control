@@ -283,13 +283,21 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     
     encoder_sensor->getData(sensor_data);
 
+    if(!initialization_done){
+        logger_->info("[{}] CAN buffer clear command", motor_name_);
+        encoder_sensor->clear_can_buffer();
+        initialization_done = true;
+    }
+
 
     if(sensor_data["read_status"].asBool() == false){
         // return hardware_interface::return_type::ERROR;
     } 
 
+    
+
     // if(sensor_data["read_status_encoder"].asBool() == true){
-    //     if(!initialization_done && homing_achieved){
+    //     if(!initialization_done){
     //         initialization_done = true;
     //         initial_counts = sensor_data["counts"].asInt();
     //     }
@@ -423,19 +431,19 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     
     if(previous_gpio_command_ != gpio_command_){
         if(gpio_command_ == 1.0){
-            logger_->info("[{}] - GPIO command ->  Pump/Gripper 1 Switch ON, Pump/Gripper 2 Switch OFF", motor_name_);
+            logger_->info("[{}] - GPIO command ->  Pump Switch ON, Gripper Switch OFF", motor_name_);
             motor_controls_->set_gpio(motor_id_, 1); 
 
         } else if (gpio_command_ == 2.0){
-            logger_->info("[{}] - GPIO command ->  Pump/Gripper 2 Switch ON, Pump/Gripper 1 Switch OFF", motor_name_);
-            motor_controls_->set_gpio(motor_id_, 2);
+            logger_->info("[{}] - GPIO command ->  Gripper Switch ON, Pump Switch OFF", motor_name_);
+            motor_controls_->set_gpio(motor_id_, 4);
            
         } else if (gpio_command_ == 3.0) {
-            logger_->info("[{}] - GPIO command ->  Pump/Gripper 1 and 2 Switch ON", motor_name_);
-            motor_controls_->set_gpio(motor_id_, 3);
+            logger_->info("[{}] - GPIO command ->  Pump and Gripper Switch ON", motor_name_);
+            motor_controls_->set_gpio(motor_id_, 5);
 
         } else if (gpio_command_ == 0.0) {
-            logger_->info("[{}] - GPIO command ->  Pump/Gripper 1 and 2 Switch OFF", motor_name_);
+            logger_->info("[{}] - GPIO command ->  Pump and Gripper Switch OFF", motor_name_);
             motor_controls_->clear_gpio(motor_id_);
         } else {
             logger_->error("[{}] - GPIO command not recognized", motor_name_);
@@ -467,6 +475,13 @@ CallbackReturn MotorActuator::on_error(const rclcpp_lifecycle::State & previous_
 void MotorActuator::fault_reset(){
     logger_->debug("[{}] - RESET FAULT", motor_name_);
 	motor_->motor_reset(motor_id_);
+}
+
+void MotorActuator::clear_can_buffer(){
+
+    encoder_sensor->readToClearBuffer();
+
+    //
 }
 
 bool MotorActuator::Homing(){
@@ -524,9 +539,10 @@ bool MotorActuator::Homing(){
         }
 
         time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-        std::this_thread::sleep_for(std::chrono::microseconds(8000));
+        std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     }
+
     if(!homing_achieved){
         // std::cout << "homing timeout" << std::endl;
         logger_->error("[{}] Homing timeout", motor_name_);

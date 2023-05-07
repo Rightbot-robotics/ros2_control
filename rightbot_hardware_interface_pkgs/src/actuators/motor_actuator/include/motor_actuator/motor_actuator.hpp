@@ -58,6 +58,8 @@ public:
 
     void fault_reset() override;
 
+    void clear_can_buffer() override;
+
     void init_json(std::string path);
 
 

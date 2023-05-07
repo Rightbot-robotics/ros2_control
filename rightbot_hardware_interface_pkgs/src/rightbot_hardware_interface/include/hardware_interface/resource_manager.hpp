@@ -374,8 +374,10 @@ public:
 
   void reset_component(std::string component_name);
 
-  void pump_control(bool pump_one, bool pump_two);
-  void gripper_control(bool gripper_one, bool gripper_two);
+  void driver_one_gpio_control(bool pump_one, bool gripper_one);
+  void driver_two_gpio_control(bool pump_two, bool gripper_two);
+
+  void clear_can_buffer();
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

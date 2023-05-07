@@ -58,6 +58,7 @@ public:
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
     void fault_reset() override;
+    void clear_can_buffer() override;
 
     void init_json(std::string path);
 
