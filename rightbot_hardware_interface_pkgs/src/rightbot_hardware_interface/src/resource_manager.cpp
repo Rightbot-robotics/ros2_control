@@ -1155,55 +1155,23 @@ void ResourceManager::reset_component(std::string component_name)
 
 }
 
-void ResourceManager::driver_one_gpio_control(bool pump_one, bool pump_two, bool gripper_one)
+void ResourceManager::driver_one_gpio_control(bool pump_one, bool gripper_one)
 {
-
   bool component_available = false;
 
   double set_value = 0.0;
-
-  int pump_one_ = 0;
-  int pump_two_ = 0;
-  int gripper_one_ = 0;
-
-  int final_ = 0;
-
-  // if(pump_one && !gripper_one){
-  //   set_value = 1.0;
-  // } else if (!pump_one && gripper_one){
-  //   set_value = 2.0;
-  // } else if (pump_one && gripper_one) {
-  //   set_value = 3.0;
-  // } else if (!pump_one && !gripper_one) {
-  //   set_value = 0.0;
-  // } else {
-  //   RCUTILS_LOG_ERROR_NAMED(
-  //   "resource_manager", "[gripper/pump control] [Hardware_TruckUnloading_v_gantry_joint] Command not recognized");
-  // }
-
-  if(pump_one){
-    pump_one_ = 1;
+  if(pump_one && !gripper_one){
+    set_value = 1.0;
+  } else if (!pump_one && gripper_one){
+    set_value = 2.0;
+  } else if (pump_one && gripper_one) {
+    set_value = 3.0;
+  } else if (!pump_one && !gripper_one) {
+    set_value = 0.0;
   } else {
-    pump_one_ = 0;
+    RCUTILS_LOG_ERROR_NAMED(
+    "resource_manager", "[gripper/pump control] [Hardware_TruckUnloading_v_gantry_joint] Command not recognized");
   }
-
-  final_ = final_ | (pump_one_<<0);
-
-  if(pump_two){
-    pump_two_ = 1;
-  } else {
-    pump_two_ = 0;
-  }
-
-  final_ = final_ | (pump_two_<<1);
-
-  if(gripper_one){
-    gripper_one_ = 1;
-  } else {
-    gripper_one_ = 0;
-  }
-
-  final_ = final_ | (gripper_one<<2);
 
   for (auto & component : resource_storage_->actuators_)
   {
@@ -1219,9 +1187,9 @@ void ResourceManager::driver_one_gpio_control(bool pump_one, bool pump_two, bool
       for (auto & current_interface : command_interfaces){
 
         if(current_interface.get_interface_name() == hardware_interface::HW_IF_GPIO){
-          current_interface.set_value(static_cast<double>(final_));
+          current_interface.set_value(set_value);
           RCUTILS_LOG_INFO_NAMED(
-            "resource_manager", "[gripper/pump control] [Hardware_TruckUnloading_v_gantry_joint] Setting gpio interface value '%d' ", final_);
+            "resource_manager", "[gripper/pump control] [Hardware_TruckUnloading_v_gantry_joint] Setting gpio interface value '%f' ", set_value);
         }
       }
     }
