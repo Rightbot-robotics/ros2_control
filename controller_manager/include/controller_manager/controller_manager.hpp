@@ -212,6 +212,19 @@ public:
   CONTROLLER_MANAGER_PUBLIC
   std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::Gripper>> gripper_server;
 
+  CONTROLLER_MANAGER_PUBLIC
+  rclcpp::Publisher<rightbot_interfaces::srv::RosControlError>::SharedPtr error_publisher;
+
+  CONTROLLER_MANAGER_PUBLIC
+  class Error {
+    public:
+        std::thread thread;
+        std::mutex mutex;
+    } error_;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void ControllerManager::publish_error(){;
+
 
 protected:
   CONTROLLER_MANAGER_PUBLIC

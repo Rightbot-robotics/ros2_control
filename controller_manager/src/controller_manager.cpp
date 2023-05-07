@@ -281,6 +281,11 @@ void ControllerManager::init_services()
         &ControllerManager::handle_gripper_pump_service,
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+  error_publisher = 
+    create_publisher<rightbot_interfaces::srv::RosControlError>("error_topic", 10);
+
+  error_.thread = std::thread(&ControllerManager::publish_error, this);
    
   
 }
@@ -2083,6 +2088,17 @@ void ControllerManager::handle_gripper_pump_service(
 
   resource_manager_->gripper_control(request->gripper_one, request->gripper_two);
 
-} 
+}
+
+void ControllerManager::publish_error(){
+
+  while(true){
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    
+  }
+
+}
 
 }  // namespace controller_manager
