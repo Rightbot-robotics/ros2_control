@@ -458,11 +458,11 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
         } else if (gpio_command_ == 2.0){
             logger_->info("[{}] - GPIO command ->  Pump/Gripper 2 Switch ON, Pump/Gripper 1 Switch OFF", motor_name_);
-            motor_controls_->set_gpio(motor_id_, 2);
+            motor_controls_->set_gpio(motor_id_, 4);
            
         } else if (gpio_command_ == 3.0) {
             logger_->info("[{}] - GPIO command ->  Pump/Gripper 1 and 2 Switch ON", motor_name_);
-            motor_controls_->set_gpio(motor_id_, 3);
+            motor_controls_->set_gpio(motor_id_, 5);
 
         } else if (gpio_command_ == 0.0) {
             logger_->info("[{}] - GPIO command ->  Pump/Gripper 1 and 2 Switch OFF", motor_name_);
