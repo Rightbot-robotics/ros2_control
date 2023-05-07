@@ -1189,7 +1189,7 @@ void ResourceManager::pump_control(bool pump_one, bool pump_two)
         if(current_interface.get_interface_name() == hardware_interface::HW_IF_GPIO){
           current_interface.set_value(set_value);
           RCUTILS_LOG_INFO_NAMED(
-            "resource_manager", "[pump control] Setting gpio interface value '%d' ", set_value);
+            "resource_manager", "[pump control] Setting gpio interface value '%f' ", set_value);
         }
       }
     }
