@@ -131,7 +131,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 
 	set_relative_position( 0);
 	std::this_thread::sleep_for(std::chrono::seconds(5));
-	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
+	logger_->info("[{}] Homing wait time passed",motor_name_);
 
     return CallbackReturn::SUCCESS;
 
