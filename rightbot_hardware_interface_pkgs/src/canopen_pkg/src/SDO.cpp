@@ -82,7 +82,37 @@ int SDO_write(int fd, const SDO_data *d) {
         }
     }
 
-    printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x\n", d->nodeid, d->index);
+    printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x RE-SENDING COMMAND \n", d->nodeid, d->index);
+
+    // Send write request
+    err = socketcan_write(fd, cob, 5, data);
+    if (err != 0) {
+        printd(LOG_ERROR, "socketcan SDO: Could not write to the CAN-bus fd=%d.\n", fd);
+        return err;
+    }
+
+    // Wait for result
+    for (int i = 0; i < buffer; i++) {
+        err = socketcan_read(fd, &f, timeout / buffer);
+//		printf("err=%d node=0x%x index=0x%x sub=0x%x from=0x%x res=0x%x\n", err, d->nodeid, d->index, d->subindex, f.id, f.data[0]);
+
+        if (err == 0 && f.dlc >= 4 && f.id == cob_r && f.data[1] == lsb && f.data[2] == msb &&
+            f.data[3] == d->subindex) {
+            // Response recived
+            if (f.data[0] == SDO_RESPONSE_WRITE_OK) {
+                //printf("ok\n\n");
+                return 0;
+            } else {
+                printd(LOG_ERROR, "socketcan SDO: response error node=%d index=0x%x subindex=0x%x\n", d->nodeid,
+                       d->index, d->subindex);
+                return SOCKETCAN_ERROR;
+            }
+        }
+    }
+
+    printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x EXIT \n", d->nodeid, d->index);
+
+    
     return SOCKETCAN_TIMEOUT;
 }
 
