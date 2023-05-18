@@ -1258,4 +1258,13 @@ void ResourceManager::clear_can_buffer(){
 
 }
 
+// void ResourceManager::get_error_data(){
+
+//   for (auto & component : resource_storage_->actuators_)
+//   {
+    
+//   }
+
+// }
+
 }  // namespace hardware_interface

@@ -283,7 +283,7 @@ void ControllerManager::init_services()
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   error_publisher = 
-    create_publisher<rightbot_interfaces::srv::RosControlError>("error_topic", 10);
+    create_publisher<rightbot_interfaces::msg::RosControlError>("error_topic", 10);
 
   error_.thread = std::thread(&ControllerManager::publish_error, this);
    
@@ -2091,6 +2091,15 @@ void ControllerManager::handle_gripper_pump_service(
 }
 
 void ControllerManager::publish_error(){
+
+
+// string[] component_name
+// int32[] status
+// int32[] error_register
+// string[] error_type
+
+  auto message = rightbot_interfaces::msg::RosControlError();
+  message.component_name.resize(2);
 
   while(true){
 

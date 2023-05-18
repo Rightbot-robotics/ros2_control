@@ -213,7 +213,7 @@ public:
   std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::Gripper>> gripper_server;
 
   CONTROLLER_MANAGER_PUBLIC
-  rclcpp::Publisher<rightbot_interfaces::srv::RosControlError>::SharedPtr error_publisher;
+  rclcpp::Publisher<rightbot_interfaces::msg::RosControlError>::SharedPtr error_publisher;
 
   CONTROLLER_MANAGER_PUBLIC
   class Error {
@@ -223,7 +223,7 @@ public:
     } error_;
 
   CONTROLLER_MANAGER_PUBLIC
-  void ControllerManager::publish_error(){;
+  void publish_error();
 
 
 protected:
