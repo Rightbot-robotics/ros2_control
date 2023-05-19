@@ -371,7 +371,6 @@ public:
   void activate_all_components();
   void deactivate_all_components();
 
-
   void reset_component(std::string component_name);
 
   void driver_one_gpio_control(bool pump_one, bool gripper_one);
