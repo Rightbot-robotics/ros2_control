@@ -366,6 +366,10 @@ public:
             {
               result = activate_hardware(hardware);
             }
+            if(!result){
+              remove_interfaces();
+
+            }
             break;
           case State::PRIMARY_STATE_INACTIVE:
             result = activate_hardware(hardware);
@@ -469,6 +473,20 @@ public:
       claimed_command_interface_map_.erase(interface);
     }
   }
+
+  void remove_interfaces()
+{
+  for (const auto & interface : state_interface_map_)
+  {
+    state_interface_map_.erase(interface.first);
+  }
+
+  for (const auto & interface : command_interface_map_)
+  {
+    command_interface_map_.erase(interface.first);
+    claimed_command_interface_map_.erase(interface.first);
+  }
+}
 
   void check_for_duplicates(const HardwareInfo & hardware_info)
   {
