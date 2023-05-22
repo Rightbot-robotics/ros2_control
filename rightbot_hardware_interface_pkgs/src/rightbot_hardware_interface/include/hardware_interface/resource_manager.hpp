@@ -42,6 +42,20 @@ class SensorInterface;
 class SystemInterface;
 class ResourceStorage;
 
+class HARDWARE_INTERFACE_PUBLIC ComponentErrorData{
+  public:
+
+  ComponentErrorData() = default;
+
+  ~ComponentErrorData() = default;
+
+  std::vector<std::string> component_name;
+  std::vector<int> status;
+  std::vector<int> error_register;
+  std::vector<std::string> error_type;
+
+};
+
 class HARDWARE_INTERFACE_PUBLIC ResourceManager
 {
 public:
@@ -378,6 +392,9 @@ public:
   void driver_two_gpio_control(bool pump_two, bool gripper_two);
 
   void clear_can_buffer();
+
+  void get_error_data(ComponentErrorData *error_data_);
+  // ComponentErrorData error_data_;
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

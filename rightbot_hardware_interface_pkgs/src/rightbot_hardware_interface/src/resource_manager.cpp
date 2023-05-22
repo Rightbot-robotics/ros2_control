@@ -1258,13 +1258,44 @@ void ResourceManager::clear_can_buffer(){
 
 }
 
-// void ResourceManager::get_error_data(){
+void ResourceManager::get_error_data(ComponentErrorData *error_data_){
 
-//   for (auto & component : resource_storage_->actuators_)
-//   {
-    
-//   }
+  int components_number = resource_storage_->actuators_.size();
 
-// }
+  error_data_->component_name.clear();
+  error_data_->status.clear();
+  error_data_->error_register.clear();
+  error_data_->error_type.clear();
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string component_name;
+    int status;
+    int error_register;
+    std::string error_type = "error";
+
+    component_name = component.get_name();
+    auto state_interfaces = component.export_state_interfaces();
+
+    for (auto & state_interface : state_interfaces){
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_STATUS){
+        status = state_interface.get_value();
+      }
+
+      if((state_interface.get_interface_name() == hardware_interface::HW_IF_LATCHED_FAULT) 
+      || (state_interface.get_interface_name() == hardware_interface::HW_IF_ERROR_CODE)){
+        error_register = state_interface.get_value();
+      }
+    }
+
+    error_data_->component_name.push_back(component_name);
+    error_data_->status.push_back(status);
+    error_data_->error_register.push_back(error_register);
+    error_data_->error_type.push_back(error_type);
+
+  }
+
+}
 
 }  // namespace hardware_interface

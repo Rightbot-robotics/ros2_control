@@ -2092,20 +2092,46 @@ void ControllerManager::handle_gripper_pump_service(
 
 void ControllerManager::publish_error(){
 
+  
+  // message.component_name.resize(2);
+  // message.status.resize(2);
+  // message.error_register.resize(2);
+  // message.error_type.resize(2);
 
-// string[] component_name
-// int32[] status
-// int32[] error_register
-// string[] error_type
+  // message.component_name[0] = "left";
+  // message.component_name[1] = "right";
 
-  auto message = rightbot_interfaces::msg::RosControlError();
-  message.component_name.resize(2);
+  // message.status[0] = 0;
+  // message.status[1] = 0;
+
+  // message.error_register[0] = 0;
+  // message.error_register[1] = 0;
+
+  // message.error_type[0] = "error";
+  // message.error_type[1] = "error";
+
+  hardware_interface::ComponentErrorData error_data_;
 
   while(true){
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    
+    resource_manager_->get_error_data(&error_data_);
+
+    int components_number = error_data_.component_name.size();
+
+    auto message = rightbot_interfaces::msg::RosControlError();
+
+    for (auto & component : error_data_.component_name) {
+      //
+      message.component_name = error_data_.component_name;
+      message.status = error_data_.status;
+      message.error_register = error_data_.error_register;
+      message.error_type = error_data_.error_type;
+    }
+
+    error_publisher->publish(message);
+
   }
 
 }
