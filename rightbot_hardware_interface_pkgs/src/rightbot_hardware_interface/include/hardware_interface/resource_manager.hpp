@@ -393,7 +393,10 @@ public:
   void clear_can_buffer();
 
   void get_error_data(ComponentErrorData *error_data_);
-  // ComponentErrorData error_data_;
+
+  std::string get_zlac_driver_error(int error);
+
+  std::string get_harmonic_driver_error(int error);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
