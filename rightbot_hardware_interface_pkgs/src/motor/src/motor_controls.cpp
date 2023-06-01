@@ -2,6 +2,8 @@
 
 MotorControls::MotorControls(Sockets::SocketsSPtr motor_sockets_) {
     motor_sockets = motor_sockets_;
+    motor_name_ = motor_sockets->motor_name_;
+    motor_id_ = motor_sockets->motor_can_id;
     logger_ = spdlog::get("hardware_interface")->clone("motor_controls");
     previous_mode = "not_set";
 }
@@ -229,7 +231,7 @@ int MotorControls::set_driving_motor_position_mode_params(uint16_t node_id, doub
 
 bool MotorControls::motor_command(int motor_id, int axis, std::string command_type, position_cmd_t position_cmd_element,
                                   velocity_cmd_t velocity_cmd_element) {
-    logger_->debug("Motor Sockets ptr in motor controls : {}", motor_sockets);
+    // logger_->debug("Motor Sockets ptr in motor controls : {}", motor_sockets);
 
     if ((previous_mode == "velocity") && (command_type == "velocity")){
 
@@ -280,6 +282,21 @@ bool MotorControls::motor_command(int motor_id, int axis, std::string command_ty
     }
 
     previous_mode = command_type;
+
+}
+
+int MotorControls::motorSetmode(std::string mode){
+    
+    if(mode == "velocity"){
+        logger_->info("Actuator {} - setting control mode {}", motor_name_, mode);
+        motor_setmode_sdo(motor_id_, Motor_mode_Velocity);
+    } else if (mode == "position") {
+        logger_->info("Actuator {} - setting control mode {}", motor_name_, mode);
+        motor_setmode_sdo(motor_id_, Motor_mode_Position);
+    } else {
+        logger_->info("Actuator {} - control mode not recognized ", motor_name_);
+
+    }
 
 }
 

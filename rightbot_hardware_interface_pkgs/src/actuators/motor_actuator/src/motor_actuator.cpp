@@ -189,6 +189,10 @@ CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previ
 
     encoder_sensor = std::make_shared<EncoderSensor>();
     encoder_sensor->initialize(config_data, motor_sockets_);
+
+    if(velocity_mode){
+        motor_controls_->motorSetmode("velocity");
+    }
     
     return CallbackReturn::SUCCESS;
 }
@@ -396,23 +400,25 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     if(previous_max_velocity_command_ != max_velocity_command_){
         
         if(!using_default_max_velocity_){
-            // std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
+            
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
             double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
             max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
             float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
             logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
             
-            motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
+            motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
+
         }
     }
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
             // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
-            logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+            
             if(!using_default_acceleration_){
+                logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
                 // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
@@ -425,29 +431,26 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     }
 
     if(previous_position_command_ != position_command_){
-        
-        // std::cout << "initial position command: " << position_command_ << std::endl;
-        // std::cout << "initial_counts: " << initial_counts << std::endl;
-        // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
-        // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
-        // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
 
-        logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+        if(!velocity_mode){
 
-        int position_command_final_;
-        if(homing_at_zero){
-            auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-            position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-            // std::cout << "final position command (homing at zero): " << position_command_final_ << std::endl;
-        } else {
-            auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-            position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-            // std::cout << "final position command: (homing not at zero) " << position_command_final_ << std::endl;
+            logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+
+            int position_command_final_;
+            if(homing_at_zero){
+                auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+                
+            } else {
+                auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+                
+            }
+
+            logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
+            motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
+
         }
-        // auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-        // std::cout << "final position command: " << position_command_final_ << std::endl;
-        logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
-        motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
     }
     
