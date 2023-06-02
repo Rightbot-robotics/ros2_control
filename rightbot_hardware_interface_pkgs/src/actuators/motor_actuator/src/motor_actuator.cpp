@@ -190,9 +190,7 @@ CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previ
     encoder_sensor = std::make_shared<EncoderSensor>();
     encoder_sensor->initialize(config_data, motor_sockets_);
 
-    if(velocity_mode){
-        motor_controls_->motorSetmode("velocity");
-    }
+    
     
     return CallbackReturn::SUCCESS;
 }
@@ -209,6 +207,10 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
             return CallbackReturn::ERROR;
         }
         
+    }
+
+    if(velocity_mode){
+        motor_controls_->motorSetmode("velocity");
     }
  
     // std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;

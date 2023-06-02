@@ -110,9 +110,7 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-	if(velocity_mode){
-        motorSetmode(Motor_mode_Velocity); 
-    }
+	
     
     return CallbackReturn::SUCCESS;
 }
@@ -136,6 +134,10 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	set_relative_position( 0);
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 	logger_->info("[{}] Homing wait time passed",motor_name_);
+
+	if(velocity_mode){
+        motorSetmode(Motor_mode_Velocity); 
+    }
 
     return CallbackReturn::SUCCESS;
 
