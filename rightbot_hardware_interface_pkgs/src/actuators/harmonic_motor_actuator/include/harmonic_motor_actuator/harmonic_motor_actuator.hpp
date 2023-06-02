@@ -129,7 +129,7 @@ private:
     double default_acceleration_ = 1.0;
 
     double acceleration_epsilon = 10e-4;
-    double velocity_epsilon = 10e-4;
+    double velocity_epsilon = 10e-5;
 
     bool trigger_once = false;
 

@@ -133,7 +133,7 @@ private:
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
-    double velocity_epsilon = 10e-4;
+    double velocity_epsilon = 10e-5;
     double acceleration_epsilon = 10e-4;
 
     double total_travel_distance = 0.9; // in m
