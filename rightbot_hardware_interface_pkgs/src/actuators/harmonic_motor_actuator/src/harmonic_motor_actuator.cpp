@@ -257,13 +257,18 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		trigger_once = false;
 	}
 
-	if(previous_max_velocity_command_ != max_velocity_command_){
+	if((abs(max_velocity_command_) > (abs(previous_max_velocity_command_) + velocity_epsilon)) 
+        || (abs(max_velocity_command_) < (abs(previous_max_velocity_command_) - velocity_epsilon)) ){
+        
+        if(abs(max_velocity_command_) < (velocity_epsilon)){
+            max_velocity_command_ = 0.0;
+        }
 		
 		if(!using_default_max_velocity_){
 			
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
            	double degree_per_sec = (max_velocity_command_*(180/3.14));
-			double revolution_per_min = abs((degree_per_sec*60)/360.0);
+			double revolution_per_min = (degree_per_sec*60)/360.0;
             float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
 			float scaled_max_vel = 1.0f * max_velocity_command_final_;
             logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
@@ -654,7 +659,7 @@ int HarmonicMotorActuator::set_target_velocity(float vel) {
 	d.index = 0x60FF;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)rpm_to_countspersec(vel);
+	d.data.data = (int32_t)rpm_to_countspersec(vel*axis_);
 	err |= SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
@@ -703,8 +708,8 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 }
 
 int HarmonicMotorActuator::rpm_to_countspersec(float rpm) {
-	int counts_per_min = (int)((rpm)*(EROB_CPR));
-	return counts_per_min/60.0;
+	int counts_per_sec = static_cast<int>((rpm*EROB_CPR)/60.0);
+	return counts_per_sec;
 }
 
 int HarmonicMotorActuator::motor_rps2_to_cps2(float rpss) {

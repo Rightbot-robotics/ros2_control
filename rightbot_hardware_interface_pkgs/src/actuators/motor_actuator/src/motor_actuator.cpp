@@ -397,12 +397,17 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     }
 
-    if(previous_max_velocity_command_ != max_velocity_command_){
+    if((abs(max_velocity_command_) > (abs(previous_max_velocity_command_) + velocity_epsilon)) 
+        || (abs(max_velocity_command_) < (abs(previous_max_velocity_command_) - velocity_epsilon)) ){
+        
+        if(abs(max_velocity_command_) < (velocity_epsilon)){
+            max_velocity_command_ = 0.0;
+        }
         
         if(!using_default_max_velocity_){
             
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
-            double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
+            double max_velocity_command_final_ = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
             max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
             float scaled_max_vel = 1.0f * max_velocity_command_final_;
             logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
@@ -414,14 +419,12 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
         if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
-            // std::cout << "acceleration_command_: " << acceleration_command_ << std::endl;
             
             if(!using_default_acceleration_){
                 logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
 
                 double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                 acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
-                // std::cout << "acceleration_command_final_: " << static_cast<float>(acceleration_command_final_) << std::endl;
                 float scaled_acceleration = static_cast<float>(acceleration_command_final_* 1.0f);
                 logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
                 motor_controls_->set_profile_acc(motor_id_, scaled_acceleration);
