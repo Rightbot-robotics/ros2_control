@@ -131,7 +131,13 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
 
-	set_relative_position( 0);
+	if(motor_name_ == "elbow_rotation_joint"){
+		set_relative_position(-121072);
+	} else {
+		set_relative_position(0);
+
+	}
+
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 	logger_->info("[{}] Homing wait time passed",motor_name_);
 
