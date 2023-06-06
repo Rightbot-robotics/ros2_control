@@ -132,7 +132,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	set_profile_deacc(default_acceleration_);
 
 	if(motor_name_ == "elbow_rotation_joint"){
-		set_relative_position(-121072);
+		set_relative_position(0);
 	} else {
 		set_relative_position(0);
 
