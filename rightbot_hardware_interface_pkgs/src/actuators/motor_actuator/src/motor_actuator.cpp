@@ -325,33 +325,21 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         // return hardware_interface::return_type::ERROR;
     } 
 
-    
-
-    // if(sensor_data["read_status_encoder"].asBool() == true){
-    //     if(!initialization_done){
-    //         initialization_done = true;
-    //         initial_counts = sensor_data["counts"].asInt();
-    //     }
-    // }
-
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
     input_states_state_ = sensor_data["input_states"].asInt();
     actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
-    // std::cout << "sensor data counts: " << sensor_data["counts"].asInt() << std::endl;
-
-
     if(homing_at_zero){
         
-        position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+        // position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+        position_state_ = total_travel_distance - (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
 
-        // std::cout << " (homing at zero) position_state_: " << position_state_ << std::endl;
     } else {
         
-        position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+        // position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+        position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
     
-        // std::cout << " (homing not at zero) position_state_: " << position_state_ << std::endl;
     }
 
     // position_state_ = sensor_data["counts"].asInt();
@@ -443,11 +431,15 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
             int position_command_final_;
             if(homing_at_zero){
-                auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                //h gantry
+                // auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                auto position_command_final_tmp = initial_counts + ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
                 position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
                 
             } else {
-                auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                // v gantry
+                // auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                auto position_command_final_tmp = initial_counts - (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
                 position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
                 
             }
