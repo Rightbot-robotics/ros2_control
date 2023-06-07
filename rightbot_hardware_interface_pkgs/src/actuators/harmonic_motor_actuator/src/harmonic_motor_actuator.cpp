@@ -143,6 +143,8 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 
 	if(velocity_mode){
         motorSetmode(Motor_mode_Velocity); 
+		set_target_velocity(0.0);
+		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
 
     return CallbackReturn::SUCCESS;

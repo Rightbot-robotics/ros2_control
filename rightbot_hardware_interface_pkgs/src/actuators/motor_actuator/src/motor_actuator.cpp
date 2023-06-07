@@ -211,6 +211,8 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 
     if(velocity_mode){
         motor_controls_->motorSetmode("velocity");
+        motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
  
     // std::cout << "setting default_max_velocity_: " << default_max_velocity_ << std::endl;
