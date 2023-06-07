@@ -544,18 +544,18 @@ bool MotorActuator::Homing(){
             // std::cout << "input states value: " << sensor_data_homing["input_states"].asInt() << std::endl;
             auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
             auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
-            // std::cout << "input states pos value: " << limit_switch_pos << std::endl;
-            // std::cout << "input states neg value: " << limit_switch_neg << std::endl;
+            std::cout << "input states pos value: " << limit_switch_pos << std::endl;
+            std::cout << "input states neg value: " << limit_switch_neg << std::endl;
 
             // if(limit_switch_pos != 0){ // when bit set
             //     homing_achieved = true;
             // }
 
-            if((homing_distance_to_travel > 0) && (limit_switch_pos != 0)){
+            if((homing_distance_to_travel < 0) && (limit_switch_pos == 1)){
                 homing_achieved = true;
             }
 
-            if((homing_distance_to_travel < 0) && (limit_switch_neg != 0)){
+            if((homing_distance_to_travel > 0) && (limit_switch_neg == 1)){
                 homing_achieved = true;
             }
         }
