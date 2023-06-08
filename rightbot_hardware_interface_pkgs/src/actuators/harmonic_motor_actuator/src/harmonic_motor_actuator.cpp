@@ -142,6 +142,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	logger_->info("[{}] Homing wait time passed",motor_name_);
 
 	if(velocity_mode){
+		set_target_velocity(0.0);
         motorSetmode(Motor_mode_Velocity); 
 		set_target_velocity(0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
