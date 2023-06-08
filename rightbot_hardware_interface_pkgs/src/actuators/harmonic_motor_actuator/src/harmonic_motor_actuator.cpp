@@ -379,7 +379,7 @@ bool HarmonicMotorActuator::Homing(){
 
         if(sensor_data_homing["read_status_encoder"].asBool()){
 
-			if(sensor_data["counts"].asInt() < 3000){
+			if(sensor_data["counts"].asInt() < 2000){
 				homing_achieved = true;
 			}
         }
