@@ -131,15 +131,21 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
 
-	if(motor_name_ == "elbow_rotation_joint"){
-		set_relative_position(0);
-	} else {
-		set_relative_position(0);
+	// if(motor_name_ == "elbow_rotation_joint"){
+	// 	set_relative_position(0);
+	// } else {
+	// 	set_relative_position(0);
 
-	}
+	// }
 
-	std::this_thread::sleep_for(std::chrono::seconds(5));
-	logger_->info("[{}] Homing wait time passed",motor_name_);
+	// std::this_thread::sleep_for(std::chrono::seconds(5));
+	// logger_->info("[{}] Homing wait time passed",motor_name_);
+
+	if(!Homing()){
+        return CallbackReturn::ERROR;
+    }
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		
 
 	if(velocity_mode){
 		set_target_velocity(0.0);
@@ -344,6 +350,53 @@ void HarmonicMotorActuator::fault_reset(){
 }
 
 void HarmonicMotorActuator::clear_can_buffer(){
+
+	encoder_sensor_->readToClearBuffer();
+
+}
+
+bool HarmonicMotorActuator::Homing(){
+
+    Json::Value sensor_data_homing;
+	bool homing_achieved = false;
+
+    std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
+    auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+    
+	// TO DO : homing execution by homing params. currently using default params
+    // motor_controls_->set_profile_velocity(motor_id_, homing_velocity);
+    // motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
+    // motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
+
+    set_relative_position(0);
+
+    while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
+
+        requestData();
+        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+        
+		encoder_sensor_->getData(sensor_data_homing);
+
+        if(sensor_data_homing["read_status_encoder"].asBool()){
+
+			if(sensor_data["counts"].asInt() < 3000){
+				homing_achieved = true;
+			}
+        }
+
+        time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+        std::this_thread::sleep_for(std::chrono::microseconds(20000));
+
+    }
+
+    if(!homing_achieved){
+        logger_->error("[{}] Homing timeout", motor_name_);
+        return false;
+    }
+    else{
+        logger_->info("[{}] Homing achieved", motor_name_);
+        return true;
+    }
 
 }
 

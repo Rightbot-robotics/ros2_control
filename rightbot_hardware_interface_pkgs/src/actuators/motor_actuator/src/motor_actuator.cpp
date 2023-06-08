@@ -532,7 +532,7 @@ bool MotorActuator::Homing(){
             initial_counts = sensor_data_homing["counts"].asInt();
         }
 
-        if(sensor_data_homing["battery_voltage"].asBool()){
+        if(sensor_data_homing["read_status_voltage"].asBool()){
 
             // std::cout << "encoder counts value: " << initial_counts << std::endl;
             // std::cout << "input states value: " << sensor_data_homing["input_states"].asInt() << std::endl;

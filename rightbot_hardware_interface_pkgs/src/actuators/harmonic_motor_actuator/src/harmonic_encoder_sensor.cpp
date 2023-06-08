@@ -246,6 +246,26 @@ void HarmonicEncoderSensor::stop_read_thread() {
     
 }
 
+void HarmonicEncoderSensor::readToClearBuffer(){
+    
+    bool exit = false;
+
+    reading_loop_started = false;
+    logger_->info("[{}] readToClearBuffer", motor_name_);
+
+    while(!exit){
+
+        int err = readData( &encoder_data_);
+
+        exit = !encoder_data_.read_status_encoder;
+        logger_->info("[{}] [clear buffer] read_status_encoder: [{}]", motor_name_, encoder_data_.read_status_encoder);
+
+    }
+    logger_->info("[{}] CAN buffer cleared", motor_name_);
+    sending_motor_request_internally = true;
+
+}
+
 
 void HarmonicEncoderSensor::readMotorData() {
 
@@ -258,11 +278,11 @@ void HarmonicEncoderSensor::readMotorData() {
             
             if(reading_loop_started) {
 
-                if(motor_name_ == "base_rotation_joint"){
+                if((motor_name_ == "base_rotation_joint") && (sending_motor_request_internally)){
                     motor_request();
                     
                 }
-                if(motor_name_ == "elbow_rotation_joint"){
+                if((motor_name_ == "elbow_rotation_joint") && (sending_motor_request_internally)){
                     motor_request();
                     
                 }
