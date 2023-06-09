@@ -141,6 +141,8 @@ private:
 
     bool velocity_mode = true;
 
+    bool Homing();
+
 };
 
 
