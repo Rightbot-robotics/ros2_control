@@ -372,7 +372,7 @@ bool HarmonicMotorActuator::Homing(){
 
     set_relative_position(0);
 
-    while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
+    while((time_passed_response_received_lift_down.count()<5000) && (homing_achieved == false)){
 
         requestData();
         std::this_thread::sleep_for(std::chrono::microseconds(2000));
@@ -392,6 +392,7 @@ bool HarmonicMotorActuator::Homing(){
         std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     }
+	homing_achieved = true;
 
     if(!homing_achieved){
         logger_->error("[{}] Homing timeout", motor_name_);
