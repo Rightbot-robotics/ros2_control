@@ -249,6 +249,8 @@ void HarmonicEncoderSensor::stop_read_thread() {
 void HarmonicEncoderSensor::readToClearBuffer(){
     
     bool exit = false;
+    bool exit_check = false;
+    int counter = 0;
 
     reading_loop_started = false;
     logger_->info("[{}] readToClearBuffer", motor_name_);
@@ -257,8 +259,15 @@ void HarmonicEncoderSensor::readToClearBuffer(){
 
         int err = readData( &encoder_data_);
 
-        exit = !encoder_data_.read_status_encoder;
+        exit_check= !encoder_data_.read_status_encoder;
+        if(exit_check == true){
+            counter++;
+        }
         logger_->info("[{}] [clear buffer] read_status_encoder: [{}]", motor_name_, encoder_data_.read_status_encoder);
+
+        if(counter>2){
+            exit = true;
+        }
 
     }
     logger_->info("[{}] CAN buffer cleared", motor_name_);
