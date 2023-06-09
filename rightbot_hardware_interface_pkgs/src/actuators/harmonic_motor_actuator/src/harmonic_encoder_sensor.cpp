@@ -263,7 +263,7 @@ void HarmonicEncoderSensor::readToClearBuffer(){
         if(exit_check == true){
             counter++;
         }
-        logger_->info("[{}] [clear buffer] read_status_encoder: [{}]", motor_name_, encoder_data_.read_status_encoder);
+        logger_->debug("[{}] [clear buffer] read_status_encoder: [{}]", motor_name_, encoder_data_.read_status_encoder);
 
         if(counter>2){
             exit = true;
