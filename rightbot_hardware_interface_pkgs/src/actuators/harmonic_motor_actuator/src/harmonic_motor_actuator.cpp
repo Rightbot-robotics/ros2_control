@@ -371,7 +371,7 @@ bool HarmonicMotorActuator::Homing(){
 
     set_relative_position(0);
 
-    while((time_passed_response_received_lift_down.count()<5000) && (homing_achieved == false)){
+    while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
 
         requestData();
         std::this_thread::sleep_for(std::chrono::microseconds(2000));
@@ -386,7 +386,7 @@ bool HarmonicMotorActuator::Homing(){
 			if(abs(sensor_data_homing["velocity"].asDouble()) < 0.001){
 			
 				counter++;
-				
+
 			}
 			else {
 				counter = 0;
