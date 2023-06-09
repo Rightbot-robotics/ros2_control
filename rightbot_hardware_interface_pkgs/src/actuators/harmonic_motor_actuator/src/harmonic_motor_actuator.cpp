@@ -381,9 +381,9 @@ bool HarmonicMotorActuator::Homing(){
 
 			logger_->debug("[{}] - Homing in process. Current vel [{}]", motor_name_, sensor_data_homing["velocity"].asDouble());
             // vel reading in rpm
-			// if(sensor_data_homing["velocity"].asInt() < 2000){
-			// 	homing_achieved = true;
-			// }
+			if(abs(sensor_data_homing["velocity"].asDouble()) < 0.01){
+				homing_achieved = true;
+			}
         }
 
         time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
