@@ -355,6 +355,11 @@ void HarmonicMotorActuator::clear_can_buffer(){
 
 }
 
+void HarmonicMotorActuator::homing_execution(double &homing_pos){
+
+}
+
+
 bool HarmonicMotorActuator::Homing(){
 
     Json::Value sensor_data_homing;

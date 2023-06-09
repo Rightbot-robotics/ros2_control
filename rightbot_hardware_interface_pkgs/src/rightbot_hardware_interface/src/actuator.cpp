@@ -258,4 +258,9 @@ void Actuator::clear_can_buffer(){
 
 }
 
+void Actuator::homing_execution(double &homing_pos){
+  impl_->homing_execution(homing_pos);
+
+}
+
 }  // namespace hardware_interface

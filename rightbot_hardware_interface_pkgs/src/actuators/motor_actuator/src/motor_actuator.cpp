@@ -515,6 +515,10 @@ void MotorActuator::clear_can_buffer(){
     //
 }
 
+void MotorActuator::homing_execution(double &homing_pos){
+
+}
+
 bool MotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base

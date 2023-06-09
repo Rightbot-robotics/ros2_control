@@ -98,6 +98,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   void clear_can_buffer();
 
+  HARDWARE_INTERFACE_PUBLIC
+  void homing_execution(double &homing_pos);
+
 private:
   std::unique_ptr<ActuatorInterface> impl_;
 };
