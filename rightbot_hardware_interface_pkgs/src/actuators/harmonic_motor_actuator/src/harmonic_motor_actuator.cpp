@@ -379,9 +379,9 @@ bool HarmonicMotorActuator::Homing(){
 
         if(sensor_data_homing["read_status_encoder"].asBool()){
 
-			logger_->debug("[{}] - Homing in process. Current counts [{}]", motor_name_, sensor_data["counts"].asInt());
+			logger_->debug("[{}] - Homing in process. Current counts [{}]", motor_name_, sensor_data_homing["counts"].asInt());
 
-			if(sensor_data["counts"].asInt() < 2000){
+			if(sensor_data_homing["counts"].asInt() < 2000){
 				homing_achieved = true;
 			}
         }
