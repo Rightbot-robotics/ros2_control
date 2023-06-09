@@ -314,7 +314,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
             position_state_ = total_travel_distance - (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
         } else {
             // position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
-        position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+            position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
@@ -372,12 +372,6 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         if(!using_default_max_velocity_){
 
             if(homing_active){
-                // logger_->info("[{}] Max velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
-                // double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
-                // max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
-                // float scaled_max_vel = 1.0f * max_velocity_command_final_;
-                // logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
-                // motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
 
                 logger_->info("[{}] Max velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
                 double max_velocity_command_final_ = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
@@ -391,20 +385,12 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
                 logger_->info("[{}] Max velocity command in degree/s: [{}]", motor_name_, max_velocity_command_);
                 double degree_per_sec = (max_velocity_command_*(180/3.14));
-                double revolution_per_min = abs((degree_per_sec*60)/360.0);
+                double revolution_per_min = (degree_per_sec*60)/360.0;
                 float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
                 float scaled_max_vel = 1.0f * max_velocity_command_final_;
                 logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
                 motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
             }
-            
-            // logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
-            // double max_velocity_command_final_ = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
-            // max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
-            // float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            // logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
-            
-            // motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
 
         }
     }
@@ -441,26 +427,35 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
         if(!velocity_mode){
 
-            logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+            if(homing_active){
+                logger_->info("[{}] Position command: [{}] m", motor_name_, position_command_);
 
-            int position_command_final_;
-            if(homing_at_zero){
-                //h gantry
-                // auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-                auto position_command_final_tmp = initial_counts + ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-                position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-                
+                int position_command_final_;
+                if(homing_at_zero){
+                    //h gantry
+                    // auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                    auto position_command_final_tmp = initial_counts + ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                    position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+                    
+                } else {
+                    // v gantry
+                    // auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                    auto position_command_final_tmp = initial_counts - (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                    position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+                    
+                }
+
+                logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
+                motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
+
             } else {
-                // v gantry
-                // auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-                auto position_command_final_tmp = initial_counts - (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-                position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-                
+
+                logger_->info("[{}] Position command: [{}] radian", motor_name_, position_command_);
+                double angle_in_degree = (position_command_*(180/3.14));
+                int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
+                logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
+                motor_controls_->set_absolute_position(motor_id_, axis_, counts);
             }
-
-            logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
-            motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
-
         }
         
     }
