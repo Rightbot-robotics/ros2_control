@@ -368,6 +368,8 @@ bool HarmonicMotorActuator::Homing(){
     // motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
     // motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
 
+	encoder_sensor_->readToClearBuffer();
+
     set_relative_position(0);
 
     while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
@@ -381,7 +383,7 @@ bool HarmonicMotorActuator::Homing(){
 
 			logger_->debug("[{}] - Homing in process. Current vel [{}]", motor_name_, sensor_data_homing["velocity"].asDouble());
             // vel reading in rpm
-			if(abs(sensor_data_homing["velocity"].asDouble()) < 0.01){
+			if(abs(sensor_data_homing["velocity"].asDouble()) < 0.0001){
 				homing_achieved = true;
 			}
         }
