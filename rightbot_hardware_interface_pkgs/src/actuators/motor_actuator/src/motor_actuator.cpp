@@ -185,6 +185,8 @@ CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previ
 
     encoder_sensor = std::make_shared<EncoderSensor>();
     encoder_sensor->initialize(config_data, motor_sockets_);
+
+    
     
     return CallbackReturn::SUCCESS;
 }
@@ -209,6 +211,13 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
     motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
     motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
+
+    if(velocity_mode){
+        motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+        motor_controls_->motorSetmode("velocity");
+        motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
+    }
 
     return CallbackReturn::SUCCESS;
 
@@ -294,15 +303,6 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         // return hardware_interface::return_type::ERROR;
     } 
 
-    
-
-    // if(sensor_data["read_status_encoder"].asBool() == true){
-    //     if(!initialization_done){
-    //         initialization_done = true;
-    //         initial_counts = sensor_data["counts"].asInt();
-    //     }
-    // }
-
     status_state_ = sensor_data["status"].asInt();
     battery_voltage_state_ = sensor_data["battery_voltage"].asDouble();
     input_states_state_ = sensor_data["input_states"].asInt();
@@ -310,15 +310,27 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
     if(homing_active){
         if(homing_at_zero){
-            position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+            // position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+            position_state_ = total_travel_distance - (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
         } else {
-            position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+            // position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+        position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
         position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
     }
+    
+    // if(homing_at_zero){
+    //     // position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+    //     position_state_ = total_travel_distance - (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+
+    // } else {
+    //     // position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+    //     position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+    
+    // }
     
     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();
     latched_fault_state_ = sensor_data["latched_fault"].asInt();
@@ -350,29 +362,50 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     }
 
-    if(previous_max_velocity_command_ != max_velocity_command_){
+    if((abs(max_velocity_command_) > (abs(previous_max_velocity_command_) + velocity_epsilon)) 
+        || (abs(max_velocity_command_) < (abs(previous_max_velocity_command_) - velocity_epsilon)) ){
+        
+        if(abs(max_velocity_command_) < (velocity_epsilon)){
+            max_velocity_command_ = 0.0;
+        }
         
         if(!using_default_max_velocity_){
 
             if(homing_active){
+                // logger_->info("[{}] Max velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
+                // double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
+                // max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
+                // float scaled_max_vel = 1.0f * max_velocity_command_final_;
+                // logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+                // motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
+
                 logger_->info("[{}] Max velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
-                double max_velocity_command_final_ = abs((max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60);
+                double max_velocity_command_final_ = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
                 max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
                 float scaled_max_vel = 1.0f * max_velocity_command_final_;
                 logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+                motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
 
-                motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
+
             } else {
+
                 logger_->info("[{}] Max velocity command in degree/s: [{}]", motor_name_, max_velocity_command_);
                 double degree_per_sec = (max_velocity_command_*(180/3.14));
                 double revolution_per_min = abs((degree_per_sec*60)/360.0);
                 float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
                 float scaled_max_vel = 1.0f * max_velocity_command_final_;
                 logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
-                motor_controls_->set_profile_velocity(motor_id_, scaled_max_vel);
-
+                motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
             }
             
+            // logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
+            // double max_velocity_command_final_ = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
+            // max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
+            // float scaled_max_vel = 1.0f * max_velocity_command_final_;
+            // logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+            
+            // motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
+
         }
     }
 
@@ -381,6 +414,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
             if(!using_default_acceleration_){
                 if(homing_active){
+
                     logger_->info("[{}] Acceleration command in m/s2: [{}]", motor_name_, acceleration_command_);
                     double acceleration_command_final_ = abs((acceleration_command_/travel_per_revolution)*motor_gear_ratio);
                     acceleration_command_final_ = static_cast<float>(acceleration_command_final_);
@@ -391,41 +425,43 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 }
                 else{
 
+                    logger_->info("[{}] Acceleration command in radian/sec2: [{}]", motor_name_, acceleration_command_);
                     double degree_per_sec = (acceleration_command_*(180/3.14));
                     double revolution_per_sec = abs(degree_per_sec/360.0);
-                    // std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
                     float scaled_acceleration = revolution_per_sec * 1.0f;
                     logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
-
+                    motor_controls_->set_profile_acc(motor_id_, scaled_acceleration);
+                    motor_controls_->set_profile_deacc(motor_id_, scaled_acceleration);
                 }
             }
         }
     }
 
     if(previous_position_command_ != position_command_){
-        
-        // std::cout << "initial position command: " << position_command_ << std::endl;
-        // std::cout << "initial_counts: " << initial_counts << std::endl;
-        // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
-        // std::cout << "total_travel_distance: " << total_travel_distance << std::endl;
-        // auto position_command_final_ = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
 
-        logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+        if(!velocity_mode){
 
-        int position_command_final_;
-        if(homing_at_zero){
-            auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-            position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-            // std::cout << "final position command (homing at zero): " << position_command_final_ << std::endl;
-        } else {
-            auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-            position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
-            // std::cout << "final position command: (homing not at zero) " << position_command_final_ << std::endl;
+            logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+
+            int position_command_final_;
+            if(homing_at_zero){
+                //h gantry
+                // auto position_command_final_tmp = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                auto position_command_final_tmp = initial_counts + ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+                
+            } else {
+                // v gantry
+                // auto position_command_final_tmp = initial_counts - ((total_travel_distance - position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                auto position_command_final_tmp = initial_counts - (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
+                position_command_final_ = static_cast<int32_t>(position_command_final_tmp);
+                
+            }
+
+            logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
+            motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
+
         }
-        // auto position_command_final_ = initial_counts + (( position_command_)/travel_per_revolution)*motor_ppr*motor_gear_ratio;
-        // std::cout << "final position command: " << position_command_final_ << std::endl;
-        logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
-        motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
         
     }
     
@@ -516,24 +552,24 @@ bool MotorActuator::Homing(){
             initial_counts = sensor_data_homing["counts"].asInt();
         }
 
-        if(sensor_data_homing["battery_voltage"].asBool()){
+        if(sensor_data_homing["read_status_voltage"].asBool()){
 
             // std::cout << "encoder counts value: " << initial_counts << std::endl;
             // std::cout << "input states value: " << sensor_data_homing["input_states"].asInt() << std::endl;
             auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
             auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
-            // std::cout << "input states pos value: " << limit_switch_pos << std::endl;
-            // std::cout << "input states neg value: " << limit_switch_neg << std::endl;
+            std::cout << "input states pos value: " << limit_switch_pos << std::endl;
+            std::cout << "input states neg value: " << limit_switch_neg << std::endl;
 
             // if(limit_switch_pos != 0){ // when bit set
             //     homing_achieved = true;
             // }
 
-            if((homing_distance_to_travel > 0) && (limit_switch_pos != 0)){
+            if((homing_distance_to_travel < 0) && (limit_switch_pos == 1)){
                 homing_achieved = true;
             }
 
-            if((homing_distance_to_travel < 0) && (limit_switch_neg != 0)){
+            if((homing_distance_to_travel > 0) && (limit_switch_neg == 1)){
                 homing_achieved = true;
             }
         }

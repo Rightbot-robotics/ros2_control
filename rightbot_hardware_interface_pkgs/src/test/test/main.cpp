@@ -138,7 +138,7 @@ int main() {
       poly_loader.createUnmanagedInstance(hardware_info.hardware_class_type));
 
     logger_->info("test {}",hardware_info.name);
-    logger_->info("test {}",hardware_info.type);
+    logger_->info("test type {}",hardware_info.type);
     logger_->info("test {}",hardware_info.hardware_class_type);
 
     auto interface_two = std::unique_ptr<hardware_interface::ActuatorInterface>(

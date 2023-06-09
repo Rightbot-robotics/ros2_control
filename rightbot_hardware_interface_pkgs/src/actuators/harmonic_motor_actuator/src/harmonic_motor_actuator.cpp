@@ -109,6 +109,8 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	
     
     return CallbackReturn::SUCCESS;
 }
@@ -128,6 +130,29 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
+
+	// if(motor_name_ == "elbow_rotation_joint"){
+	// 	set_relative_position(0);
+	// } else {
+	// 	set_relative_position(0);
+
+	// }
+
+	// std::this_thread::sleep_for(std::chrono::seconds(5));
+	// logger_->info("[{}] Homing wait time passed",motor_name_);
+
+	if(!Homing()){
+        return CallbackReturn::ERROR;
+    }
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		
+
+	if(velocity_mode){
+		set_target_velocity(0.0);
+        motorSetmode(Motor_mode_Velocity); 
+		set_target_velocity(0.0);
+		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
+    }
 
     return CallbackReturn::SUCCESS;
 
@@ -232,8 +257,6 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 
 hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-	// std::cout << "Motor Harmonic Actuator write" << std::endl;
-
 	if(previous_control_state_command_ != control_state_command_){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
 		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
@@ -251,34 +274,36 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		trigger_once = false;
 	}
 
-	if(previous_max_velocity_command_ != max_velocity_command_){
-		
+	if((abs(max_velocity_command_) > (abs(previous_max_velocity_command_) + velocity_epsilon)) 
+        || (abs(max_velocity_command_) < (abs(previous_max_velocity_command_) - velocity_epsilon)) ){
+        
+        if(abs(max_velocity_command_) < (velocity_epsilon)){
+            max_velocity_command_ = 0.0;
+        }
 		
 		if(!using_default_max_velocity_){
-			// std::cout << "max_velocity_command_: " << max_velocity_command_ << std::endl;
+			
             logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
            	double degree_per_sec = (max_velocity_command_*(180/3.14));
-			double revolution_per_min = abs((degree_per_sec*60)/360.0);
+			double revolution_per_min = (degree_per_sec*60)/360.0;
             float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
 			float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            // std::cout << "max_velocity_command_final_: " << static_cast<float>(max_velocity_command_final_) << std::endl;
             logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
-			set_profile_velocity(scaled_max_vel);
+			set_target_velocity(scaled_max_vel);
+
 		}
 	}
 
     if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
 		if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
-			// std::cout << "setting set_profile_acc: " << acceleration_command_ << std::endl;
-			logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
-
-			double degree_per_sec = (acceleration_command_*(180/3.14));
-			double revolution_per_sec = abs(degree_per_sec/360.0);
-			// std::cout << "setting revolution_per_sec: " << revolution_per_sec << std::endl;
-			float scaled_acceleration = revolution_per_sec * 1.0f;
-			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
+			
 			if(!using_default_acceleration_){
+				logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+				double degree_per_sec = (acceleration_command_*(180/3.14));
+				double revolution_per_sec = abs(degree_per_sec/360.0);
+				float scaled_acceleration = revolution_per_sec * 1.0f;
+				logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
 				set_profile_acc(scaled_acceleration);
 				set_profile_deacc(scaled_acceleration);
 			}
@@ -286,12 +311,14 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 	}
 
     if(previous_position_command_ != position_command_){
-		logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
-		double angle_in_degree = (position_command_*(180/3.14));
-		int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
-		// std::cout << "setting set_relative_position: " << position_command_ <<  ". counts: " << counts << std::endl;
-		logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-        set_relative_position( counts);
+
+		if(!velocity_mode){
+			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+			double angle_in_degree = (position_command_*(180/3.14));
+			int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
+			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
+			set_relative_position( counts);
+		}	
     }
     
     previous_position_command_ = position_command_;
@@ -323,6 +350,53 @@ void HarmonicMotorActuator::fault_reset(){
 }
 
 void HarmonicMotorActuator::clear_can_buffer(){
+
+	encoder_sensor_->readToClearBuffer();
+
+}
+
+bool HarmonicMotorActuator::Homing(){
+
+    Json::Value sensor_data_homing;
+	bool homing_achieved = false;
+
+    std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
+    auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+    
+	// TO DO : homing execution by homing params. currently using default params
+    // motor_controls_->set_profile_velocity(motor_id_, homing_velocity);
+    // motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
+    // motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
+
+    set_relative_position(0);
+
+    while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
+
+        requestData();
+        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+        
+		encoder_sensor_->getData(sensor_data_homing);
+
+        if(sensor_data_homing["read_status_encoder"].asBool()){
+
+			if(sensor_data["counts"].asInt() < 2000){
+				homing_achieved = true;
+			}
+        }
+
+        time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+        std::this_thread::sleep_for(std::chrono::microseconds(20000));
+
+    }
+
+    if(!homing_achieved){
+        logger_->error("[{}] Homing timeout", motor_name_);
+        return false;
+    }
+    else{
+        logger_->info("[{}] Homing achieved", motor_name_);
+        return true;
+    }
 
 }
 
@@ -641,6 +715,20 @@ int HarmonicMotorActuator::quickStopMotor(void) {
 	return err;
 }
 
+int HarmonicMotorActuator::set_target_velocity(float vel) {
+	int err = 0;
+
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x60FF;
+	d.subindex = 0x00;
+	d.data.size = 4;
+	d.data.data = (int32_t)rpm_to_countspersec(vel*axis_);
+	err |= SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
+
+	return err;
+}
+
 int HarmonicMotorActuator::set_profile_velocity(float vel) {
 	int err = 0;
 
@@ -684,8 +772,8 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 }
 
 int HarmonicMotorActuator::rpm_to_countspersec(float rpm) {
-	int counts_per_min = (int)((rpm)*(EROB_CPR));
-	return counts_per_min/60.0;
+	int counts_per_sec = static_cast<int>((rpm*EROB_CPR)/60.0);
+	return counts_per_sec;
 }
 
 int HarmonicMotorActuator::motor_rps2_to_cps2(float rpss) {

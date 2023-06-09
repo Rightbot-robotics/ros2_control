@@ -85,7 +85,7 @@ public:
     std::deque<HarmonicEncoderData> q_encoder_data_;
     HarmonicEncoderData encoder_data_q_element_;
 
-    bool reading_loop_started = true;
+    bool reading_loop_started = false;
 
     bool init_enc = false;
     int err_enc = 0;
@@ -95,7 +95,9 @@ public:
     void stop_read_thread();
     bool stop_read_thread_flag = false;
 
-    
+    void readToClearBuffer();
+    bool sending_motor_request_internally = false;
+
 };
 
 #endif // HARMONIC_ENCODER_SENSOR_H_

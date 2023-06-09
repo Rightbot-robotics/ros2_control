@@ -366,6 +366,10 @@ public:
             {
               result = activate_hardware(hardware);
             }
+            if(!result){
+              remove_interfaces();
+
+            }
             break;
           case State::PRIMARY_STATE_INACTIVE:
             result = activate_hardware(hardware);
@@ -469,6 +473,20 @@ public:
       claimed_command_interface_map_.erase(interface);
     }
   }
+
+  void remove_interfaces()
+{
+  for (const auto & interface : state_interface_map_)
+  {
+    state_interface_map_.erase(interface.first);
+  }
+
+  for (const auto & interface : command_interface_map_)
+  {
+    command_interface_map_.erase(interface.first);
+    claimed_command_interface_map_.erase(interface.first);
+  }
+}
 
   void check_for_duplicates(const HardwareInfo & hardware_info)
   {
@@ -1253,6 +1271,197 @@ void ResourceManager::clear_can_buffer(){
   for (auto & component : resource_storage_->actuators_)
   {
     component.clear_can_buffer();
+
+  }
+
+}
+
+std::string ResourceManager::get_zlac_driver_error(int error){
+
+  std::string error_type;
+
+  if(error < 0){
+    error_type = "Negative error value";
+    return error_type;
+  }
+  else if (error == 0){
+    error_type = " Works properly ";
+    return error_type;
+  }
+
+  if (((error & (1 << 0)) >> 0)){
+    error_type = error_type + " Data flash CRC failure, Fatal FAULT, Cannot be cleared. ";
+  }
+
+  if (((error & (1 << 1)) >> 1)){
+    error_type = error_type + " Amplifier internal error, Fatal FAULT, Cannot be cleared. ";
+  }
+
+  if (((error & (1 << 2)) >> 2)){
+    error_type = error_type + " Short circuit. ";
+  }
+
+  if (((error & (1 << 3)) >> 3)){
+    error_type = error_type + " Amplifier over temperature. ";
+  }
+
+  if (((error & (1 << 4)) >> 4)){
+    error_type = error_type + " Motor over temperature. ";
+  }
+
+  if (((error & (1 << 5)) >> 5)){
+    error_type = error_type + " Over voltage. ";
+  }
+
+  if (((error & (1 << 6)) >> 6)){
+    error_type = error_type + " Under voltage. ";
+  }
+
+  if (((error & (1 << 7)) >> 7)){
+    error_type = error_type + " Feedback fault. ";
+  }
+
+  if (((error & (1 << 8)) >> 8)){
+    error_type = error_type + " Phasing error. ";
+  }
+
+  if (((error & (1 << 9)) >> 9)){
+    error_type = error_type + " Tracking error. ";
+  }
+
+  if (((error & (1 << 10)) >> 10)){
+    error_type = error_type + " Over Current, ";
+  }
+
+  if (((error & (1 << 11)) >> 11)){
+    error_type = error_type + " FPGA failure. ";
+  }
+
+  if (((error & (1 << 12)) >> 12)){
+    error_type = error_type + " Command input lost. ";
+  }
+
+  if (((error & (1 << 13)) >> 13)){
+    error_type = error_type + " FPGA failure 2. ";
+  }
+
+  if (((error & (1 << 14)) >> 14)){
+    error_type = error_type + " Safety circuit fault. ";
+  }
+
+  if (((error & (1 << 15)) >> 15)){
+    error_type = error_type + " Unable to control current. ";
+  }
+
+  return error_type;
+
+}
+
+std::string ResourceManager::get_harmonic_driver_error(int error){
+
+  std::string error_type;
+
+  if(error < 0){
+    error_type = "Negative error value";
+    return error_type;
+  }
+
+  if (error == 0){
+    error_type = " Works properly ";
+  } else if (error == 8724){
+    error_type = " Overcurrent ";
+  } else if (error == 8784){
+    error_type = " Electrical three-phase current and overlimit ";
+  } else if (error == 9025){
+    error_type = " U phase overflows ";
+  } else if (error == 9026){
+    error_type = " V phase overflows ";
+  } else if (error == 9027){
+    error_type = " W phase overflows ";
+  } else if (error == 12816){
+    error_type = " Over voltage ";
+  } else if (error == 12832){
+    error_type = " Under voltage ";
+  } else if (error == 16656){
+    error_type = " Power component temperature is too high ";
+  } else if (error == 28961){
+    error_type = " Motor blocking ";
+  } else if (error == 29453){
+    error_type = " Battery alarm error ";
+  } else if (error == 29455){
+    error_type = " Battery low voltage ";
+  } else if (error == 29457){
+    error_type = " Electromechanical end position error of sampling exceeds the limit";
+  } else if (error == 29461){
+    error_type = " Sampling error of the negative load terminal exceeds the limit";
+  } else if (error == 29460){
+    error_type = " Power - off state signal detected";
+  } else if (error == 29520){
+    error_type = " Motor end encoder type is not supported";
+  } else if (error == 29556){
+    error_type = " Multi-turn position error";
+  } else if (error == 33792){
+    error_type = " Offset error out of limit system value";
+  } else if (error == 34048){
+    error_type = " Velocity error exceeds limit value";
+  } else if (error == 33793){
+    error_type = " High motor speed";
+  } else if (error == 40960){
+    error_type = " Main station drops the line or exits the OP to a non-OP State";
+  } else if (error == 61444){
+    error_type = " EtherCAT initialization error";
+  } else if (error == 61445){
+    error_type = " STO function is activated";
+  } else if (error == 61146){
+    error_type = " Multiple turn count error";
+  } else {
+    error_type = " Error code unrecognized ";
+  }  
+
+  return error_type;  
+  
+}
+
+void ResourceManager::get_error_data(ComponentErrorData *error_data_){
+
+  int components_number = resource_storage_->actuators_.size();
+
+  error_data_->component_name.clear();
+  error_data_->status.clear();
+  error_data_->error_register.clear();
+  error_data_->error_type.clear();
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string component_name;
+    int status;
+    int error_register;
+    std::string error_type = "error";
+
+    component_name = component.get_name();
+    auto state_interfaces = component.export_state_interfaces();
+
+    for (auto & state_interface : state_interfaces){
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_STATUS){
+        status = state_interface.get_value();
+      }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_LATCHED_FAULT){
+        error_register = state_interface.get_value();
+        error_type = get_zlac_driver_error(error_register);
+      }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_ERROR_CODE){
+        error_register = state_interface.get_value();
+        error_type = get_harmonic_driver_error(error_register);
+      }
+    }
+
+    error_data_->component_name.push_back(component_name);
+    error_data_->status.push_back(status);
+    error_data_->error_register.push_back(error_register);
+    error_data_->error_type.push_back(error_type);
 
   }
 

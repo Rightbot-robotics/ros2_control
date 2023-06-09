@@ -84,6 +84,8 @@ private:
     int resetFault(void) ;
     int quickStopMotor(void); 
 
+    int set_target_velocity(float vel);
+
     int set_profile_velocity(float vel);
     int set_profile_acc(float acc);
     int set_profile_deacc(float deacc);
@@ -122,11 +124,12 @@ private:
     double motor_ppr_ = 524288;
 
     bool using_default_max_velocity_ = false;
-    bool using_default_acceleration_ = false;
+    bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
 
     double acceleration_epsilon = 10e-4;
+    double velocity_epsilon = 10e-5;
 
     bool trigger_once = false;
 
@@ -135,6 +138,8 @@ private:
 	ACTUATOR_DISABLE = 1, //Contour position mode=1 - mode selection
 	ACTUATOR_QUICK_STOP = 2
     };
+
+    bool velocity_mode = true;
 
 };
 

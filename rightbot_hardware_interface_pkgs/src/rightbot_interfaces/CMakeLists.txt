@@ -34,10 +34,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "srv/MotorRecovery.srv"
         "srv/Waypoints.srv"
         "srv/Gripper.srv"
+        "srv/PositionControl.srv"
         "msg/Error.msg"
         "msg/SystemStatus.msg"
         "msg/ManualRecovery.msg"
         "msg/Waypoints.msg"
+        "msg/RosControlError.msg"
         )
 
 ament_package()

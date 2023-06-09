@@ -281,6 +281,11 @@ void ControllerManager::init_services()
         &ControllerManager::handle_gripper_pump_service,
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+  error_publisher = 
+    create_publisher<rightbot_interfaces::msg::RosControlError>("error_topic", 10);
+
+  error_.thread = std::thread(&ControllerManager::publish_error, this);
    
   
 }
@@ -2083,6 +2088,34 @@ void ControllerManager::handle_gripper_pump_service(
 
   resource_manager_->driver_two_gpio_control(request->pump_two, request->gripper_two);
 
-} 
+}
+
+void ControllerManager::publish_error(){
+
+  hardware_interface::ComponentErrorData error_data_;
+
+  while(true){
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    resource_manager_->get_error_data(&error_data_);
+
+    int components_number = error_data_.component_name.size();
+
+    auto message = rightbot_interfaces::msg::RosControlError();
+
+    for (auto & component : error_data_.component_name) {
+      //
+      message.component_name = error_data_.component_name;
+      message.status = error_data_.status;
+      message.error_register = error_data_.error_register;
+      message.error_type = error_data_.error_type;
+    }
+
+    error_publisher->publish(message);
+
+  }
+
+}
 
 }  // namespace controller_manager

@@ -12,8 +12,8 @@
 class MotorControls {
 
 private:
-    std::string motor_name;
-    int motor_id;
+    std::string motor_name_;
+    int motor_id_;
     int motor_axis;
 
 
@@ -123,6 +123,8 @@ public:
 
     int nodeGuardingRequest();
     int motor_request(void);
+
+    int motorSetmode(std::string mode);
 
     std::string previous_mode;
 
