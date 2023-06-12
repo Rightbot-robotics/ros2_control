@@ -21,7 +21,9 @@ find_package(jsoncpp REQUIRED)
 find_package(sensor REQUIRED)
 find_package(canopen_pkg REQUIRED)
 find_package(socketcan_pkg REQUIRED)
-
+find_package(pluginlib)
+find_package(rightbot_hardware_interface)
+find_package(sensor)
 
 add_library(${PROJECT_NAME} SHARED
         src/absolute_encoder.cpp
@@ -39,6 +41,9 @@ ament_target_dependencies(${PROJECT_NAME}
         sensor
         socketcan_pkg
         canopen_pkg
+        pluginlib
+        rightbot_hardware_interface
+        sensor
         )
 
 install(
@@ -51,29 +56,32 @@ install(
 
 )
 
-add_executable(${PROJECT_NAME}_test
-        test/test.cpp)
+pluginlib_export_plugin_description_file(
+        hardware_interface absolute_encoder_sensor_plugin_description.xml)
 
-target_link_libraries(${PROJECT_NAME}_test
-        ${PROJECT_NAME}
-        pthread
-        jsoncpp
-        )
+# add_executable(${PROJECT_NAME}_test
+#         test/test.cpp)
 
-ament_target_dependencies(${PROJECT_NAME}_test
-        sensor
-        socketcan_pkg
-        canopen_pkg
-        )
+# target_link_libraries(${PROJECT_NAME}_test
+#         ${PROJECT_NAME}
+#         pthread
+#         jsoncpp
+#         )
 
-install(
-        TARGETS ${PROJECT_NAME}_test
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib/${PROJECT_NAME}
-        RUNTIME DESTINATION lib/${PROJECT_NAME}
-        DESTINATION lib/${PROJECT_NAME}
+# ament_target_dependencies(${PROJECT_NAME}_test
+#         sensor
+#         socketcan_pkg
+#         canopen_pkg
+#         )
 
-)
+# install(
+#         TARGETS ${PROJECT_NAME}_test
+#         ARCHIVE DESTINATION lib
+#         LIBRARY DESTINATION lib/${PROJECT_NAME}
+#         RUNTIME DESTINATION lib/${PROJECT_NAME}
+#         DESTINATION lib/${PROJECT_NAME}
+
+# )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
