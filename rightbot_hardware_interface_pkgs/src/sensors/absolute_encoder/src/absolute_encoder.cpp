@@ -26,6 +26,7 @@ AbsoluteEncoderSensor::~AbsoluteEncoderSensor() {
 }
 
 CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::HardwareInfo & info){
+    
     logger_ = spdlog::get("hardware_interface")->clone("absolute_encoder_sensor");
 
     if (SensorInterface::on_init(info) != CallbackReturn::SUCCESS)
@@ -34,14 +35,14 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
       return CallbackReturn::ERROR;
     }
 
-    sensor_id_ = stoi(info.joints[0].parameters.at("can_id"));
-    // sensor_name_ = info_.joints[0].name;
+    sensor_id_ = stoi(info.sensors[0].parameters.at("can_id"));
+    sensor_name_ = info_.sensors[0].name;
     absolute_encoder_init_pos = ABS_POSITION;
     abs_motor_ppr = ABS_MOTOR_PPR;
 
     logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
 
-    const auto & state_interfaces = info_.joints[0].state_interfaces;
+    const auto & state_interfaces = info_.sensors[0].state_interfaces;
     if (state_interfaces.size() != 1)
     {
         logger_->error("[{}] - Incorrect number of state interfaces", sensor_name_);
