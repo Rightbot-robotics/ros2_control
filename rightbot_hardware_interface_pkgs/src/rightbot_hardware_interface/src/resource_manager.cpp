@@ -1057,7 +1057,12 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     for (auto & component : resource_storage_->sensors_){
 
       auto component_name = component.get_name();
-      if(component_name == "TruckUnloading_camera_rotation_joint"){
+
+      // RCUTILS_LOG_INFO_NAMED(
+      //         "resource_manager", "[camera_homing] components '%s' ", component_name.c_str());
+
+      
+      if(component_name == "TruckUnloading_absolute_encoder_sensor"){
         component_available = true;
         
         auto state_interfaces = component.export_state_interfaces();
@@ -1073,8 +1078,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
               camera_homing(angle_in_radian);
               camera_homing_status = true;
             }
-
-            
             
           }
         }
@@ -1084,7 +1087,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     if(!component_available){
       camera_homing_status = true;
       RCUTILS_LOG_ERROR_NAMED(
-      "resource_manager", "[gripper/pump control] Component [Hardware_TruckUnloading_v_gantry_joint] not available ");
+      "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
 
     }
 
