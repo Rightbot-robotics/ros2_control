@@ -1,16 +1,28 @@
+# This config file is used by ros2_control
 controller_manager:
   ros__parameters:
-    update_rate: 100  # Hz
+    update_rate: 50  # Hz
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+
+    robot_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+
+    camera_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+
+    arm_base_rotation_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-
-    position_trajectory_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
-
-
-position_trajectory_controller:
+arm_controller:
   ros__parameters:
     joints:
       - h_gantry_joint
@@ -20,14 +32,92 @@ position_trajectory_controller:
       - wrist_rotation_joint
       - rotation1_joint
       - rotation2_joint
-
     command_interfaces:
       - position
       - velocity
       - acceleration
       - control_state
-    
+      
+    state_interfaces:
+      - position
+      - velocity
+      - effort
+      
+    state_publish_rate: 100.0 # Defaults to 50
+    action_monitor_rate: 20.0 # Defaults to 20
 
+    allow_partial_joints_goal: false # Defaults to false
+    open_loop_control: true
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.01 # Defaults to 0.01
+      goal_time: 0.0 # Defaults to 0.0 (start immediately)
+      h_gantry_joint:
+        trajectory: 0.2
+        goal: 0.1
+      base_rotation_joint:
+        trajectory: 0.2
+        goal: 0.1
+      v_gantry_joint:
+        trajectory: 0.2
+        goal: 0.2
+      elbow_rotation_joint:
+        trajectory: 0.15
+        goal: 0.1
+      wrist_rotation_joint:
+        trajectory: 0.3
+        goal: 0.1
+      rotation1_joint:
+        trajectory: 0.3
+        goal: 0.1
+      rotation2_joint:
+        trajectory: 0.6
+        goal: 0.1
+      
+robot_controller:
+  ros__parameters:
+    joints:
+      - front_swerve_joint
+      - front_hub_joint
+      - h_gantry_joint
+      - base_rotation_joint
+      - camera_rotation_joint
+      - v_gantry_joint
+      - elbow_rotation_joint
+      - wrist_rotation_joint
+      - rotation1_joint
+      - rotation2_joint
+      - rear_swerve_joint
+      - rear_hub_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+camera_controller:
+  ros__parameters:
+    joints:
+      - camera_rotation_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+arm_base_rotation_controller:
+  ros__parameters:
+    joints:
+      - h_gantry_joint
+      - base_rotation_joint
+      - v_gantry_joint
+      - elbow_rotation_joint
+      - wrist_rotation_joint
+      - rotation1_joint
+      - rotation2_joint
+    command_interfaces:
+      - position
+      - velocity
+      - acceleration
+      - control_state
     state_interfaces:
       - position
       - velocity
@@ -42,49 +132,25 @@ position_trajectory_controller:
     constraints:
       stopped_velocity_tolerance: 0.01 # Defaults to 0.01
       goal_time: 0.0 # Defaults to 0.0 (start immediately)
-      # h_gantry_joint:
-      #   trajectory: 0.2
-      #   goal: 0.1
-      # base_rotation_joint:
-      #   trajectory: 0.2
-      #   goal: 0.1
-      # v_gantry_joint:
-      #   trajectory: 0.2
-      #   goal: 0.2
-      # elbow_rotation_joint:
-      #   trajectory: 0.15
-      #   goal: 0.1
-      # wrist_rotation_joint:
-      #   trajectory: 0.3
-      #   goal: 0.1
-      # rotation1_joint:
-      #   trajectory: 0.3
-      #   goal: 0.1
-      # rotation2_joint:
-      #   trajectory: 0.6
-      #   goal: 0.1
-    joint_limits:
-      h_gantry_joint: 
-        lower_limit: 0.0
-        upper_limit: 0.709
-      base_rotation_joint: 
-        lower_limit: -3.14
-        upper_limit: 3.14
-      v_gantry_joint: 
-        lower_limit: 0.0
-        upper_limit: 0.951
-      elbow_rotation_joint: 
-        lower_limit: -1.44
-        upper_limit: 1.44
+      h_gantry_joint:
+        trajectory: 0.08
+        goal: 0.1
+      base_rotation_joint:
+        trajectory: 0.08
+        goal: 0.1
+      v_gantry_joint:
+        trajectory: 0.08
+        goal: 0.2
+      elbow_rotation_joint:
+        trajectory: 0.08
+        goal: 0.1
       wrist_rotation_joint:
-        lower_limit: -1.57
-        upper_limit: 1.57
-      rotation1_joint: 
-        lower_limit: -1.57
-        upper_limit: 1.57
-      rotation2_joint: 
-        lower_limit: -1.57
-        upper_limit: 1.57
-
-      
+        trajectory: 0.08
+        goal: 0.1
+      rotation1_joint:
+        trajectory: 0.08
+        goal: 0.1
+      rotation2_joint:
+        trajectory: 0.15
+        goal: 0.1
 
