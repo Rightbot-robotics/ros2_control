@@ -1467,4 +1467,32 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_){
 
 }
 
+void ResourceManager::camera_homing(){
+
+  // get absolute encoder data
+  // say data is 10 degree
+
+  double homing_angle = 0.175;
+
+  bool component_available = false;
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    if(current_component_ == "TruckUnloading_camera_rotation_joint"){
+      component_available = true;
+
+      component.homing_execution(homing_angle);
+    }
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[camera_homing] Component [TruckUnloading_camera_rotation_joint] not available ");
+
+  }
+
+}
+
 }  // namespace hardware_interface

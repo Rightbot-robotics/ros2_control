@@ -398,6 +398,8 @@ public:
 
   std::string get_harmonic_driver_error(int error);
 
+  void camera_homing();
+
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
 
