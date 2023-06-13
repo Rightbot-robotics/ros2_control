@@ -3,28 +3,134 @@
 //
 
 #include "absolute_encoder/absolute_encoder.hpp"
+PLUGINLIB_EXPORT_CLASS(AbsoluteEncoderSensor, hardware_interface::SensorInterface)
 
-AbsoluteEncoder::AbsoluteEncoder(int sensor_id ) {
-    logger_ = spdlog::get("hardware_interface")->clone("absolute_encoder");
-    sensor_id_ = sensor_id;
-    absolute_encoder_sockets_ = std::make_shared<AbsoluteEncoderSockets>(sensor_id_);
+AbsoluteEncoderSensor::AbsoluteEncoderSensor() {
+    // logger_ = spdlog::get("hardware_interface")->clone("absolute_encoder");
+    // sensor_id_ = sensor_id;
+    // absolute_encoder_sockets_ = std::make_shared<AbsoluteEncoderSockets>(sensor_id_);
 
+    // absolute_encoder_init_pos = ABS_POSITION;
+    // abs_motor_ppr = ABS_MOTOR_PPR;
+    // reading_loop_started = false;
+
+    // initSensor();
+    // enableSensor();
+
+    // read_enc_data_thread_ = std::thread(&AbsoluteEncoderSensor::readData, this);
+
+}
+
+AbsoluteEncoderSensor::~AbsoluteEncoderSensor() {
+
+}
+
+CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::HardwareInfo & info){
+    logger_ = spdlog::get("hardware_interface")->clone("absolute_encoder_sensor");
+
+    if (SensorInterface::on_init(info) != CallbackReturn::SUCCESS)
+    {
+      
+      return CallbackReturn::ERROR;
+    }
+
+    sensor_id_ = stoi(info.joints[0].parameters.at("can_id"));
+    // sensor_name_ = info_.joints[0].name;
     absolute_encoder_init_pos = ABS_POSITION;
     abs_motor_ppr = ABS_MOTOR_PPR;
+
+    logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
+
+    const auto & state_interfaces = info_.joints[0].state_interfaces;
+    if (state_interfaces.size() != 1)
+    {
+        logger_->error("[{}] - Incorrect number of state interfaces", sensor_name_);
+        return CallbackReturn::ERROR;
+    }
+    for (const auto & state_interface : state_interfaces)
+    {
+        if (
+            (state_interface.name != hardware_interface::HW_IF_POSITION) 
+			)
+       {
+            logger_->error("[{}] - Incorrect type of state interfaces", sensor_name_);
+
+            return CallbackReturn::ERROR;
+       }
+
+    }
+
+    logger_->info("[{}] - Intialiazation successful", sensor_name_);
+    
+    return CallbackReturn::SUCCESS;
+
+}
+
+CallbackReturn AbsoluteEncoderSensor::on_configure(const rclcpp_lifecycle::State & previous_state){
+
+    absolute_encoder_sockets_ = std::make_shared<AbsoluteEncoderSockets>(sensor_id_);
     reading_loop_started = false;
 
     initSensor();
+
+    read_enc_data_thread_ = std::thread(&AbsoluteEncoderSensor::readData, this);
+
+    
+    return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn AbsoluteEncoderSensor::on_activate(const rclcpp_lifecycle::State & previous_state){
+    logger_->info("Enable action for: [{}]",sensor_name_);
     enableSensor();
 
-    read_enc_data_thread_ = std::thread(&AbsoluteEncoder::readData, this);
+    return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn AbsoluteEncoderSensor::on_deactivate(const rclcpp_lifecycle::State & previous_state){
+
+    reading_loop_started = false;
+    return CallbackReturn::SUCCESS;
+}
+
+std::vector<hardware_interface::StateInterface> AbsoluteEncoderSensor::export_state_interfaces(){
+
+    std::vector<hardware_interface::StateInterface> state_interfaces;
+
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      sensor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
+
+    return state_interfaces;
 
 }
 
-AbsoluteEncoder::~AbsoluteEncoder() {
+hardware_interface::return_type AbsoluteEncoderSensor::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
+    
+    getData(sensor_data_);
+
+    position_state_ = sensor_data_["angle"].asDouble();
+
+    return hardware_interface::return_type::OK;
 
 }
 
-int AbsoluteEncoder::initSensor(){
+CallbackReturn AbsoluteEncoderSensor::on_shutdown(const rclcpp_lifecycle::State & previous_state){
+
+    
+	return CallbackReturn::SUCCESS;
+
+}
+
+CallbackReturn AbsoluteEncoderSensor::on_error(const rclcpp_lifecycle::State & previous_state){
+
+    
+	return CallbackReturn::SUCCESS;
+
+}
+
+
+
+
+int AbsoluteEncoderSensor::initSensor(){
 
     int err = 0;
 
@@ -42,7 +148,7 @@ int AbsoluteEncoder::initSensor(){
 
 }
 
-int AbsoluteEncoder::enableSensor(){
+int AbsoluteEncoderSensor::enableSensor(){
 
     int err = 0;
 
@@ -55,14 +161,14 @@ int AbsoluteEncoder::enableSensor(){
 
 }
 
-int AbsoluteEncoder::requestData(){
+int AbsoluteEncoderSensor::requestData(){
     Socketcan_t data[1];
  	data[0].size = 1;
  	data[0].data = 0x00;
  	return socketcan_write(absolute_encoder_sockets_->abs_cfg_fd, 128, 1, data);
 }
 
-int AbsoluteEncoder::encoder_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
+int AbsoluteEncoderSensor::encoder_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
 
     SDO_data d;
     d.nodeid = node_id;
@@ -74,7 +180,7 @@ int AbsoluteEncoder::encoder_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t 
     return SDO_write(absolute_encoder_sockets_->abs_cfg_fd, &d);
 }
 
-int AbsoluteEncoder::encoder_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, uint8_t num_objects, Epos_pdo_mapping *objects) {
+int AbsoluteEncoderSensor::encoder_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, uint8_t num_objects, Epos_pdo_mapping *objects) {
 
     int err = 0;
 
@@ -113,7 +219,7 @@ int AbsoluteEncoder::encoder_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n,
 
 }
 
-int AbsoluteEncoder::readEncCounts(float* angle){
+int AbsoluteEncoderSensor::readEncCounts(float* angle){
 
     int err;
     my_can_frame f;
@@ -137,14 +243,14 @@ int AbsoluteEncoder::readEncCounts(float* angle){
     return err;
 }
 
-float AbsoluteEncoder::convertToAngle(int counts){
+float AbsoluteEncoderSensor::convertToAngle(int counts){
     float angle;
     angle = (-1.0 * static_cast<float>(counts)*360)/static_cast<float>(abs_motor_ppr);
     return angle;
 
 }
 
-void AbsoluteEncoder::readData(){
+void AbsoluteEncoderSensor::readData(){
 
     while (true) {
 
@@ -186,13 +292,13 @@ void AbsoluteEncoder::readData(){
                 std::chrono::system_clock::now() - start_time);
         logger_->debug("Time in execution [ readEncData() ]: [{}] us", time_passed_in_read.count());
 
-        std::this_thread::sleep_for(std::chrono::microseconds(10000 - time_passed_in_read.count()));
+        std::this_thread::sleep_for(std::chrono::microseconds(20000 - time_passed_in_read.count()));
 
     }
 
 }
 
-void AbsoluteEncoder::getData(Json::Value &sensor_data){
+void AbsoluteEncoderSensor::getData(Json::Value &sensor_data){
 
     read_mutex_.lock();
     reading_loop_started = true;

@@ -1,0 +1,9 @@
+<library path="absolute_encoder_sensor">
+
+  <class name="absolute_encoder_sensor" type="AbsoluteEncoderSensor" base_class_type="hardware_interface::SensorInterface">
+    <description>
+      absolute encoder sensor
+    </description>
+  </class>
+
+</library>

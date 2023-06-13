@@ -143,9 +143,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 
 	if(!Homing()){
         return CallbackReturn::ERROR;
-    }
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		
+    }		
 
 	if(velocity_mode){
 		set_target_velocity(0.0);
@@ -364,6 +362,7 @@ bool HarmonicMotorActuator::Homing(){
 
     Json::Value sensor_data_homing;
 	bool homing_achieved = false;
+	int counter = 0;
 
     std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
     auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
@@ -372,6 +371,8 @@ bool HarmonicMotorActuator::Homing(){
     // motor_controls_->set_profile_velocity(motor_id_, homing_velocity);
     // motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
     // motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
+
+	encoder_sensor_->readToClearBuffer();
 
     set_relative_position(0);
 
@@ -382,17 +383,32 @@ bool HarmonicMotorActuator::Homing(){
         
 		encoder_sensor_->getData(sensor_data_homing);
 
-        if(sensor_data_homing["read_status_encoder"].asBool()){
+        if(sensor_data_homing["read_status_velocity"].asBool()){
 
-			if(sensor_data["counts"].asInt() < 2000){
-				homing_achieved = true;
+			logger_->debug("[{}] - Homing in process. Current vel [{}]", motor_name_, sensor_data_homing["velocity"].asDouble());
+
+            // vel reading in rpm
+			if(abs(sensor_data_homing["velocity"].asDouble()) < 0.001){
+			
+				counter++;
+
+			}
+			else {
+				counter = 0;
 			}
         }
+
+		if(counter >10){
+			homing_achieved = true;
+		}
 
         time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
         std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     }
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	encoder_sensor_->init_enc = false;
 
     if(!homing_achieved){
         logger_->error("[{}] Homing timeout", motor_name_);
