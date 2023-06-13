@@ -201,6 +201,7 @@ void EncoderSensor::readToClearBuffer(){
         if(counter>2){
             exit = true;
         }
+        std::this_thread::sleep_for(std::chrono::microseconds(5000));
     }
     logger_->info("[{}] CAN buffer cleared", motor_name_);
 
