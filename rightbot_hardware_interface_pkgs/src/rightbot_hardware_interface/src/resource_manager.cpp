@@ -1049,6 +1049,49 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
   {
     component.read(time, period);
   }
+
+  if(!camera_homing_status){
+    double angle = 0.0;
+    bool component_available = false;
+
+    for (auto & component : resource_storage_->sensors_){
+
+      auto component_name = component.get_name();
+      if(component_name == "TruckUnloading_camera_rotation_joint"){
+        component_available = true;
+        
+        auto state_interfaces = component.export_state_interfaces();
+        for (auto & current_interface : state_interfaces){
+
+          if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+            angle = current_interface.get_value();
+            if(angle > 0.0){
+              RCUTILS_LOG_INFO_NAMED(
+              "resource_manager", "[camera_homing] absolute encoder value '%f' ", angle);
+              
+              double angle_in_radian = (angle*3.14)/180;
+              camera_homing(angle_in_radian);
+              camera_homing_status = true;
+            }
+
+            
+            
+          }
+        }
+      }
+    }
+
+    if(!component_available){
+      camera_homing_status = true;
+      RCUTILS_LOG_ERROR_NAMED(
+      "resource_manager", "[gripper/pump control] Component [Hardware_TruckUnloading_v_gantry_joint] not available ");
+
+    }
+
+
+    
+  }
+
 }
 
 void ResourceManager::write(const rclcpp::Time & time, const rclcpp::Duration & period)
@@ -1473,12 +1516,14 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_){
 
 }
 
-void ResourceManager::camera_homing(){
+void ResourceManager::camera_homing(double &homing_angle){
 
   // get absolute encoder data
   // say data is 10 degree
 
-  double homing_angle = 0.175;
+  // double homing_angle = 0.175;
+  RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[camera_homing] angle %f ", homing_angle);
 
   bool component_available = false;
 

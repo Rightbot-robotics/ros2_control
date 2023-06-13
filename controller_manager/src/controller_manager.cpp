@@ -2119,7 +2119,7 @@ void ControllerManager::publish_error(){
 }
 
 void ControllerManager::camera_homing(){
-  resource_manager_->camera_homing();
+  // resource_manager_->camera_homing();
 
 }
 }  // namespace controller_manager

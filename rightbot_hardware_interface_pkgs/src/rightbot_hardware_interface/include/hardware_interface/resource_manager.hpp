@@ -398,7 +398,8 @@ public:
 
   std::string get_harmonic_driver_error(int error);
 
-  void camera_homing();
+  bool camera_homing_status = false;
+  void camera_homing(double &homing_angle);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

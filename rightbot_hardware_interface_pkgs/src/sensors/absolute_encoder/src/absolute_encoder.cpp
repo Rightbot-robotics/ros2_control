@@ -351,7 +351,7 @@ void AbsoluteEncoderSensor::getData(Json::Value &sensor_data){
         sensor_data["timestamp"] = std::to_string(angle_data_q_element.time_sys);
         sensor_data["read_status"] = true;
 
-        // logger_->debug("Absolute Encoder Angle: {}", angle_data_q_element.angle);
+        // logger_->debug("Absolute Encoder Angle: {} degree", angle_data_q_element.angle);
 
     } else {
         sensor_data["read_status"] = false;

@@ -60,8 +60,6 @@ int main(int argc, char ** argv)
         RCLCPP_INFO(cm->get_logger(), "RT kernel is recommended for better performance");
       }
 
-      cm->camera_homing();
-
       // for calculating sleep time
       auto const period = std::chrono::nanoseconds(1'000'000'000 / cm->get_update_rate());
       std::chrono::system_clock::time_point next_iteration_time =
