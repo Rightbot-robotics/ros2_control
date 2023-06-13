@@ -1070,7 +1070,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
           if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
             angle = current_interface.get_value();
-            if(angle > 0.0){
+            if(angle != 0.0){
               RCUTILS_LOG_INFO_NAMED(
               "resource_manager", "[camera_homing] absolute encoder value '%f' ", angle);
               

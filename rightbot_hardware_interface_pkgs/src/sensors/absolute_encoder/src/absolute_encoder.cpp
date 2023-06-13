@@ -37,6 +37,7 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
 
     sensor_id_ = stoi(info.sensors[0].parameters.at("can_id"));
     sensor_name_ = info_.sensors[0].name;
+    axis_ = stoi(info.joints[0].parameters.at("axis"));
     absolute_encoder_init_pos = ABS_POSITION;
     abs_motor_ppr = ABS_MOTOR_PPR;
 
@@ -108,7 +109,7 @@ hardware_interface::return_type AbsoluteEncoderSensor::read(const rclcpp::Time &
     
     getData(sensor_data_);
 
-    position_state_ = sensor_data_["angle"].asDouble();
+    position_state_ = axis_*sensor_data_["angle"].asDouble();
 
     return hardware_interface::return_type::OK;
 

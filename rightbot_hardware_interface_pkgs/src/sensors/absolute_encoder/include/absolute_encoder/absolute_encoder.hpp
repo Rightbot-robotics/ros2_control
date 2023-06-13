@@ -60,6 +60,7 @@ public:
 private:
 
     int sensor_id_;
+    int axis_;
     std::string sensor_name_;
 
     Json::Value sensor_data_;
