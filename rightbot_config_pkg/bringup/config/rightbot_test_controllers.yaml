@@ -14,10 +14,7 @@ position_trajectory_controller:
   ros__parameters:
     joints:
       - base_rotation_joint
-      - elbow_rotation_joint
-      - wrist_rotation_joint
-      - rotation1_joint
-      - rotation2_joint
+      - camera_joint
 
     command_interfaces:
       - position
