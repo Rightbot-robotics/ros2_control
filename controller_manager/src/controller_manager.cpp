@@ -286,8 +286,8 @@ void ControllerManager::init_services()
     create_publisher<rightbot_interfaces::msg::RosControlError>("error_topic", 10);
 
   error_.thread = std::thread(&ControllerManager::publish_error, this);
-   
-  
+
+
 }
 
 controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_controller(
@@ -2118,4 +2118,8 @@ void ControllerManager::publish_error(){
 
 }
 
+void ControllerManager::camera_homing(){
+  resource_manager_->camera_homing();
+
+}
 }  // namespace controller_manager

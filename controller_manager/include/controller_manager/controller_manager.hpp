@@ -225,6 +225,9 @@ public:
   CONTROLLER_MANAGER_PUBLIC
   void publish_error();
 
+  CONTROLLER_MANAGER_PUBLIC
+  void camera_homing();
+
 
 protected:
   CONTROLLER_MANAGER_PUBLIC
