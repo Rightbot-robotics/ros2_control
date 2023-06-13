@@ -128,6 +128,36 @@ CallbackReturn AbsoluteEncoderSensor::on_error(const rclcpp_lifecycle::State & p
 
 }
 
+void AbsoluteEncoderSensor::clear_can_buffer(){
+
+    bool exit = false;
+    bool exit_check = false;
+    int counter = 0;
+    float angle;
+
+    reading_loop_started = false;
+    logger_->info("[{}] readToClearBuffer", sensor_name_);
+
+    while(!exit){
+
+        int err = readEncCounts(&angle);
+
+        exit_check= err;
+        if(exit_check == true){
+            counter++;
+        }
+        logger_->debug("[{}] [clear buffer] read_status_encoder: [{}]", sensor_name_, err);
+
+        if(counter>2){
+            exit = true;
+        }
+        std::this_thread::sleep_for(std::chrono::microseconds(5000));
+
+    }
+    logger_->info("[{}] CAN buffer cleared", sensor_name_);
+
+}
+
 
 
 
@@ -252,6 +282,8 @@ float AbsoluteEncoderSensor::convertToAngle(int counts){
 }
 
 void AbsoluteEncoderSensor::readData(){
+
+    reading_loop_started = true;
 
     while (true) {
 

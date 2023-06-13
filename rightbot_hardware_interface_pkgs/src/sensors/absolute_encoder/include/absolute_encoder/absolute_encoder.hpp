@@ -54,6 +54,8 @@ public:
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
 
+    void clear_can_buffer() override;
+
 
 private:
 
@@ -95,7 +97,7 @@ private:
     int absolute_encoder_init_pos;
     int abs_motor_ppr;
 
-    bool reading_loop_started;
+    bool reading_loop_started = false;
 
     double position_state_ = std::numeric_limits<double>::quiet_NaN();
     

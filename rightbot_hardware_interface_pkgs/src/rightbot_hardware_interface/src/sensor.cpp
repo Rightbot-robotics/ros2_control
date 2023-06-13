@@ -209,4 +209,8 @@ return_type Sensor::read(const rclcpp::Time & time, const rclcpp::Duration & per
   return result;
 }
 
+void Sensor::clear_can_buffer(){
+  impl_->clear_can_buffer();
+
+}
 }  // namespace hardware_interface

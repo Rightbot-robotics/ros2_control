@@ -1274,6 +1274,12 @@ void ResourceManager::clear_can_buffer(){
 
   }
 
+  for (auto & component : resource_storage_->sensors_)
+  {
+    component.clear_can_buffer();
+
+  }
+
 }
 
 std::string ResourceManager::get_zlac_driver_error(int error){

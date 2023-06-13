@@ -269,6 +269,9 @@ void HarmonicEncoderSensor::readToClearBuffer(){
             exit = true;
         }
 
+        std::this_thread::sleep_for(std::chrono::microseconds(5000));
+
+
     }
     logger_->info("[{}] CAN buffer cleared", motor_name_);
     sending_motor_request_internally = true;
