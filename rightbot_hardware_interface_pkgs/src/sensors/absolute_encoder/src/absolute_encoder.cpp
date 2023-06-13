@@ -28,7 +28,7 @@ AbsoluteEncoderSensor::~AbsoluteEncoderSensor() {
 CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::HardwareInfo & info){
     logger_ = spdlog::get("hardware_interface")->clone("absolute_encoder_sensor");
 
-    if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
+    if (SensorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       
       return CallbackReturn::ERROR;
@@ -37,7 +37,7 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
     sensor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     // sensor_name_ = info_.joints[0].name;
     absolute_encoder_init_pos = ABS_POSITION;
-    abs_motor_ppr = ABS_MOTOR_PPR
+    abs_motor_ppr = ABS_MOTOR_PPR;
 
     logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
 
@@ -97,7 +97,7 @@ std::vector<hardware_interface::StateInterface> AbsoluteEncoderSensor::export_st
     std::vector<hardware_interface::StateInterface> state_interfaces;
 
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
+      sensor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
 
     return state_interfaces;
 
