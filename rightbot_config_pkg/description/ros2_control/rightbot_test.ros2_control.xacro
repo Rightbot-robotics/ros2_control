@@ -61,11 +61,11 @@
       </joint>
     </ros2_control>
 
-    <ros2_control name="TruckUnloading_camera_joint" type="actuator">
+    <ros2_control name="TruckUnloading_camera_rotation_joint" type="actuator">
       <hardware>
         <plugin>motor_actuator</plugin>
       </hardware>
-      <joint name="camera_joint">
+      <joint name="camera_rotation_joint">
         <command_interface name="position">
           <param name="min">-100</param>
           <param name="max">100</param>
