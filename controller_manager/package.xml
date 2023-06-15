@@ -33,6 +33,7 @@
   <depend>motor_actuator</depend>
   <depend>encoder_sensor</depend>
   <depend>harmonic_motor_actuator</depend>
+  <depend>absolute_encoder_sensor</depend>
 
   <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>realtime_tools</test_depend>
