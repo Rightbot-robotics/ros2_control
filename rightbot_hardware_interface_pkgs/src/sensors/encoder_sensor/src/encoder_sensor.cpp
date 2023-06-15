@@ -181,9 +181,6 @@ void EncoderSensor::clear_can_buffer(){
 
 }
 
-void EncoderSensor::re_init_read(){
-
-}
 
 void EncoderSensor::readToClearBuffer(){
     bool exit = false;
