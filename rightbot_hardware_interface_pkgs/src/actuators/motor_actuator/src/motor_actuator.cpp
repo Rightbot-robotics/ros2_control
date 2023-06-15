@@ -318,7 +318,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
-        position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/(motor_ppr_*motor_gear_ratio));
+        position_state_ = axis_*(((sensor_data["counts"].asInt() - initial_counts_rotation)*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
     }
     
@@ -339,6 +339,33 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     logger_->debug("[{}] Read status: [{}], battery_voltage: [{}], input_states: [{}], actual_motor_current: [{}]", motor_name_, status_state_, battery_voltage_state_, input_states_state_, actual_motor_current_state_);
     logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
     logger_->debug("[{}] Read manufacturer_register: [{}], latched_fault: [{}], node_guard_error: [{}]", motor_name_, manufacturer_register_state_, latched_fault_state_, node_guard_error_state_);
+
+    if(check_homing_execution_status){
+
+        if(sensor_data["read_status_velocity"].asBool()){
+            // if(((status_state_ & (1 << 10)) >> 10)){
+            //     logger_->info("[{}] Homing success", motor_name_);
+            //     initial_counts_rotation = sensor_data["counts"].asInt();
+
+            // }
+            logger_->debug("[{}] - homing_execution. Current vel [{}]", motor_name_, sensor_data["velocity"].asDouble());
+
+            if(abs(sensor_data["velocity"].asDouble()) < 0.001){
+			
+				homing_counter++;
+
+			}
+			else {
+				homing_counter = 0;
+			}            
+        }
+
+        if(homing_counter > 5){
+            logger_->info("[{}] Homing success", motor_name_);
+            check_homing_execution_status = false;
+            initial_counts_rotation = sensor_data["counts"].asInt();
+        }
+    }
 
     return hardware_interface::return_type::OK;
 }
@@ -525,6 +552,7 @@ void MotorActuator::homing_execution(double &homing_pos){
 
     motor_controls_->motorSetmode("position");
     motor_controls_->set_relative_position(motor_id_, axis_, counts);
+    check_homing_execution_status = true;
 
 }
 
