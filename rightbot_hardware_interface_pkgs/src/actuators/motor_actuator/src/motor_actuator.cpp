@@ -320,6 +320,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     } else {
         position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
+        logger_->debug("[{}] Read pos debug: [{}], counts: [{}]", motor_name_, position_state_, sensor_data["counts"].asInt() );
     }
     
     // if(homing_at_zero){
