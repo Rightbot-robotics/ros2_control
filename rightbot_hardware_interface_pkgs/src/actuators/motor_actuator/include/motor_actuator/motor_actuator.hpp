@@ -159,6 +159,10 @@ private:
 
     bool velocity_mode = true;
 
+    bool check_homing_execution_status = false;
+    int homing_counter = 0;
+    int initial_counts_rotation = 0;
+
     };
 
 #endif // MOTOR_ACTUATOR_H_
