@@ -85,7 +85,7 @@
       </hardware>
       <sensor name="absolute_encoder_sensor">
       <state_interface name="position"/>
-      <param name="can_id">23</param>
+      <param name="can_id">1</param>
       <param name="axis">1</param>
     </sensor>
     </ros2_control>

@@ -37,7 +37,7 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
 
     sensor_id_ = stoi(info.sensors[0].parameters.at("can_id"));
     sensor_name_ = info_.sensors[0].name;
-    axis_ = stoi(info.joints[0].parameters.at("axis"));
+    axis_ = stoi(info.sensors[0].parameters.at("axis"));
     absolute_encoder_init_pos = ABS_POSITION;
     abs_motor_ppr = ABS_MOTOR_PPR;
 
@@ -259,16 +259,26 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
     int position_count;
     err = PDO_read(absolute_encoder_sockets_->abs_pdo_fd, &f, 1);
 
+    if(err != 0){
+        return err;
+    }
+
     if (f.id == (PDO_TX1_ID + sensor_id_)) {
 
         enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
                             ((uint32_t) f.data[3] << 24);
         
+        logger_->debug(" Absolute Encoder Init Counts Value: {}", enc);
+
         position_count = static_cast<int>(enc) - absolute_encoder_init_pos;
-         logger_->debug(" Absolute Encoder Counts Value: {}", position_count);
+        logger_->debug(" Absolute Encoder Counts Value: {}", position_count);
 
         *angle = convertToAngle(position_count);
-        // logger_->debug(" Absolute Encoder Angle Value: {}", *angle);
+
+        if(abs(*angle) > 180){
+            *angle = 360 + *angle;
+        }
+        logger_->debug(" Absolute Encoder Angle Value: {}", *angle);
 
     }
 

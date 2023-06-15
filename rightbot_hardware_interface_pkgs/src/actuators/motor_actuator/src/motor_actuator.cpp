@@ -523,6 +523,7 @@ void MotorActuator::homing_execution(double &homing_pos){
 
     logger_->debug("[{}] - homing_execution counts value:: [{}]", motor_name_, counts);
 
+    motor_controls_->motorSetmode("position");
     motor_controls_->set_relative_position(motor_id_, axis_, counts);
 
 }
