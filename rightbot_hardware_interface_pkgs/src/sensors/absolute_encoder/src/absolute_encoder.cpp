@@ -278,7 +278,11 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
         if(abs(*angle) > 180){
             *angle = 360 + *angle;
         }
-        logger_->debug(" Absolute Encoder Angle Value: {}", *angle);
+        logger_->debug(" Absolute Encoder Angle Value: {} degree", *angle);
+
+        *angle = (*angle) * (3.14/180); //radian
+
+        logger_->debug(" Absolute Encoder Angle Value: {} radian", *angle);
 
     }
 

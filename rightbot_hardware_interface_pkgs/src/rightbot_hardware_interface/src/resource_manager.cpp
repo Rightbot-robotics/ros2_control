@@ -1074,7 +1074,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
               RCUTILS_LOG_INFO_NAMED(
               "resource_manager", "[camera_homing] absolute encoder value '%f' ", angle);
               
-              double angle_in_radian = -(angle*3.14)/180;
+              double angle_in_radian = -(angle);
               camera_homing(angle_in_radian);
               camera_homing_status = true;
             }
