@@ -1,6 +1,0 @@
-bool pump_one
-bool pump_two
-bool gripper_one
-bool gripper_two
----
-bool status
