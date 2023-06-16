@@ -1078,6 +1078,11 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
               camera_homing(angle_in_radian);
               camera_homing_status = true;
             }
+            else {
+
+              RCUTILS_LOG_INFO_NAMED(
+              "resource_manager", "[camera_homing] Camera already at home position");
+            }
             
           }
         }
