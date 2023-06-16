@@ -376,16 +376,33 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     if(previous_control_state_command_ != control_state_command_){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
         if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
+
+            logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+            motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+
             logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
             motor_->motor_enable(motor_id_);
+
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
+
             logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
             motor_->motor_disable(motor_id_);
+
+            logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+            motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
+
             logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
             motor_->motor_quick_stop(motor_id_);
+
+            logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+            motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+
         } else {
+
             logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+            
         }
 
     }
