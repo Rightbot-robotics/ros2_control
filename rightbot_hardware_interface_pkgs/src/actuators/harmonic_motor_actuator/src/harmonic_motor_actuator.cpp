@@ -108,7 +108,7 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     initMotor();
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	
     
@@ -120,7 +120,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	//
     logger_->info("Motor Enable action for: [{}]",motor_name_);
     enableMotor();
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	//
 	logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
@@ -161,7 +161,7 @@ CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::Stat
 	//
     logger_->info("Motor Disable action for: [{}]",motor_name_);
     disableMotor();
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     return CallbackReturn::SUCCESS;
 
@@ -415,7 +415,7 @@ bool HarmonicMotorActuator::Homing(){
 			}
         }
 
-		if(counter >10){
+		if(counter >5){
 			homing_achieved = true;
 		}
 
@@ -424,7 +424,7 @@ bool HarmonicMotorActuator::Homing(){
 
     }
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	encoder_sensor_->init_enc = false;
 
     if(!homing_achieved){

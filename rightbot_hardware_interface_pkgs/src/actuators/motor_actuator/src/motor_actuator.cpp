@@ -175,7 +175,7 @@ CallbackReturn MotorActuator::on_configure(const rclcpp_lifecycle::State & previ
     motor_ = std::make_shared<Motor>(motor_sockets_);
     motor_controls_ = std::make_shared<MotorControls>(motor_sockets_);
     motor_->motor_init(motor_id_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     
 
     Json::Value config_data;
@@ -195,7 +195,7 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 
     logger_->info("Motor Enable action for: [{}]",motor_name_);
     motor_->motor_enable(motor_id_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     if(homing_active){
         if(!Homing()){
