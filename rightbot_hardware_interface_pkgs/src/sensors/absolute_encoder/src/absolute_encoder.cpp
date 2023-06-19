@@ -322,7 +322,11 @@ void AbsoluteEncoderSensor::readData(){
 
             if (err == 0) {
 
-                feedback_s_b_.angle = angle;
+                if(angle == 0.0){
+                    feedback_s_b_.angle = 0.001; // to distinguish between actual zero degree from encoder and false zero when read not success.
+                } else {
+                    feedback_s_b_.angle = angle;
+                }
                 feedback_s_b_.time_sys = duration;
                 feedback_s_b_.read_status = true;
 
