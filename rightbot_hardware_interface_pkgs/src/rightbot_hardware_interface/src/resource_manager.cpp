@@ -1070,20 +1070,23 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
           if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
             angle = current_interface.get_value();
-            if(abs(angle) > 0.0087){ //angle > 5 degree
-              RCUTILS_LOG_INFO_NAMED(
-              "resource_manager", "[camera_homing] Camera angle '%f'. Sending homing command. ", angle);
-              
-              double angle_in_radian = -(angle);
-              camera_homing(angle_in_radian);
-              camera_homing_status = true;
 
-            } else {
-              RCUTILS_LOG_INFO_NAMED(
-              "resource_manager", "[camera_homing] Camera angle '%f'. Already at home position", angle);
-              camera_homing_status = true;
+            if(angle != 0.0){
+              if(abs(angle) > 0.0087){ //angle > 0.5 degree
+                RCUTILS_LOG_INFO_NAMED(
+                "resource_manager", "[camera_homing] Camera angle '%f'. Sending homing command. ", angle);
+                
+                double angle_in_radian = -(angle);
+                camera_homing(angle_in_radian);
+                camera_homing_status = true;
+
+              } else {
+                RCUTILS_LOG_INFO_NAMED(
+                "resource_manager", "[camera_homing] Camera angle '%f'. Already at home position", angle);
+                camera_homing_status = true;
+              }
             }
-            
+              
           }
         }
       }
