@@ -212,6 +212,11 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
     motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
 
+    if(motor_name_ == "camera_rotation_joint"){
+        velocity_mode = false;
+        motor_controls_->motorSetmode("position");
+    }
+
     if(velocity_mode){
         motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
         motor_controls_->motorSetmode("velocity");
@@ -491,7 +496,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 }
 
                 logger_->info("[{}] Position command in counts: [{}]",motor_name_, position_command_final_);
-                motor_controls_->set_absolute_position(motor_id_, axis_, position_command_final_);
+                motor_controls_->set_relative_position_immediate(motor_id_, axis_, position_command_final_);
 
             } else {
 
@@ -499,7 +504,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 double angle_in_degree = (position_command_*(180/3.14));
                 int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
                 logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-                motor_controls_->set_absolute_position(motor_id_, axis_, counts);
+                motor_controls_->set_relative_position_immediate(motor_id_, axis_, counts);
             }
         }
         

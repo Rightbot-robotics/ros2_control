@@ -400,6 +400,7 @@ public:
 
   bool camera_homing_status = false;
   void camera_homing(double &homing_angle);
+  void camera_align(double &align_angle);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

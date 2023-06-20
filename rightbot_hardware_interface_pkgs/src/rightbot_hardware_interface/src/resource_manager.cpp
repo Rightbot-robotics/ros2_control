@@ -1099,9 +1099,38 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
     }
 
-
-    
   }
+
+  if(camera_homing_status){
+
+    for (auto & component : resource_storage_->actuators_){ 
+
+      bool component_available = false;
+      auto component_name = component.get_name();
+
+      if(component_name == "Hardware_TruckUnloading_base_rotation_joint"){
+        component_available = true;
+
+        auto state_interfaces = component.export_state_interfaces();
+        for (auto & current_interface : state_interfaces){
+
+          if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+            angle = current_interface.get_value();
+            if(abs(angle) > 0.035){
+              //
+              RCUTILS_LOG_INFO_NAMED(
+                "resource_manager", "[camera_align] Command angle '%f'",angle);
+              // camera_align(-angle);
+            }
+          }
+        }
+
+      }
+
+    }
+      
+  }
+
 
 }
 
@@ -1552,6 +1581,42 @@ void ResourceManager::camera_homing(double &homing_angle){
   if(!component_available){
     RCUTILS_LOG_INFO_NAMED(
     "resource_manager", "[camera_homing] Component [TruckUnloading_camera_rotation_joint] not available ");
+
+  }
+
+}
+
+void ResourceManager::camera_align(double &align_angle){
+
+  // RCUTILS_LOG_INFO_NAMED(
+  //   "resource_manager", "[camera_align] angle %f ", align_angle);
+
+  bool component_available = false;
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    if(current_component_ == "TruckUnloading_camera_rotation_joint"){
+      component_available = true;
+
+      auto command_interfaces = component.export_command_interfaces();
+      for (auto & current_interface : command_interfaces){
+
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+          current_interface.set_value(align_angle);
+          RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[camera_align] [TruckUnloading_camera_rotation_joint] align angle '%f' ", align_angle);
+        }
+      }
+    }
+
+    
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[camera_align] Component [TruckUnloading_camera_rotation_joint] not available ");
 
   }
 
