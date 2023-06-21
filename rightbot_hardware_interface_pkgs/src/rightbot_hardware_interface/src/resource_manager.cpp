@@ -1137,8 +1137,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
           
 
           if(component_name == "TruckUnloading_camera_rotation_joint") {
-            RCUTILS_LOG_INFO_NAMED(
-            "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint ");
             auto state_interfaces = component.export_state_interfaces();
 
             for (auto & current_interface : state_interfaces){
@@ -1146,11 +1144,9 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
               if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
                 camera_angle = current_interface.get_value();
                 camera_angle = -camera_angle;
-                RCUTILS_LOG_INFO_NAMED(
-                "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
+                // RCUTILS_LOG_INFO_NAMED(
+                // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
                 
-              
-
               }
             }
           }
