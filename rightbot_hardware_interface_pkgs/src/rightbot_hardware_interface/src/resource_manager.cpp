@@ -1143,7 +1143,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
               if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
                 camera_angle = current_interface.get_value();
-                camera_angle = -camera_angle;
                 // RCUTILS_LOG_INFO_NAMED(
                 // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
                 
@@ -1161,7 +1160,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
               if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
                 base_rotation_angle = current_interface.get_value();
-                angle_diff = base_rotation_angle - camera_angle;
+                angle_diff = base_rotation_angle + camera_angle;
                
                 
               }
