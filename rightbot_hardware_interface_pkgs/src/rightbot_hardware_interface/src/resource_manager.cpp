@@ -1080,7 +1080,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
                 RCUTILS_LOG_INFO_NAMED(
                 "resource_manager", "[camera_homing] Camera angle '%f'. Sending homing command. ", angle);
                 
-                double angle_in_radian = -(angle);
+                double angle_in_radian = (angle);
                 camera_homing(angle_in_radian);
                 homing_start_time = std::chrono::system_clock::now();
                 command_homing_sent = true;
@@ -1145,7 +1145,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
   //             if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
   //               camera_angle = current_interface.get_value();
-  //               camera_angle = -camera_angle;
+  //               
   //               RCUTILS_LOG_INFO_NAMED(
   //               "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
                 
