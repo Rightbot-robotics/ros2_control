@@ -216,8 +216,8 @@ public:
   CONTROLLER_MANAGER_PUBLIC
   void camera_align_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
-    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Response> response
   );
 
   CONTROLLER_MANAGER_PUBLIC

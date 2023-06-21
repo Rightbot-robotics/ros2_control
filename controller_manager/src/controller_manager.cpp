@@ -2098,13 +2098,14 @@ void ControllerManager::handle_gripper_pump_service(
 
 void ControllerManager::camera_align_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
-    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Response> response
 )
 {
+  double angle_to_command = request->angle;
 
-  RCLCPP_INFO(get_logger(), "Camera align service. Angle to command %f", request->angle);
-  bool alignment_status == resource_manager_->camera_align_service_handle(request->angle);
+  RCLCPP_INFO(get_logger(), "Camera align service. Angle to command %f", angle_to_command);
+  bool alignment_status = resource_manager_->camera_align_service_handle(angle_to_command);
 
   if(alignment_status == true){
     response->status = true;
