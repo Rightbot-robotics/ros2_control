@@ -402,6 +402,11 @@ public:
   void camera_homing(double &homing_angle);
   void camera_align(double &align_angle);
 
+  float previous_commanded_angle = 0.0;
+
+  std::chrono::time_point<std::chrono::system_clock> homing_start_time = std::chrono::system_clock::now();
+  bool command_homing_sent = false;
+
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
 
