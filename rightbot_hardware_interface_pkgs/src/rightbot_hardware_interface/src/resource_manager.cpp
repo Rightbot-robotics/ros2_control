@@ -1080,7 +1080,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
                 RCUTILS_LOG_INFO_NAMED(
                 "resource_manager", "[camera_homing] Camera angle '%f'. Sending homing command. ", angle);
                 
-                double angle_in_radian = -(angle);
+                double angle_in_radian = (angle);
                 camera_homing(angle_in_radian);
                 homing_start_time = std::chrono::system_clock::now();
                 command_homing_sent = true;
@@ -1113,6 +1113,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
     if(time_passed_since_homing_sent.count()>5000){
       camera_homing_status = true;
+      command_homing_sent = false;
       RCUTILS_LOG_INFO_NAMED(
                 "resource_manager", "[camera_homing] Camera homing success..");
 
