@@ -287,6 +287,12 @@ void ControllerManager::init_services()
 
   error_.thread = std::thread(&ControllerManager::publish_error, this);
 
+  camera_align_server =
+    create_service<rightbot_interfaces::srv::CameraAlign>("camera_align", std::bind(
+        &ControllerManager::camera_align_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
 
 }
 
@@ -2087,6 +2093,25 @@ void ControllerManager::handle_gripper_pump_service(
   resource_manager_->driver_one_gpio_control(request->pump_one, request->gripper_one);
 
   resource_manager_->driver_two_gpio_control(request->pump_two, request->gripper_two);
+
+}
+
+void ControllerManager::camera_align_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+)
+{
+
+  RCLCPP_INFO(get_logger(), "Camera align service. Angle to command %f", request->angle);
+  bool alignment_status == resource_manager_->camera_align_service_handle(request->angle);
+
+  if(alignment_status == true){
+    response->status = true;
+  }
+  else{
+    response->status = false;
+  }
 
 }
 
