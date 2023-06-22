@@ -1677,6 +1677,10 @@ bool ResourceManager::camera_align_service_handle(double &angle){
       RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera align done.");
       
     }
+    else{
+      RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera alignment fail.");
+
+    }
 
     time_passed_camera_align_started = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - camera_align_start_time);
   }
