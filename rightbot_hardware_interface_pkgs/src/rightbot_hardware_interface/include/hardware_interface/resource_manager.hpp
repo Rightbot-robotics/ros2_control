@@ -401,6 +401,7 @@ public:
   bool camera_homing_status = false;
   void camera_homing(double &homing_angle);
   void camera_align(double &align_angle);
+  bool camera_align_service_handle(double &angle);
 
   float previous_commanded_angle = 0.0;
 

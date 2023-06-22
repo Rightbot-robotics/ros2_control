@@ -323,7 +323,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
-        position_state_ = -axis_*(((sensor_data["counts"].asInt() - initial_counts_rotation)*3.14*2)/(motor_ppr_*motor_gear_ratio));
+        position_state_ = axis_*(((sensor_data["counts"].asInt() - initial_counts_rotation)*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
         logger_->debug("[{}] Read pos debug: [{}], counts: [{}]", motor_name_, position_state_, sensor_data["counts"].asInt() );
     }
