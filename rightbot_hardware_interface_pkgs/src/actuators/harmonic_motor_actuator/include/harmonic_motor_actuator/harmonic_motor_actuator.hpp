@@ -145,6 +145,9 @@ private:
 
     bool Homing();
 
+    double radianToDegree(double rad);
+    double degreeToRadian(double deg);
+
 };
 
 

@@ -380,6 +380,7 @@ bool HarmonicMotorActuator::Homing(){
     Json::Value sensor_data_homing;
 	bool homing_achieved = false;
 	int counter = 0;
+	bool pos_reached = false;
 
     std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
     auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
@@ -400,13 +401,20 @@ bool HarmonicMotorActuator::Homing(){
         
 		encoder_sensor_->getData(sensor_data_homing);
 
-        if(sensor_data_homing["read_status_velocity"].asBool()){
+        if(sensor_data_homing["read_status_encoder"].asBool()){
 
-			logger_->debug("[{}] - Homing in process. Current vel [{}]", motor_name_, sensor_data_homing["velocity"].asDouble());
-
-            // vel reading in rpm
-			if(abs(sensor_data_homing["velocity"].asDouble()) < 0.001){
+			double position_in_rad = position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/motor_ppr_);
+			if(radianToDegree(position_in_rad) < 3){
+				logger_->debug("[{}] - Homing in process. Pos Reached. Current pos [{}] degree", motor_name_, radianToDegree(position_in_rad));
+				pos_reached = true;
+			}
+            
+			if(pos_reached) {
+				logger_->debug("[{}] - Homing in process. Pos Reached. Settling.. Current vel [{}] radian/sec", motor_name_, sensor_data_homing["velocity"].asDouble());
+			}
 			
+            // vel reading in rpm
+			if((abs(sensor_data_homing["velocity"].asDouble())) < 0.001 && pos_reached){
 				counter++;
 
 			}
@@ -415,7 +423,7 @@ bool HarmonicMotorActuator::Homing(){
 			}
         }
 
-		if(counter >5){
+		if(counter >3){
 			homing_achieved = true;
 		}
 
@@ -429,6 +437,11 @@ bool HarmonicMotorActuator::Homing(){
 
     if(!homing_achieved){
         logger_->error("[{}] Homing timeout", motor_name_);
+		if(!pos_reached){
+			logger_->error("[{}] Homing position not achieved", motor_name_);
+		}{
+			logger_->error("[{}] Homing position achieved. Velocity not settled", motor_name_);
+		}
         return false;
     }
     else{
@@ -964,5 +977,15 @@ void HarmonicMotorActuator::changeActuatorControlMode(Json::Value &actuator_cont
     }
 
 
+}
+
+double HarmonicMotorActuator::radianToDegree(double rad){
+	double degrees = rad * (180/3.14);
+	return degrees;
+}
+
+double HarmonicMotorActuator::degreeToRadian(double deg){
+	double radian = deg * (3.14/180);
+	return radian;
 }
 
