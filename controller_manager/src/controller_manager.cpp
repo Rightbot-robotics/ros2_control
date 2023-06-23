@@ -2148,6 +2148,10 @@ void ControllerManager::error_monitoring(){
       publish_time = std::chrono::system_clock::now();
 
     }
+
+    if(system_error){
+      //send stopping command to all actuators
+    }
   }
 }
 
