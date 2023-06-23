@@ -414,6 +414,7 @@ public:
   int logging_interval = 70; //milliseconds
   int connection_break_interval = 200; //milliseconds
   bool error_monitoring_started = false;
+  bool error_status = false;
 
 
 

@@ -1293,6 +1293,9 @@ void ResourceManager::reset_component(std::string component_name)
 
       component.fault_reset();
       component_available = true;
+
+      error_status = false; // reset error status
+      error_monitoring_started = false;
     }
   }
 
@@ -1575,7 +1578,6 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
     int error_register;
     std::string error_type = "error";
 
-    bool error_status = false;
     double node_guard_error;
 
     component_name = component.get_name();
