@@ -283,7 +283,7 @@ void ControllerManager::init_services()
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   error_publisher = 
-    create_publisher<rightbot_interfaces::msg::RosControlError>("error_topic", 10);
+    create_publisher<rightbot_interfaces::msg::RosControlError>("arm_error_topic", 10);
 
   error_.thread = std::thread(&ControllerManager::publish_error, this);
 
