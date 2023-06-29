@@ -85,7 +85,7 @@ public:
     std::deque<EncoderData> q_encoder_data_;
     EncoderData encoder_data_q_element_;
 
-    bool reading_loop_started = true;
+    bool reading_loop_started = false;
 
     void stop_read_thread();
     bool stop_read_thread_flag = false;
