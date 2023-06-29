@@ -129,7 +129,7 @@ int MotorControls::set_absolute_position(uint16_t node_id, int axis, uint32_t po
     md_control_register.control_s.enable_operation = 1;
     md_control_register.control_s.absolute_or_relative = 0; // 1 for relative
     md_control_register.control_s.new_setpoint = 0;
-    md_control_register.control_s.instantaneous_change_set = 1;
+    md_control_register.control_s.instantaneous_change_set = 0;
 
     d.index = 0x6040;
     d.subindex = 0x00;

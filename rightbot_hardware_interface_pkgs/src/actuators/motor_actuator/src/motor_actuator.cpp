@@ -370,6 +370,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
             logger_->info("[{}] Homing success", motor_name_);
             check_homing_execution_status = false;
             initial_counts_rotation = sensor_data["counts"].asInt();
+            logger_->info("[{}] initial counts", initial_counts_rotation);
         }
     }
 
@@ -502,9 +503,9 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
                 logger_->info("[{}] Position command: [{}] radian", motor_name_, position_command_);
                 double angle_in_degree = (position_command_*(180/3.14));
-                int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
+                int counts = initial_counts_rotation + static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_*motor_gear_ratio);
                 logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-                motor_controls_->set_relative_position_immediate(motor_id_, axis_, counts);
+                motor_controls_->set_absolute_position(motor_id_, axis_, counts); // send absolute position internally
             }
         }
         
