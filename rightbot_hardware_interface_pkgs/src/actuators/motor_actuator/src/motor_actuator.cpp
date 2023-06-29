@@ -300,12 +300,15 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     if(!initialization_done){
         logger_->info("[{}] CAN buffer clear command", motor_name_);
         encoder_sensor->clear_can_buffer();
-        initialization_done = true;
+        
 
         if(!check_homing_execution_status){
-            //
-            initial_counts_rotation = sensor_data["counts"].asInt();
-            logger_->info("[{}] initial counts", initial_counts_rotation);
+
+            if(sensor_data["read_status_encoder"].asBool()){
+                initial_counts_rotation = sensor_data["counts"].asInt();
+                logger_->info("[{}] initial counts", initial_counts_rotation);
+                initialization_done = true;
+            }
         }
     }
 
