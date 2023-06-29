@@ -608,7 +608,7 @@ void ResourceManager::load_urdf(const std::string & urdf, bool validate_interfac
   spdlog::init_thread_pool(8192, 1);
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt >();
   console_sink->set_level(spdlog::level::info);
-  auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*100, 3);
+  auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*150, 5);
   rotating_sink->set_level(spdlog::level::debug);
   std::vector<spdlog::sink_ptr> sinks {console_sink,rotating_sink};
   auto root_logger = std::make_shared<spdlog::async_logger>("hardware_interface", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
@@ -1133,6 +1133,8 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
           auto component_name = component.get_name();
 
           if(component_name == "TruckUnloading_camera_rotation_joint") {
+            // RCUTILS_LOG_INFO_NAMED(
+            // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint ");
             auto state_interfaces = component.export_state_interfaces();
 
             for (auto & current_interface : state_interfaces){
@@ -1142,6 +1144,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
                 camera_angle = -camera_angle;
                 // RCUTILS_LOG_INFO_NAMED(
                 // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
+                
               }
             }
           }
