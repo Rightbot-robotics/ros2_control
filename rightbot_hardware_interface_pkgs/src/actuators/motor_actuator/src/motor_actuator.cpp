@@ -299,7 +299,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
     if(!initialization_done){
         logger_->info("[{}] CAN buffer clear command", motor_name_);
-        encoder_sensor->clear_can_buffer();
+        encoder_sensor->enc_clear_can_buffer();
         
 
         if(!check_homing_execution_status){

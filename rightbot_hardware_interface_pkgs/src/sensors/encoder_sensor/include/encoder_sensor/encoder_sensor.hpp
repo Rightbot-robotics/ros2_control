@@ -90,7 +90,7 @@ public:
     void stop_read_thread();
     bool stop_read_thread_flag = false;
 
-    void clear_can_buffer();
+    void enc_clear_can_buffer();
     bool clear_can_buffer_flag = false;
 
     void readToClearBuffer();

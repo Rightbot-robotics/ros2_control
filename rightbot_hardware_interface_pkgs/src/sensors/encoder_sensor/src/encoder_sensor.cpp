@@ -176,7 +176,7 @@ void EncoderSensor::stop_read_thread() {
     
 }
 
-void EncoderSensor::clear_can_buffer(){
+void EncoderSensor::enc_clear_can_buffer(){
     clear_can_buffer_flag = true;
     sending_motor_request_internally = true;
 
