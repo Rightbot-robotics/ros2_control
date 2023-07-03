@@ -1598,12 +1598,12 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         node_guard_error = static_cast<int>(state_interface.get_value());
 
         if(node_guard_error == 0){
-          auto time_passed_response_received_ = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
+          auto time_passed_response_received_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
           // logger_->debug("[{}] - Received response ",x.first);
           
           if ((time_passed_response_received_.count() > logging_interval) && error_monitoring_started){
 
-              logger_->debug("[{}] - Interval between responses > {} us: {} microseconds", component_name, logging_interval, time_passed_response_received_.count());
+              logger_->debug("[{}] - Interval between responses > {} us: {} milliseconds", component_name, logging_interval, time_passed_response_received_.count());
               
           }
           actuator_response_time_[component_name] = std::chrono::system_clock::now();
@@ -1611,11 +1611,11 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         }
         
 
-        auto time_passed_response_ = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
+        auto time_passed_response_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
         
         if((time_passed_response_.count()>connection_break_interval) && error_monitoring_started){
           logger_->error("[{}] - Connection break ", component_name);
-          logger_->info("[{}] - Interval between responses > {} us: {} microseconds", component_name, connection_break_interval, time_passed_response_.count());
+          logger_->info("[{}] - Interval between responses > {} us: {} milliseconds", component_name, connection_break_interval, time_passed_response_.count());
           actuator_connection_break_status_[component_name] = true;
           
           error_status = error_status && true;
