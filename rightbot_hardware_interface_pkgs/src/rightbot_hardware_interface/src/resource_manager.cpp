@@ -1586,7 +1586,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
     int error_register;
     std::string error_type = "error";
 
-    double node_guard_error;
+    int node_guard_error;
 
     component_name = component.get_name();
     auto state_interfaces = component.export_state_interfaces();
@@ -1595,7 +1595,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
 
       // monitoring node guarding
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_NODE_GUARD_ERROR){
-        node_guard_error = state_interface.get_value();
+        node_guard_error = static_cast<int>(state_interface.get_value());
 
         if(node_guard_error == 0){
           auto time_passed_response_received_ = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
