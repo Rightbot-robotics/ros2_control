@@ -1624,16 +1624,16 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
       
       // monitoring fault
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_STATUS){
-        status = state_interface.get_value();
+        status = static_cast<int>(state_interface.get_value());
       }
 
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_LATCHED_FAULT){
-        error_register = state_interface.get_value();
+        error_register = static_cast<int>(state_interface.get_value());
         error_type = get_zlac_driver_error(error_register);
       }
 
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_ERROR_CODE){
-        error_register = state_interface.get_value();
+        error_register = static_cast<int>(state_interface.get_value());
         error_type = get_harmonic_driver_error(error_register);
       }
 
@@ -1642,6 +1642,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         error_status = error_status && true;
       } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true)) {
         error_type = "Connection break";
+        error_register = 1;
       } else {
       }
     }
