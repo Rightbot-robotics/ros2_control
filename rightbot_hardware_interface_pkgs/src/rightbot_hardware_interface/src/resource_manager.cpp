@@ -1175,7 +1175,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
             "resource_manager", "[camera_align] Command angle '%f', base_rotation_angle '%f', camera_rotation_angle '%f'",angle_diff,base_rotation_angle,camera_angle);
 
           // double angle_to_command_ = static_cast<double>(0.0);
-           double angle_to_command_ = static_cast<double>(base_rotation_angle);
+           double angle_to_command_ = -1.0 * static_cast<double>(base_rotation_angle);
           
           camera_align(angle_to_command_);
 
