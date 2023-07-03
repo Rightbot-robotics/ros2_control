@@ -267,17 +267,17 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
             
-			logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
-            disableMotor();
-
 			logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
             set_target_velocity(0.0);
+
+			logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+            disableMotor();
 
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
             
 			logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
             set_target_velocity(0.0);
-			
+
 			logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
             quickStopMotor();
 
