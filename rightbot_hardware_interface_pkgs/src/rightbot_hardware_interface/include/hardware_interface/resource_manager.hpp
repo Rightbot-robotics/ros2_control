@@ -417,6 +417,7 @@ public:
   bool error_status = false;
 
 
+  float previous_base_rotation_angle = 0.0f;
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

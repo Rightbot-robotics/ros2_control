@@ -176,8 +176,9 @@ void EncoderSensor::stop_read_thread() {
     
 }
 
-void EncoderSensor::clear_can_buffer(){
+void EncoderSensor::enc_clear_can_buffer(){
     clear_can_buffer_flag = true;
+    sending_motor_request_internally = true;
 
 }
 
@@ -206,7 +207,7 @@ void EncoderSensor::readToClearBuffer(){
     }
     logger_->info("[{}] CAN buffer cleared", motor_name_);
 
-    sending_motor_request_internally = true;
+    //sending_motor_request_internally = true;
     
 }
 
@@ -221,7 +222,7 @@ void EncoderSensor::readMotorData() {
             
             if(reading_loop_started) {
 
-                if((motor_name_ == "h_gantry_joint") && (sending_motor_request_internally)){
+                if((motor_name_ == "v_gantry_joint") && (sending_motor_request_internally)){
                     motor_feedback_->motor_request();
                     std::this_thread::sleep_for(std::chrono::microseconds(2000));
                     

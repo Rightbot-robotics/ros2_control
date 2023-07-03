@@ -608,7 +608,7 @@ void ResourceManager::load_urdf(const std::string & urdf, bool validate_interfac
   spdlog::init_thread_pool(8192, 1);
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt >();
   console_sink->set_level(spdlog::level::info);
-  auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*100, 3);
+  auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("/data/logs/robot_logs/hardware_interface_logs/hardware_interface_data_logs.txt", 1024*1024*150, 5);
   rotating_sink->set_level(spdlog::level::debug);
   std::vector<spdlog::sink_ptr> sinks {console_sink,rotating_sink};
   auto root_logger = std::make_shared<spdlog::async_logger>("hardware_interface", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
@@ -1133,6 +1133,8 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
           auto component_name = component.get_name();
 
           if(component_name == "TruckUnloading_camera_rotation_joint") {
+            // RCUTILS_LOG_INFO_NAMED(
+            // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint ");
             auto state_interfaces = component.export_state_interfaces();
 
             for (auto & current_interface : state_interfaces){
@@ -1142,6 +1144,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
                 camera_angle = -camera_angle;
                 // RCUTILS_LOG_INFO_NAMED(
                 // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
+                
               }
             }
           }
@@ -1164,14 +1167,19 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
           }
 
        }
-       if(abs(angle_diff) > 0.035){
+
+       // giving absolute angle to camera
+       if(abs(previous_base_rotation_angle -base_rotation_angle) > 0.035){
                     //
           RCUTILS_LOG_INFO_NAMED(
             "resource_manager", "[camera_align] Command angle '%f', base_rotation_angle '%f', camera_rotation_angle '%f'",angle_diff,base_rotation_angle,camera_angle);
 
-          double angle_to_command_ = -1 * static_cast<double>(angle_diff);
+          // double angle_to_command_ = static_cast<double>(0.0);
+           double angle_to_command_ = -1.0 * static_cast<double>(base_rotation_angle);
           
           camera_align(angle_to_command_);
+
+          previous_base_rotation_angle = base_rotation_angle;
 
         }
     } 
@@ -1702,7 +1710,7 @@ bool ResourceManager::camera_align_service_handle(double &angle){
 
       for (auto & current_interface : state_interfaces){
 
-        if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_STATUS){
           camera_joint_status_interface = &current_interface;
         }
       }
@@ -1710,7 +1718,11 @@ bool ResourceManager::camera_align_service_handle(double &angle){
   }
 
   while((time_passed_camera_align_started.count()<5000) && (alignment_done == false)){
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     double status = camera_joint_status_interface->get_value();
+
+    RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] status value '%f'",status);
 
     int status_value = static_cast<int>(status);
 
@@ -1723,11 +1735,15 @@ bool ResourceManager::camera_align_service_handle(double &angle){
       
     }
     else{
-      RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera alignment fail.");
+      // RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera alignment fail.");
 
     }
 
     time_passed_camera_align_started = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - camera_align_start_time);
+  }
+
+  if(!alignment_done){
+    RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera alignment fail.");
   }
 
   return alignment_done;

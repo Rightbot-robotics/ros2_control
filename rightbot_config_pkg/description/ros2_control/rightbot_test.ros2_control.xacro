@@ -3,14 +3,14 @@
 
   <xacro:macro name="rightbot_test" params="name prefix slowdown:=2.0">
     
-    <ros2_control name="${name}_TruckUnloading_h_gantry_joint" type="actuator">
+    <ros2_control name="${name}_TruckUnloading_v_gantry_joint" type="actuator">
       <hardware>
         <plugin>motor_actuator</plugin>
         <param name="example_param_hw_start_duration_sec">0</param>
         <param name="example_param_hw_stop_duration_sec">3.0</param>
         <param name="example_param_hw_slowdown">100</param>
       </hardware>
-      <joint name="h_gantry_joint">
+      <joint name="v_gantry_joint">
         <command_interface name="position">
           <param name="min">-100</param>
           <param name="max">100</param>
@@ -28,21 +28,22 @@
         <state_interface name="latched_fault"/>
         <state_interface name="node_guard_error"/>
         <state_interface name="effort"/>
-        <param name="can_id">16</param>
+        <param name="can_id">22</param>
         <param name="axis">-1</param>
+        <param name="homing">1</param>
+        <param name="homing_at_zero">0</param>
+        <param name="homing_velocity">50</param>
+        <param name="homing_acceleration">10</param>
+        <param name="homing_position">-0.951</param>
+        <param name="total_travel_distance">0.951</param>
+        <param name="motor_gear_ratio">7.5</param>
+        <param name="travel_per_revolution">0.314</param>
+        <param name="default_max_velocity">80.0</param>
+        <param name="default_max_accleration">25.0</param>
         <param name="path">
           "/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"
         </param>
-        <param name="homing">1</param>
-        <param name="homing_at_zero">1</param>
-        <param name="homing_velocity">50</param>
-        <param name="homing_acceleration">10</param>
-        <param name="homing_position">0.709</param>
-        <param name="total_travel_distance">0.709</param>
-        <param name="motor_gear_ratio">1</param>
-        <param name="travel_per_revolution">0.032</param>
-        <param name="default_max_velocity">50.0</param>
-        <param name="default_max_accleration">25.0</param>
+
       </joint>
     </ros2_control>
 
