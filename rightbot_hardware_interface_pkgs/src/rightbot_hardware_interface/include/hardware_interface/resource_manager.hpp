@@ -413,7 +413,8 @@ public:
   std::unordered_map <std::string, bool> actuator_connection_break_status_;
   int logging_interval = 70; //milliseconds
   int connection_break_interval = 200; //milliseconds
-  bool error_monitoring_started = false;
+  // bool error_monitoring_started = false;
+  std::unordered_map <std::string, bool> error_monitoring_started;
   bool error_status = false;
 
 

@@ -1303,7 +1303,7 @@ void ResourceManager::reset_component(std::string component_name)
       component_available = true;
 
       error_status = false; // reset error status
-      error_monitoring_started = false;
+      error_monitoring_started[component_name] = false;
     }
   }
 
@@ -1601,19 +1601,19 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
           auto time_passed_response_received_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
           // logger_->debug("[{}] - Received response ",x.first);
           
-          if ((time_passed_response_received_.count() > logging_interval) && error_monitoring_started){
+          if ((time_passed_response_received_.count() > logging_interval) && error_monitoring_started[component_name]){
 
               logger_->debug("[{}] - Interval between responses > {} us: {} milliseconds", component_name, logging_interval, time_passed_response_received_.count());
               
           }
           actuator_response_time_[component_name] = std::chrono::system_clock::now();
-          error_monitoring_started = true;
+          error_monitoring_started[component_name] = true;
         }
         
 
         auto time_passed_response_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
         
-        if((time_passed_response_.count()>connection_break_interval) && error_monitoring_started){
+        if((time_passed_response_.count()>connection_break_interval) && error_monitoring_started[component_name]){
           logger_->error("[{}] - Connection break ", component_name);
           logger_->info("[{}] - Interval between responses > {} us: {} milliseconds", component_name, connection_break_interval, time_passed_response_.count());
           actuator_connection_break_status_[component_name] = true;
