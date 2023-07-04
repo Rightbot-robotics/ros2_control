@@ -392,32 +392,32 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
         if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
 
-            logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+            logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
 
-            logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
+            logger_->info("[{}] Control state command: Actuator enable", motor_name_);
             motor_->motor_enable(motor_id_);
 
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
 
-            logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+            logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
             
-            logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+            logger_->info("[{}] Control state command: Actuator disable", motor_name_);
             motor_->motor_disable(motor_id_);
 
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
             
-            logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+            logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
 
-            logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
+            logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
             motor_->motor_quick_stop(motor_id_);
 
 
         } else {
 
-            logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+            logger_->info("[{}] Control state command not recognized", motor_name_);
             
         }
 
@@ -434,22 +434,22 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
             if(homing_active){
 
-                logger_->info("[{}] Max velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
+                logger_->debug("[{}] Velocity command in m/s: [{}]", motor_name_, max_velocity_command_);
                 double max_velocity_command_final_ = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
                 max_velocity_command_final_ = static_cast<float>(max_velocity_command_final_);
                 float scaled_max_vel = 1.0f * max_velocity_command_final_;
-                logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+                logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
                 motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
 
 
             } else {
 
-                logger_->info("[{}] Max velocity command in degree/s: [{}]", motor_name_, max_velocity_command_);
+                logger_->debug("[{}] Velocity command in degree/s: [{}]", motor_name_, max_velocity_command_);
                 double degree_per_sec = (max_velocity_command_*(180/3.14));
                 double revolution_per_min = (degree_per_sec*60)/360.0;
                 float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
                 float scaled_max_vel = 1.0f * max_velocity_command_final_;
-                logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+                logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
                 motor_controls_->set_vel_speed(motor_id_, axis_, scaled_max_vel);
             }
 
@@ -523,22 +523,22 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     
     if(previous_gpio_command_ != gpio_command_){
         if(gpio_command_ == 1.0){
-            logger_->info("[{}] - GPIO command ->  Pump Switch ON, Gripper Switch OFF", motor_name_);
+            logger_->info("[{}] - gpio command ->  Pump Switch ON, Gripper Switch OFF", motor_name_);
             motor_controls_->set_gpio(motor_id_, 1); 
 
         } else if (gpio_command_ == 2.0){
-            logger_->info("[{}] - GPIO command ->  Gripper Switch ON, Pump Switch OFF", motor_name_);
+            logger_->info("[{}] - gpio command ->  Gripper Switch ON, Pump Switch OFF", motor_name_);
             motor_controls_->set_gpio(motor_id_, 4);
            
         } else if (gpio_command_ == 3.0) {
-            logger_->info("[{}] - GPIO command ->  Pump and Gripper Switch ON", motor_name_);
+            logger_->info("[{}] - gpio command ->  Pump and Gripper Switch ON", motor_name_);
             motor_controls_->set_gpio(motor_id_, 5);
 
         } else if (gpio_command_ == 0.0) {
-            logger_->info("[{}] - GPIO command ->  Pump and Gripper Switch OFF", motor_name_);
+            logger_->info("[{}] - gpio command ->  Pump and Gripper Switch OFF", motor_name_);
             motor_controls_->clear_gpio(motor_id_);
         } else {
-            logger_->error("[{}] - GPIO command not recognized", motor_name_);
+            logger_->error("[{}] - gpio command not recognized", motor_name_);
         }
 
     }
