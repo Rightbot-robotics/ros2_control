@@ -222,11 +222,11 @@ void EncoderSensor::readMotorData() {
             
             if(reading_loop_started) {
 
-                if((motor_name_ == "v_gantry_joint") && (sending_motor_request_internally)){
-                    motor_feedback_->motor_request();
-                    std::this_thread::sleep_for(std::chrono::microseconds(2000));
+                // if((motor_name_ == "v_gantry_joint") && (sending_motor_request_internally)){
+                //     motor_feedback_->motor_request();
+                //     std::this_thread::sleep_for(std::chrono::microseconds(2000));
                     
-                }
+                // }
 
                 int err = readData(motor_id_, &encoder_data_);
 

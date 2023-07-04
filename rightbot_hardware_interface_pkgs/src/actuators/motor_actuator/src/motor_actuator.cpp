@@ -576,6 +576,11 @@ void MotorActuator::clear_can_buffer(){
     //
 }
 
+void MotorActuator::data_request(){
+
+    requestData();
+}
+
 void MotorActuator::homing_execution(double &homing_pos){
 
     logger_->info("[{}] - Execute homing. Angle: [{}]", motor_name_,homing_pos);

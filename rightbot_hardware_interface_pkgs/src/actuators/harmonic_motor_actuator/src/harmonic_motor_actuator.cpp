@@ -375,6 +375,10 @@ void HarmonicMotorActuator::homing_execution(double &homing_pos){
 
 }
 
+void HarmonicMotorActuator::data_request(){
+    requestData();
+}
+
 
 bool HarmonicMotorActuator::Homing(){
 

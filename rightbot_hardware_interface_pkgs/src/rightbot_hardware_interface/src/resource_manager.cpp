@@ -1037,6 +1037,26 @@ return_type ResourceManager::set_component_state(
 
 void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    auto component_name = component.get_name();
+
+    if(component_name == "Hardware_TruckUnloading_h_gantry_joint") {
+      component.data_request();
+      
+    }
+
+    if(component_name == "Hardware_TruckUnloading_base_rotation_joint") {
+      component.data_request();
+      
+    }
+
+    if(component_name == "Hardware_TruckUnloading_elbow_rotation_joint") {
+      component.data_request();
+      
+    }
+  }
   
   for (auto & component : resource_storage_->actuators_)
   {
@@ -1658,7 +1678,7 @@ bool ResourceManager::camera_align_service_handle(double &angle){
   {
     auto component_name = component.get_name();
 
-    if(component_name == "TruckUnloading_camera_rotation_joint") {
+    if(component_name == "TruckUnloading_camera_rotation_joint") { // request for one interface
 
       auto state_interfaces = component.export_state_interfaces();
       component_available = true;

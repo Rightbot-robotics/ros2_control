@@ -62,7 +62,10 @@ public:
 
     void homing_execution(double &homing_pos) override;
 
+    void data_request() override;
+
     void init_json(std::string path);
+
 
 
 private:
