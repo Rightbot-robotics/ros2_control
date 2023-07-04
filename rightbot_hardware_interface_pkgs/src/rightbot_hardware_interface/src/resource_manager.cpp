@@ -1058,7 +1058,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     }
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
   
   for (auto & component : resource_storage_->actuators_)
   {
