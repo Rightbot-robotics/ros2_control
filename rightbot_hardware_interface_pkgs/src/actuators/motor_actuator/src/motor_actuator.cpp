@@ -423,8 +423,8 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     }
 
-    if((abs(max_velocity_command_) > (abs(previous_max_velocity_command_) + velocity_epsilon)) 
-        || (abs(max_velocity_command_) < (abs(previous_max_velocity_command_) - velocity_epsilon)) ){
+    if(((max_velocity_command_) > ((previous_max_velocity_command_) + velocity_epsilon)) 
+        || ((max_velocity_command_) < ((previous_max_velocity_command_) - velocity_epsilon)) ){
         
         if(abs(max_velocity_command_) < (velocity_epsilon)){
             max_velocity_command_ = 0.0;
