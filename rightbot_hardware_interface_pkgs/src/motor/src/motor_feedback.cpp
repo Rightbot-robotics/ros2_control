@@ -126,7 +126,7 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
             
             *pos = enc;
         }
-        iteration+1;
+        iteration++;
 
         logger_->debug("[{}] pos read iteration [{}]", motor_name_, iteration);
 
@@ -175,7 +175,7 @@ int MotorFeedback::motor_vel_read(int motor_id, double *vel, int timeout) {
             cps = register_cps;
             *vel = (double) motor_cps_to_rpm(cps);
         }
-        iteration+1;
+        iteration++;
 
         logger_->debug("[{}] vel read iteration [{}]", motor_name_, iteration);
 
