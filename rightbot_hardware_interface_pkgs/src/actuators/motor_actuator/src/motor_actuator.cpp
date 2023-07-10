@@ -306,7 +306,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
             if(sensor_data["read_status_encoder"].asBool()){
                 initial_counts_rotation = sensor_data["counts"].asInt();
-                logger_->info("[{}] initial counts", initial_counts_rotation);
+                logger_->info("[{}] actuator, initial counts: [{}] ", motor_name_, initial_counts_rotation);
                 initialization_done = true;
             }
         }
@@ -356,6 +356,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     logger_->debug("[{}] Read manufacturer_register: [{}], latched_fault: [{}], node_guard_error: [{}]", motor_name_, manufacturer_register_state_, latched_fault_state_, node_guard_error_state_);
 
     if(check_homing_execution_status){
+        initialization_done = true;
 
         if(sensor_data["read_status_velocity"].asBool()){
             // if(((status_state_ & (1 << 10)) >> 10)){
@@ -379,7 +380,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
             logger_->info("[{}] Homing success", motor_name_);
             check_homing_execution_status = false;
             initial_counts_rotation = sensor_data["counts"].asInt();
-            logger_->info("[{}] initial counts", initial_counts_rotation);
+            logger_->info("[{}] actuator, initial counts:[{}] homing complete.", motor_name_, initial_counts_rotation);
         }
     }
 
