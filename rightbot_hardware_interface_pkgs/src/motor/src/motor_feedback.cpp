@@ -109,6 +109,7 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
 
     
     int iteration = 0;
+    int err_read = -1;
 
     while(true){
 
@@ -117,6 +118,8 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
         if (err != 0) {
             // Read error, or no data
             break;
+        } else {
+            err_read = 0;
         }
 
         if (f.id == (PDO_TX3_ID + motor_id)) {
@@ -132,7 +135,7 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
 
     }
 
-    return err;
+    return err_read;
 }
 
 int MotorFeedback::motor_vel_read(int motor_id, double *vel, int timeout) {
@@ -158,6 +161,7 @@ int MotorFeedback::motor_vel_read(int motor_id, double *vel, int timeout) {
     // }
 
     int iteration = 0;
+    int err_read = -1;
 
     while(true){
 
@@ -166,6 +170,8 @@ int MotorFeedback::motor_vel_read(int motor_id, double *vel, int timeout) {
         if (err != 0) {
             // Read error, or no data
             break;
+        } else {
+            err_read = 0;
         }
 
         if (f.id == (PDO_TX2_ID + motor_id)) {
@@ -181,7 +187,7 @@ int MotorFeedback::motor_vel_read(int motor_id, double *vel, int timeout) {
 
     }
 
-    return err;
+    return err_read;
 }
 
 int MotorFeedback::motor_system_status_read(int motor_id, uint32_t *manufacturer_reg, uint32_t *latched_fault,
