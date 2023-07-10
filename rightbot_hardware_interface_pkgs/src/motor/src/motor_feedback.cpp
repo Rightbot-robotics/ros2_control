@@ -6,6 +6,7 @@ MotorFeedback::MotorFeedback(Sockets::SocketsSPtr motor_sockets_) {
     logger_ = spdlog::get("hardware_interface")->clone("motor_feedback");
 
     motor_sockets = motor_sockets_;
+    motor_name_ = motor_sockets->motor_name_;
     init_enc = false;
     err_enc = 0;
     err_pdo_1_ = 0;
@@ -78,32 +79,57 @@ int MotorFeedback::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
     my_can_frame f;
     uint32_t enc;
 
-    auto start_time = std::chrono::system_clock::now();
-    err = PDO_read(motor_sockets->motor_enc_pdo_fd, &f, timeout);
-    auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now() - start_time);
-    // logger_->debug("Time in execution [ motor_enc_read() ]: [{}] us, err: [{}]", time_passed_in_read.count(), err);
-
+    // auto start_time = std::chrono::system_clock::now();
     // err = PDO_read(motor_sockets->motor_enc_pdo_fd, &f, timeout);
+    // auto time_passed_in_read = std::chrono::duration_cast<std::chrono::microseconds>(
+    //         std::chrono::system_clock::now() - start_time);
+    // // logger_->debug("Time in execution [ motor_enc_read() ]: [{}] us, err: [{}]", time_passed_in_read.count(), err);
 
-    if (err != 0) {
-        // Read error, or no data
-        return err;
-    }
+    // // err = PDO_read(motor_sockets->motor_enc_pdo_fd, &f, timeout);
 
-    if (f.id == (PDO_TX3_ID + motor_id)) {
-        //ENCODER COUNT
-        enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
-              ((uint32_t) f.data[3] << 24);
-        //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
-        // if (init_enc) {
-        //     *pos = -enc - err_enc;
-        // } else {
-        //     err_enc = -enc;
-        //     init_enc = true;
-        // }
-        *pos = enc; 
-        //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
+    // if (err != 0) {
+    //     // Read error, or no data
+    //     return err;
+    // }
+
+    // if (f.id == (PDO_TX3_ID + motor_id)) {
+    //     //ENCODER COUNT
+    //     enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
+    //           ((uint32_t) f.data[3] << 24);
+    //     //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
+    //     // if (init_enc) {
+    //     //     *pos = -enc - err_enc;
+    //     // } else {
+    //     //     err_enc = -enc;
+    //     //     init_enc = true;
+    //     // }
+    //     *pos = enc; 
+    //     //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
+    // }
+
+    
+    int iteration = 0;
+
+    while(true){
+
+        err = PDO_read(motor_sockets->motor_enc_pdo_fd, &f, timeout);
+
+        if (err != 0) {
+            // Read error, or no data
+            break;
+        }
+
+        if (f.id == (PDO_TX3_ID + motor_id)) {
+            //ENCODER COUNT
+            enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
+                ((uint32_t) f.data[3] << 24);
+            
+            *pos = enc;
+        }
+        iteration+1;
+
+        logger_->debug("[{}] read iteration [{}]", motor_name_, iteration);
+
     }
 
     return err;
@@ -116,19 +142,42 @@ int MotorFeedback::motor_vel_read(int motor_id, double *vel, int timeout) {
     int32_t register_cps;
     double cps;
 
-    err = PDO_read(motor_sockets->motor_vel_pdo_fd, &f, timeout);
+    // err = PDO_read(motor_sockets->motor_vel_pdo_fd, &f, timeout);
 
-    if (err != 0) {
-        // Read error, or no data
-        return err;
-    }
+    // if (err != 0) {
+    //     // Read error, or no data
+    //     return err;
+    // }
 
-    if (f.id == (PDO_TX2_ID + motor_id)) {
-        //RPM OF LEFT
-        register_cps = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
-                       ((uint32_t) f.data[3] << 24);
-        cps = register_cps;
-        *vel = (double) motor_cps_to_rpm(cps);
+    // if (f.id == (PDO_TX2_ID + motor_id)) {
+    //     //RPM OF LEFT
+    //     register_cps = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
+    //                    ((uint32_t) f.data[3] << 24);
+    //     cps = register_cps;
+    //     *vel = (double) motor_cps_to_rpm(cps);
+    // }
+
+    int iteration = 0;
+
+    while(true){
+
+        err = PDO_read(motor_sockets->motor_vel_pdo_fd, &f, timeout);
+
+        if (err != 0) {
+            // Read error, or no data
+            break;
+        }
+
+        if (f.id == (PDO_TX2_ID + motor_id)) {
+            //RPM OF LEFT
+            register_cps = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
+                        ((uint32_t) f.data[3] << 24);
+            cps = register_cps;
+            *vel = (double) motor_cps_to_rpm(cps);
+        }
+
+        logger_->debug("[{}] read iteration [{}]", motor_name_, iteration);
+
     }
 
     return err;
