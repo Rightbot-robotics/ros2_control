@@ -204,6 +204,8 @@ public:
 
   virtual void homing_execution(double &homing_pos) = 0;
 
+  virtual void data_request() = 0;
+
   const rclcpp_lifecycle::State & get_state() const { return lifecycle_state_; }
 
   /// Set life-cycle state of the actuator hardware.

@@ -101,6 +101,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   void homing_execution(double &homing_pos);
 
+  HARDWARE_INTERFACE_PUBLIC
+  void data_request();
+
 private:
   std::unique_ptr<ActuatorInterface> impl_;
 };

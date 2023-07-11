@@ -293,6 +293,8 @@ void ControllerManager::init_services()
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
+  read_thread_ = std::thread(&ControllerManager::read_data, this);
+
 
 }
 
@@ -1672,7 +1674,8 @@ std::vector<std::string> ControllerManager::get_controller_names()
 
 void ControllerManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-  resource_manager_->read(time, period);
+  read_data_start = true;
+  // resource_manager_->read(time, period);
 }
 
 controller_interface::return_type ControllerManager::update(
@@ -2159,4 +2162,34 @@ void ControllerManager::camera_homing(){
   // resource_manager_->camera_homing();
 
 }
+
+void ControllerManager::read_data(){
+
+  RCLCPP_INFO(get_logger(), "read data thread");
+
+  while(true){
+    // RCLCPP_INFO(get_logger(), "read thread false");
+    if(read_data_start){
+
+      // RCLCPP_INFO(get_logger(), "read thread true");
+
+      rclcpp::Time previous_time = rclcpp::Clock().now();;
+      auto const current_time = rclcpp::Clock().now();;
+      auto const measured_period = current_time - previous_time;
+      // previous_time = current_time;
+
+      auto read_start_time = std::chrono::high_resolution_clock::now(); 
+
+      resource_manager_->read(current_time, measured_period);
+
+      auto read_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - read_start_time);
+
+      std::this_thread::sleep_for(std::chrono::microseconds(20000-read_time.count()));
+
+    }
+
+  }
+
+}
+
 }  // namespace controller_manager

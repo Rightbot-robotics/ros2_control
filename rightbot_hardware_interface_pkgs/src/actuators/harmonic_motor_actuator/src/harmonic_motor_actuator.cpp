@@ -259,39 +259,39 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
 		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
 
-			logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             set_target_velocity(0.0);
 
-            logger_->info("[{}] Control state command: ACTUATOR_ENABLE", motor_name_);
+            logger_->info("[{}] Control state command: Actuator enable", motor_name_);
             enableMotor();
 
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
             
-			logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             set_target_velocity(0.0);
 
-			logger_->info("[{}] Control state command: ACTUATOR_DISABLE", motor_name_);
+			logger_->info("[{}] Control state command: Actuator disable", motor_name_);
             disableMotor();
 
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
             
-			logger_->info("[{}] Control mode change. Writing ZERO velocity command.", motor_name_);
+			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             set_target_velocity(0.0);
 
-			logger_->info("[{}] Control state command: ACTUATOR_QUICK_STOP", motor_name_);
+			logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
             quickStopMotor();
 
 
         } else {
 
-            logger_->info("[{}] Control state command NOT RECOGNIZED", motor_name_);
+            logger_->info("[{}] Control state command not recognized", motor_name_);
 
         }
 		trigger_once = false;
 	}
 
-	if((abs(max_velocity_command_) > (abs(previous_max_velocity_command_) + velocity_epsilon)) 
-        || (abs(max_velocity_command_) < (abs(previous_max_velocity_command_) - velocity_epsilon)) ){
+	if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
+        || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
         
         if(abs(max_velocity_command_) < (velocity_epsilon)){
             max_velocity_command_ = 0.0;
@@ -299,12 +299,12 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		
 		if(!using_default_max_velocity_){
 			
-            logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
+            logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
            	double degree_per_sec = (max_velocity_command_*(180/3.14));
 			double revolution_per_min = (degree_per_sec*60)/360.0;
             float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
 			float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            logger_->info("[{}] Max velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+            logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
 			set_target_velocity(scaled_max_vel);
 
@@ -315,7 +315,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
 			
 			if(!using_default_acceleration_){
-				logger_->info("[{}] Acceleration command: [{}]", motor_name_, acceleration_command_);
+				logger_->info("[{}] Acceleration command in radian per second square: [{}]", motor_name_, acceleration_command_);
 				double degree_per_sec = (acceleration_command_*(180/3.14));
 				double revolution_per_sec = abs(degree_per_sec/360.0);
 				float scaled_acceleration = revolution_per_sec * 1.0f;
@@ -361,7 +361,7 @@ CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & p
 }
 
 void HarmonicMotorActuator::fault_reset(){
-    logger_->debug("[{}] - RESET FAULT", motor_name_);
+    logger_->debug("[{}] - reset fault", motor_name_);
 	resetFault();
 }
 
@@ -373,6 +373,10 @@ void HarmonicMotorActuator::clear_can_buffer(){
 
 void HarmonicMotorActuator::homing_execution(double &homing_pos){
 
+}
+
+void HarmonicMotorActuator::data_request(){
+    requestData();
 }
 
 

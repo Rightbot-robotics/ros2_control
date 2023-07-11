@@ -64,6 +64,8 @@ public:
 
     void init_json(std::string path);
 
+    void data_request() override;
+
 
 private:
 

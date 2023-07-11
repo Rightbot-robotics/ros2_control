@@ -196,7 +196,7 @@ std::map<std::string, int> MotorFeedback::motorFeedback(int motor_id, MotorFeedb
     err_pdo_4_ = motor_system_status_read(motor_id, manufacturer_reg_fb_, latched_fault_fb_, 1);
     read_error_code.insert_or_assign("mf_register", err_pdo_4_);
 
-    guard_err_fb_ = node_guarding_response_read(response_fb_, 1);
+    // guard_err_fb_ = node_guarding_response_read(response_fb_, 1);
     read_error_code.insert_or_assign("guard_err", guard_err_fb_);
 
     if (err_pdo_1_ == 0) {

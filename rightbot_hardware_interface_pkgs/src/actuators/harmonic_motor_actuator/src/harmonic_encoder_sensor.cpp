@@ -290,14 +290,14 @@ void HarmonicEncoderSensor::readMotorData() {
             
             if(reading_loop_started) {
 
-                if((motor_name_ == "base_rotation_joint") && (sending_motor_request_internally)){
-                    motor_request();
+                // if((motor_name_ == "base_rotation_joint") && (sending_motor_request_internally)){
+                //     motor_request();
                     
-                }
-                if((motor_name_ == "elbow_rotation_joint") && (sending_motor_request_internally)){
-                    motor_request();
+                // }
+                // if((motor_name_ == "elbow_rotation_joint") && (sending_motor_request_internally)){
+                //     motor_request();
                     
-                }
+                // }
                 std::this_thread::sleep_for(std::chrono::microseconds(2000));
                 
                 int err = readData( &encoder_data_);

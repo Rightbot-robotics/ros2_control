@@ -263,4 +263,8 @@ void Actuator::homing_execution(double &homing_pos){
 
 }
 
+void Actuator::data_request(){
+  impl_->data_request();
+}
+
 }  // namespace hardware_interface

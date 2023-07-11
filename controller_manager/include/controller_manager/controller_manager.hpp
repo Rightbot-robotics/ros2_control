@@ -239,6 +239,15 @@ public:
   CONTROLLER_MANAGER_PUBLIC
   void camera_homing();
 
+  CONTROLLER_MANAGER_PUBLIC
+  std::thread read_thread_;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void read_data();
+
+  CONTROLLER_MANAGER_PUBLIC
+  bool read_data_start = false;
+
 
 protected:
   CONTROLLER_MANAGER_PUBLIC
