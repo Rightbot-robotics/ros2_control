@@ -1671,7 +1671,7 @@ bool ResourceManager::camera_align_service_handle(double &angle){
   RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera sending angle command [%f].", angle);
   camera_align(angle);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
   std::chrono::system_clock::time_point camera_align_start_time = std::chrono::system_clock::now();      
   auto time_passed_camera_align_started = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - camera_align_start_time);
