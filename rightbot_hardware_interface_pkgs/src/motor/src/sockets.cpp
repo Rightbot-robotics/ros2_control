@@ -12,6 +12,7 @@ Sockets::Sockets(int motor_id, std::string motor_name) {
     motor_vel_pdo_fd = -1;
     motor_enc_pdo_fd = -1;
     motor_system_status_pdo_fd = -1;
+    motor_vel_read_pdo_fd = -1;
 
     createSockets(motor_id);
     motor_can_id = motor_id;
@@ -55,6 +56,12 @@ bool Sockets::createSockets(int motor_id) {
     };
     motor_cfg_fd = socketcan_open("can1", cfg_filters, cfg_masks, 2);
 
+    uint32_t motor_vel_read_pdo_masks[1] = {COB_MASK};
+    uint32_t motor_vel_read_pdo_filters[1] = {
+            PDO_RX4_ID + motor_id
+    };
+    motor_vel_read_pdo_fd = socketcan_open("can1", motor_vel_read_pdo_filters, motor_vel_read_pdo_masks, 1);
+
     uint32_t nmt_cfg_masks[1] = {COB_MASK};
     uint32_t nmt_cfg_filters[1] = {
             NMT_TX + motor_id};
@@ -66,7 +73,7 @@ bool Sockets::createSockets(int motor_id) {
     motor_sync_fd = socketcan_open("can1", sync_filters, sync_masks, 1);
 
     if (motor_status_pdo_fd == -1 || motor_vel_pdo_fd == -1 || motor_enc_pdo_fd == -1 ||
-        motor_system_status_pdo_fd == -1
+        motor_system_status_pdo_fd == -1 || motor_vel_read_pdo_fd == -1
         || motor_cfg_fd == -1 || nmt_motor_cfg_fd == -1 || motor_sync_fd == -1) {
         return SOCKETS_ERROR;
     }
