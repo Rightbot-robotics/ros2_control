@@ -772,6 +772,15 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 	logger_->info("Reinitializing motor: {}", motor_name_);
     err |= initMotor();
    	err |= enableMotor();
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
+	set_profile_velocity(default_max_velocity_);
+    
+	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
+	set_profile_acc(default_acceleration_);
+	set_profile_deacc(default_acceleration_);
+
 	if(velocity_mode){
 		set_target_velocity(0.0);
         motorSetmode(Motor_mode_Velocity); 

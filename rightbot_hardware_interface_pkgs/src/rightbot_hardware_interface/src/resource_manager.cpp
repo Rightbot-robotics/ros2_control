@@ -1038,7 +1038,7 @@ return_type ResourceManager::set_component_state(
 void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
 
-  sync_request_mutex.lock();
+  // sync_request_mutex.lock();
   for (auto & component : resource_storage_->actuators_)
   {
     auto component_name = component.get_name();
@@ -1058,7 +1058,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
       
     }
   }
-  sync_request_mutex.unlock();
+  // sync_request_mutex.unlock();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   
