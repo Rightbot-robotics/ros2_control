@@ -772,6 +772,12 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 	logger_->info("Reinitializing motor: {}", motor_name_);
     err |= initMotor();
    	err |= enableMotor();
+	if(velocity_mode){
+		set_target_velocity(0.0);
+        motorSetmode(Motor_mode_Velocity); 
+		set_target_velocity(0.0);
+		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
+    }
 
     return err;
 }
