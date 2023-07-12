@@ -366,7 +366,7 @@ void HarmonicMotorActuator::fault_reset(){
 }
 
 void HarmonicMotorActuator::reinitialize_actuator(){
-    logger_->debug("[{}] - reset fault", motor_name_);
+    logger_->debug("[{}] - reinitialize actuator", motor_name_);
 	reinitializeMotor();
 }
 

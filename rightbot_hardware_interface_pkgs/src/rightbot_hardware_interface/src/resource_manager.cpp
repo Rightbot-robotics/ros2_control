@@ -1038,6 +1038,7 @@ return_type ResourceManager::set_component_state(
 void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
 
+  sync_request_mutex.lock();
   for (auto & component : resource_storage_->actuators_)
   {
     auto component_name = component.get_name();
@@ -1057,6 +1058,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
       
     }
   }
+  sync_request_mutex.unlock();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   
@@ -1344,9 +1346,11 @@ void ResourceManager::reinitialize_actuator(std::string component_name)
     if(current_component_ == component_name){
 
       RCUTILS_LOG_INFO_NAMED(
-      "resource_manager", "Component '%s' reset.", current_component_.c_str());
+      "resource_manager", "Component '%s' reinitialize.", current_component_.c_str());
 
+      sync_request_mutex.lock();
       component.reinitialize_actuator();
+      sync_request_mutex.unlock();
       component_available = true;
     }
   }
