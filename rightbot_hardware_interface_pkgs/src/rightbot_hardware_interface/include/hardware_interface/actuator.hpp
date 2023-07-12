@@ -96,6 +96,9 @@ public:
   void fault_reset();
 
   HARDWARE_INTERFACE_PUBLIC
+  void reinitialize_actuator();
+
+  HARDWARE_INTERFACE_PUBLIC
   void clear_can_buffer();
 
   HARDWARE_INTERFACE_PUBLIC

@@ -58,6 +58,7 @@ public:
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
     CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
     void fault_reset() override;
+    void reinitialize_actuator() override;
     void clear_can_buffer() override;
 
     void homing_execution(double &homing_pos) override;
@@ -88,6 +89,7 @@ private:
     int haltMotor(void);
     int resetFault(void) ;
     int quickStopMotor(void); 
+    int reinitializeMotor(void);
 
     int set_target_velocity(float vel);
 

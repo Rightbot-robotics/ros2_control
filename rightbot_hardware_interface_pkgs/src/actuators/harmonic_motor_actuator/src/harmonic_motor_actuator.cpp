@@ -365,6 +365,11 @@ void HarmonicMotorActuator::fault_reset(){
 	resetFault();
 }
 
+void HarmonicMotorActuator::reinitialize_actuator(){
+    logger_->debug("[{}] - reset fault", motor_name_);
+	reinitializeMotor();
+}
+
 void HarmonicMotorActuator::clear_can_buffer(){
 
 	encoder_sensor_->readToClearBuffer();
@@ -756,6 +761,19 @@ int HarmonicMotorActuator::resetFault(void) {
 	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 
 	return err;
+}
+
+int HarmonicMotorActuator::reinitializeMotor(void) {
+	int err = 0;
+
+    previous_mode = "not_set";
+	err |= disableMotor();
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	logger_->info("Reinitializing motor: {}", motor_name_);
+    err |= initMotor();
+   	err |= enableMotor();
+
+    return err;
 }
 
 int HarmonicMotorActuator::quickStopMotor(void) {

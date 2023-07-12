@@ -196,9 +196,10 @@ public:
   virtual void fault_reset() = 0;
 
   /// fault reset
-  /**
-   * \return name.
-   */
+
+  virtual void reinitialize_actuator() = 0;
+
+  /// actuator reinitialization
 
   virtual void clear_can_buffer() = 0;
 

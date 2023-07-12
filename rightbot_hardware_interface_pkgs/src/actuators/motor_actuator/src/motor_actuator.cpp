@@ -569,6 +569,10 @@ void MotorActuator::fault_reset(){
 	motor_->motor_reset(motor_id_);
 }
 
+void MotorActuator::reinitialize_actuator(){
+    logger_->warn("[{}] - Reinitialise motor is not implemented yet", motor_name_);
+}
+
 void MotorActuator::clear_can_buffer(){
 
     encoder_sensor->readToClearBuffer();

@@ -1334,6 +1334,31 @@ void ResourceManager::reset_component(std::string component_name)
 
 }
 
+void ResourceManager::reinitialize_actuator(std::string component_name)
+{
+  bool component_available = false;
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    if(current_component_ == component_name){
+
+      RCUTILS_LOG_INFO_NAMED(
+      "resource_manager", "Component '%s' reset.", current_component_.c_str());
+
+      component.reinitialize_actuator();
+      component_available = true;
+    }
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[reset component] Component '%s' not available ", component_name.c_str());
+
+  }
+
+}
+
 void ResourceManager::driver_one_gpio_control(bool pump_one, bool gripper_one)
 {
   bool component_available = false;

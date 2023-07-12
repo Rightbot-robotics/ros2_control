@@ -2075,6 +2075,10 @@ void ControllerManager::handle_service(
     RCLCPP_INFO(get_logger(), "Function name '%s'", request->function_name.c_str());
     resource_manager_->reset_component(request->motor_name);
   }
+  else if(request->function_name == "REINITIALIZE_ACTUATOR"){
+    RCLCPP_INFO(get_logger(), "Function name '%s'", request->function_name.c_str());
+    resource_manager_->reinitialize_actuator(request->motor_name);
+  }
   else {
     RCLCPP_INFO(get_logger(), "Function name '%s' not recognized", request->function_name.c_str());
   }

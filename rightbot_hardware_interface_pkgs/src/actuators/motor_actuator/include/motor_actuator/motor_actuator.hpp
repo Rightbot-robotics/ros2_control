@@ -58,6 +58,8 @@ public:
 
     void fault_reset() override;
 
+    void reinitialize_actuator() override;
+
     void clear_can_buffer() override;
 
     void homing_execution(double &homing_pos) override;
