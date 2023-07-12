@@ -1618,8 +1618,8 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
       // monitoring node guarding
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_NODE_GUARD_ERROR){
         node_guard_error = static_cast<int>(state_interface.get_value());
-
-        if(node_guard_error == 0){
+        logger_->debug("[node_guarding][{}] response [{}]", component_name, node_guard_error);
+        if((node_guard_error == 0) && (!actuator_connection_break_status_[component_name]) ){
           auto time_passed_response_received_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
           // logger_->debug("[{}] - Received response ",x.first);
           
@@ -1635,7 +1635,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
 
         auto time_passed_response_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
         
-        if((time_passed_response_.count()>connection_break_interval) && error_monitoring_started[component_name]){
+        if((time_passed_response_.count()>connection_break_interval) && error_monitoring_started[component_name] && (!actuator_connection_break_status_[component_name])){
           logger_->error("[{}] - Connection break ", component_name);
           logger_->info("[{}] - Interval between responses > {} us: {} milliseconds", component_name, connection_break_interval, time_passed_response_.count());
           actuator_connection_break_status_[component_name] = true;
@@ -1659,12 +1659,14 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         error_type = get_harmonic_driver_error(error_register);
       }
 
-      if((error_register != 0.0) && (actuator_connection_break_status_[component_name] == true)){
+      if((error_register != 0.0) && (actuator_connection_break_status_[component_name] == true) && (!publish_error)){
         error_type = error_type + " Connection break ";
         error_status = error_status && true;
-      } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true)) {
+        publish_error = true;
+      } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true) && (!publish_error)) {
         error_type = "Connection break";
         error_register = 1;
+        publish_error = true;
       } else {
       }
     }

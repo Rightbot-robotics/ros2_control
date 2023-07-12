@@ -189,6 +189,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
     auto err_pdo_3_ = motor_vel_read(motor_id_, vel_fb_, 1);
     
     guard_err_fb_ = err_pdo_2_;
+    logger_->debug("[{}] guard_err [{}]", motor_name_, guard_err_fb_);
 
     if (0 == err_pdo_1_) {
 
