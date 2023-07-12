@@ -12,7 +12,7 @@
 class MotorFeedback {
 
 private:
-    std::string motor_name;
+    std::string motor_name_;
     int motor_id;
     std::shared_ptr<spdlog::logger> logger_;
 
