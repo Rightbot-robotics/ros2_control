@@ -39,7 +39,7 @@ int MotorControls::set_vel_speed(uint16_t nodeid, int axis, float vel) {
             {2, Switch_On_And_Enable_Operation},
             {4, rpm}};
 
-    err = PDO_send(motor_sockets->motor_vel_pdo_fd, PDO_RX4_ID + nodeid, 2, target_vel);
+    err = PDO_send(motor_sockets->motor_vel_read_pdo_fd, PDO_RX4_ID + nodeid, 2, target_vel);
     return err;
 }
 
