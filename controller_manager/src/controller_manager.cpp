@@ -2150,7 +2150,7 @@ void ControllerManager::error_monitoring(){
     }
 
     auto time_passed_since_last_error_published = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - publish_time);
-    if(time_passed_since_last_error_published.count()> 1000){
+    if(time_passed_since_last_error_published.count()> 200){
       error_publisher->publish(message);
       publish_time = std::chrono::system_clock::now();
 
