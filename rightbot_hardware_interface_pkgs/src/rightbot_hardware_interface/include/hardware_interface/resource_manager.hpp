@@ -416,7 +416,6 @@ public:
   // bool error_monitoring_started = false;
   std::unordered_map <std::string, bool> error_monitoring_started;
   bool error_status = false;
-  bool publish_error = false;
 
   float previous_base_rotation_angle = 0.0f;
 

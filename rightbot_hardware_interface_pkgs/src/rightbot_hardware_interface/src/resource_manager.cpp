@@ -1659,16 +1659,19 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         error_type = get_harmonic_driver_error(error_register);
       }
 
-      if((error_register != 0.0) && (actuator_connection_break_status_[component_name] == true) && (!publish_error)){
-        error_type = error_type + " Connection break ";
-        error_status = error_status && true;
-        publish_error = true;
-      } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true) && (!publish_error)) {
-        error_type = "Connection break";
-        error_register = 1;
-        publish_error = true;
-      } else {
-      }
+    }
+
+    if((error_register != 0.0) && (actuator_connection_break_status_[component_name] == true)){
+      error_type = error_type + " Connection break ";
+      error_status = error_status && true;
+      // logger_->error("[{}] - test log [{}] ", component_name, error_type);
+
+    } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true)) {
+      error_type = " Connection break ";
+      error_register = 1;
+      // logger_->error("[{}] - test log [{}] ", component_name, error_type);
+      
+    } else {
     }
 
     error_data_->component_name.push_back(component_name);
