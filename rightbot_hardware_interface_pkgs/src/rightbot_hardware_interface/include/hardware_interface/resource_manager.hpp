@@ -393,7 +393,7 @@ public:
 
   void clear_can_buffer();
 
-  void get_error_data(ComponentErrorData *error_data_);
+  void get_error_data(ComponentErrorData *error_data_, bool *system_error_status);
 
   std::string get_zlac_driver_error(int error);
 
@@ -408,6 +408,16 @@ public:
 
   std::chrono::time_point<std::chrono::system_clock> homing_start_time = std::chrono::system_clock::now();
   bool command_homing_sent = false;
+
+  
+  std::unordered_map <std::string, std::chrono::system_clock::time_point> actuator_response_time_;
+  std::unordered_map <std::string, bool> actuator_connection_break_status_;
+  int logging_interval = 70; //milliseconds
+  int connection_break_interval = 200; //milliseconds
+  // bool error_monitoring_started = false;
+  std::unordered_map <std::string, bool> error_monitoring_started;
+  bool error_status = false;
+  bool publish_error = false;
 
   float previous_base_rotation_angle = 0.0f;
 

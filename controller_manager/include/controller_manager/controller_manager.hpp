@@ -234,7 +234,7 @@ public:
     } error_;
 
   CONTROLLER_MANAGER_PUBLIC
-  void publish_error();
+  void error_monitoring();
 
   CONTROLLER_MANAGER_PUBLIC
   void camera_homing();

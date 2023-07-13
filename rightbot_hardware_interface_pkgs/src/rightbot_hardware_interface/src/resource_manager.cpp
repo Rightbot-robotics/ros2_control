@@ -1323,6 +1323,9 @@ void ResourceManager::reset_component(std::string component_name)
 
       component.fault_reset();
       component_available = true;
+
+      error_status = false; // reset error status
+      error_monitoring_started[component_name] = false;
     }
   }
 
@@ -1614,7 +1617,7 @@ std::string ResourceManager::get_harmonic_driver_error(int error){
   
 }
 
-void ResourceManager::get_error_data(ComponentErrorData *error_data_){
+void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *system_error_status){
 
   int components_number = resource_storage_->actuators_.size();
 
@@ -1630,23 +1633,66 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_){
     int error_register;
     std::string error_type = "error";
 
+    int node_guard_error;
+
     component_name = component.get_name();
     auto state_interfaces = component.export_state_interfaces();
 
     for (auto & state_interface : state_interfaces){
 
+      // monitoring node guarding
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_NODE_GUARD_ERROR){
+        node_guard_error = static_cast<int>(state_interface.get_value());
+        logger_->debug("[node_guarding][{}] response [{}]", component_name, node_guard_error);
+        if((node_guard_error == 0) && (!actuator_connection_break_status_[component_name]) ){
+          auto time_passed_response_received_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
+          // logger_->debug("[{}] - Received response ",x.first);
+          
+          if ((time_passed_response_received_.count() > logging_interval) && error_monitoring_started[component_name]){
+
+              logger_->debug("[{}] - Interval between responses > {} us: {} milliseconds", component_name, logging_interval, time_passed_response_received_.count());
+              
+          }
+          actuator_response_time_[component_name] = std::chrono::system_clock::now();
+          error_monitoring_started[component_name] = true;
+        }
+        
+
+        auto time_passed_response_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - actuator_response_time_[component_name]);
+        
+        if((time_passed_response_.count()>connection_break_interval) && error_monitoring_started[component_name] && (!actuator_connection_break_status_[component_name])){
+          logger_->error("[{}] - Connection break ", component_name);
+          logger_->info("[{}] - Interval between responses > {} us: {} milliseconds", component_name, connection_break_interval, time_passed_response_.count());
+          actuator_connection_break_status_[component_name] = true;
+          
+          error_status = error_status && true;
+        }
+      }
+      
+      // monitoring fault
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_STATUS){
-        status = state_interface.get_value();
+        status = static_cast<int>(state_interface.get_value());
       }
 
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_LATCHED_FAULT){
-        error_register = state_interface.get_value();
+        error_register = static_cast<int>(state_interface.get_value());
         error_type = get_zlac_driver_error(error_register);
       }
 
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_ERROR_CODE){
-        error_register = state_interface.get_value();
+        error_register = static_cast<int>(state_interface.get_value());
         error_type = get_harmonic_driver_error(error_register);
+      }
+
+      if((error_register != 0.0) && (actuator_connection_break_status_[component_name] == true) && (!publish_error)){
+        error_type = error_type + " Connection break ";
+        error_status = error_status && true;
+        publish_error = true;
+      } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true) && (!publish_error)) {
+        error_type = "Connection break";
+        error_register = 1;
+        publish_error = true;
+      } else {
       }
     }
 
@@ -1654,6 +1700,8 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_){
     error_data_->status.push_back(status);
     error_data_->error_register.push_back(error_register);
     error_data_->error_type.push_back(error_type);
+
+    *system_error_status = error_status;
 
   }
 

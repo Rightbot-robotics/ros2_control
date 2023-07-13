@@ -285,7 +285,7 @@ void ControllerManager::init_services()
   error_publisher = 
     create_publisher<rightbot_interfaces::msg::RosControlError>("arm_error_topic", 10);
 
-  error_.thread = std::thread(&ControllerManager::publish_error, this);
+  error_.thread = std::thread(&ControllerManager::error_monitoring, this);
 
   camera_align_server =
     create_service<rightbot_interfaces::srv::CameraAlign>("camera_align", std::bind(
@@ -2123,15 +2123,19 @@ void ControllerManager::camera_align_service(
 
 }
 
-void ControllerManager::publish_error(){
+void ControllerManager::error_monitoring(){
 
   hardware_interface::ComponentErrorData error_data_;
 
+  bool system_error = false;
+
+  auto publish_time = std::chrono::system_clock::now();
+
   while(true){
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-    resource_manager_->get_error_data(&error_data_);
+    resource_manager_->get_error_data(&error_data_, &system_error);
 
     int components_number = error_data_.component_name.size();
 
@@ -2145,10 +2149,17 @@ void ControllerManager::publish_error(){
       message.error_type = error_data_.error_type;
     }
 
-    error_publisher->publish(message);
+    auto time_passed_since_last_error_published = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - publish_time);
+    if(time_passed_since_last_error_published.count()> 1000){
+      error_publisher->publish(message);
+      publish_time = std::chrono::system_clock::now();
 
+    }
+
+    if(system_error){
+      //send stopping command to all actuators
+    }
   }
-
 }
 
 void ControllerManager::camera_homing(){
