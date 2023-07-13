@@ -1335,6 +1335,26 @@ void ResourceManager::reset_component(std::string component_name)
 
   }
 
+  if(actuator_connection_break_status_[component_name] == true){
+    logger_->debug("Actuator [{}] connection break status true. Resetting.", component_name);
+
+    if(component_name == "Hardware_TruckUnloading_elbow_rotation_joint"){
+      logger_->debug("Actuator [{}] Reset requries reinit. Sending reinint.", component_name);
+      reinitialize_actuator(component_name);
+
+      error_monitoring_started[component_name] = false;
+      actuator_connection_break_status_[component_name] = false;
+      
+    }else {
+
+      error_monitoring_started[component_name] = false;
+      actuator_connection_break_status_[component_name] = false;
+
+    }
+  }
+  
+  error_status = false;
+
 }
 
 void ResourceManager::reinitialize_actuator(std::string component_name)
