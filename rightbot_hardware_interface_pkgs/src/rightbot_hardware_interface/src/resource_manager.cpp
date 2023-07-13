@@ -1342,17 +1342,20 @@ void ResourceManager::reset_component(std::string component_name)
       logger_->info("[reset component] Actuator [{}] Reset requries reinit. Sending reinint.", component_name);
       reinitialize_actuator(component_name);
 
+      logger_->info("[reset component] Actuator [{}] Reset connection", component_name);
+
       error_monitoring_started[component_name] = false;
       actuator_connection_break_status_[component_name] = false;
       
     }else {
+      logger_->info("[reset component] Actuator [{}] Reset connection", component_name);
 
       error_monitoring_started[component_name] = false;
       actuator_connection_break_status_[component_name] = false;
 
     }
   } else {
-    logger_->debug("[reset component] Actuator [{}] not in connection break", component_name);
+    logger_->info("[reset component] Actuator [{}] not in connection break", component_name);
 
   }
   
