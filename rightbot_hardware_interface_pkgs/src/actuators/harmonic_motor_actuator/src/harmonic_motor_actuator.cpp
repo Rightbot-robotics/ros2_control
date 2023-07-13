@@ -767,7 +767,7 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 	int err = 0;
 
     previous_mode = "not_set";
-	err |= disableMotor();
+	err |= motorControlword(motor_id_, Disable_Voltage);
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	logger_->info("Reinitializing motor: {}", motor_name_);
     err |= initMotor();

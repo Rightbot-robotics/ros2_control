@@ -422,7 +422,6 @@ private:
   mutable std::recursive_mutex claimed_command_interfaces_lock_;
   std::unique_ptr<ResourceStorage> resource_storage_;
   std::shared_ptr<spdlog::logger> logger_;
-  std::mutex sync_request_mutex;
 };
 
 }  // namespace hardware_interface
