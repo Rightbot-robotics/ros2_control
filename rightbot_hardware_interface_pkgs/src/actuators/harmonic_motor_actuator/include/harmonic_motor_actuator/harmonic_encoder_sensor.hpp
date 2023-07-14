@@ -98,6 +98,13 @@ public:
     void readToClearBuffer();
     bool sending_motor_request_internally = false;
 
+    uint16_t status_register_fb_[1]= {0};
+    uint16_t err_code_fb_[1] = {0};
+    float actual_motor_current_fb_[1] = {0};
+    int32_t encoder_fb_[1]= {0};
+    double vel_fb_[1]= {0};
+    int guard_err_fb_ = -1;
+
 };
 
 #endif // HARMONIC_ENCODER_SENSOR_H_

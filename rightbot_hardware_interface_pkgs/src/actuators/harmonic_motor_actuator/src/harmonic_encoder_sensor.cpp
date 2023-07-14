@@ -176,14 +176,6 @@ int HarmonicEncoderSensor::node_guarding_response_read(uint16_t *response, int t
 
 int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
-    uint16_t status_register_fb_[1]= {0};
-    uint16_t err_code_fb_[1] = {0};
-    float actual_motor_current_fb_[1] = {0};
-    int32_t encoder_fb_[1]= {0};
-    double vel_fb_[1]= {0};
-    int guard_err_fb_= -1;
-
-
     auto err_pdo_1_ = motor_status_n_voltage_read(motor_id_, status_register_fb_, err_code_fb_, actual_motor_current_fb_, 1);
     auto err_pdo_2_ = motor_enc_read(motor_id_, encoder_fb_, 1);
     auto err_pdo_3_ = motor_vel_read(motor_id_, vel_fb_, 1);
