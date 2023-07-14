@@ -197,7 +197,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
     if (0 == err_pdo_2_) {
         encoder_data->pos_m = encoder_fb_[0];
-        // logger_->debug("Encoder_position: [{}]", encoder_fb_[0]);
+        logger_->debug("TEST [{}] Encoder_position: [{}]",motor_name_, encoder_fb_[0]);
         encoder_data->read_status_encoder = true;
         // logger_->debug("[{}] - enc read success",motor_name_);
     }
@@ -207,7 +207,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
     if (0 == err_pdo_3_) {
         encoder_data->vel_m = vel_fb_[0];
-        // logger_->debug("Encoder_Velocity: [{}]", vel_fb_[0]);
+        logger_->debug("TEST [{}] Encoder_Velocity: [{}]", motor_name_, vel_fb_[0]);
         encoder_data->read_status_velocity = true;
         // logger_->debug("[{}] - vel read success",motor_name_);
     }else {
@@ -351,9 +351,9 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["read_status_encoder"] = encoder_data_q_element.read_status_encoder;
         sensor_data["read_status_velocity"] = encoder_data_q_element.read_status_velocity;
         
-        // logger_->debug("[{}] Status: [{}], Error Code: [{}]", motor_sockets_->motor_name_, encoder_data_q_element.status_m, encoder_data_q_element.err_code_m);
-        // logger_->debug("[{}] Position: {} counts, Velocity: {} rpm", motor_sockets_->motor_name_, encoder_data_q_element.pos_m, encoder_data_q_element.vel_m);
-        // logger_->debug("[{}] Guard Err: {}", motor_sockets_->motor_name_, encoder_data_q_element.guard_err_m);
+        logger_->debug("[{}] Status: [{}], Error Code: [{}]", motor_sockets_->motor_name_, encoder_data_q_element.status_m, encoder_data_q_element.err_code_m);
+        logger_->debug("[{}] Position: {} counts, Velocity: {} rpm", motor_sockets_->motor_name_, encoder_data_q_element.pos_m, encoder_data_q_element.vel_m);
+        logger_->debug("[{}] Guard Err: {}", motor_sockets_->motor_name_, encoder_data_q_element.guard_err_m);
 
     } else {
         sensor_data["read_status"] = false;
