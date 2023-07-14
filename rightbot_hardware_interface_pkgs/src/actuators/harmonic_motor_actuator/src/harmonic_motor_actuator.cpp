@@ -404,6 +404,8 @@ bool HarmonicMotorActuator::Homing(){
 
     set_relative_position(0);
 
+	std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
     while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
 
         requestData();
