@@ -293,7 +293,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 	if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
         || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
         
-        if(abs(max_velocity_command_) < (velocity_epsilon)){
+        if(abs(max_velocity_command_) < (10e-3)){
             max_velocity_command_ = 0.0;
         }
 		
