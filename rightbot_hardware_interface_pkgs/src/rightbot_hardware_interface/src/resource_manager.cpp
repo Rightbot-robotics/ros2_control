@@ -1803,6 +1803,13 @@ bool ResourceManager::camera_align_service_handle(double &angle){
  
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] waiting for camera alignment");
+
+    if(camera_joint_status_interface == nullptr){
+      RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] null value.");
+      alignment_done = true;
+      break;
+    }
+
     status = camera_joint_status_interface->get_value();
 
     RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] status value '%f'",status);
