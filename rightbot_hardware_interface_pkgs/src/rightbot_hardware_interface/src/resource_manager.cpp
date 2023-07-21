@@ -1058,7 +1058,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     }
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
   
   for (auto & component : resource_storage_->actuators_)
   {
@@ -1797,11 +1797,13 @@ bool ResourceManager::camera_align_service_handle(double &angle){
       }
     }
   }
-
+  
+  double status=0.0;
   while((time_passed_camera_align_started.count()<5000) && (alignment_done == false)){
-
+ 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    double status = camera_joint_status_interface->get_value();
+    RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] waiting for camera alignment");
+    status = camera_joint_status_interface->get_value();
 
     RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] status value '%f'",status);
 
@@ -1809,7 +1811,8 @@ bool ResourceManager::camera_align_service_handle(double &angle){
 
     int in_motion_bit = ((status_value & (1 << 14)) >> 14);
     int target_reach_bit = ((status_value & (1 << 10)) >> 10);
-
+     
+    RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] in_motion_bit '%d' target_reach_bit '%d'", in_motion_bit, target_reach_bit);
     if(!in_motion_bit && target_reach_bit){
       alignment_done = true;
       RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera align done.");
