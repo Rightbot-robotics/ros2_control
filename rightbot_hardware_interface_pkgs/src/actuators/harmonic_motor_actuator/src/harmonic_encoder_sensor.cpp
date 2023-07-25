@@ -96,19 +96,21 @@ int HarmonicEncoderSensor::motor_enc_read(int motor_id, int32_t *pos, int timeou
 
     if (f.id == (PDO_TX3_ID + motor_id)) {
         //ENCODER COUNT
-        enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
-              ((uint32_t) f.data[3] << 24);
+        enc = ( f.data[0] << 0) | ( f.data[1] << 8) | ( f.data[2] << 16) |
+              ( f.data[3] << 24);
         //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
         // logger_->debug("Harmonic motor counts init: [{}]", enc);
         position_demand_value =  ((uint32_t) f.data[4] << 0) | ((uint32_t) f.data[5] << 8) | ((uint32_t) f.data[6] << 16) |
               ((uint32_t) f.data[7] << 24);
         
-        if (init_enc) {
-            *pos = enc - err_enc;
-        } else {
-            err_enc = enc;
-            init_enc = true;
-        }
+        // if (init_enc) {
+        //     *pos = enc - err_enc;
+        // } else {
+        //     err_enc = enc;
+        //     init_enc = true;
+        // }
+
+        *pos = (int32_t)enc;
 
         if(prev_position_demand_value != position_demand_value){
             // logger_->info("[{}] new position demand value {}, current_count {}",motor_name_ , position_demand_value, *pos);
