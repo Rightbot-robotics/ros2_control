@@ -1377,12 +1377,19 @@ void ResourceManager::reinitialize_actuator(std::string component_name)
 
       component.reinitialize_actuator();
       component_available = true;
+
+      logger_->info("[reinitialize actuator] Actuator [{}] Reset connection", component_name);
+
+      error_monitoring_started[component_name] = false;
+      actuator_connection_break_status_[component_name] = false;
+
+      error_status = false;
     }
   }
 
   if(!component_available){
     RCUTILS_LOG_INFO_NAMED(
-    "resource_manager", "[reset component] Component '%s' not available ", component_name.c_str());
+    "resource_manager", "[reinitialize actuator] Component '%s' not available ", component_name.c_str());
 
   }
 
