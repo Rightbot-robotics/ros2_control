@@ -549,12 +549,23 @@ int HarmonicMotorActuator::motorConfigNode(int motor_id){
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_err);
 
     // PDO TX2 velocity
-    num_PDOs = 1;
-    Epos_pdo_mapping vel[] = {
-            {0x606C, 0x00, 32} // Speed feedback
-    };
-    err |= motor_Transmit_PDO_n_Mapping(motor_id, 2, num_PDOs, vel);
+	if(motor_id_ ==21){
+		num_PDOs = 1;
+		Epos_pdo_mapping vel[] = {
+				{0x606C, 0x00, 32} // Speed feedback
+		};
+		err |= motor_Transmit_PDO_n_Mapping(motor_id, 2, num_PDOs, vel);
 
+	} else {
+		num_PDOs = 2;
+		Epos_pdo_mapping vel[] = {
+				{0x606C, 0x00, 32}, // Speed feedback
+				{0x6079, 0x00, 32}	// High Voltage Reference
+		};
+		err |= motor_Transmit_PDO_n_Mapping(motor_id, 2, num_PDOs, vel);
+
+	}
+	
     // PDO TX3 Encoder Counts
     num_PDOs = 2;
     Epos_pdo_mapping enc[] = {

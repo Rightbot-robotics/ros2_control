@@ -129,6 +129,7 @@ int HarmonicEncoderSensor::motor_vel_read(int motor_id, double *vel, int timeout
     int32_t rpm;
     int32_t register_cps;
     double cps;
+    double voltage;
 
     err = PDO_read(motor_sockets_->motor_vel_pdo_fd, &f, timeout);
 
@@ -142,6 +143,14 @@ int HarmonicEncoderSensor::motor_vel_read(int motor_id, double *vel, int timeout
         register_cps = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
                        ((uint32_t) f.data[3] << 24);
         cps = register_cps;
+
+        if(motor_id_ != 21){
+            voltage =   ((uint32_t) f.data[4] << 0) | ((uint32_t) f.data[5] << 8) | ((uint32_t) f.data[6] << 16) |
+                    ((uint32_t) f.data[7] << 24);
+            voltage = voltage/1000.00 ; // mV to V
+            logger_->debug("[{}] battery_voltage: [{}]", motor_name_, voltage);
+        }
+        
         *vel = (double) motor_cps_to_rpm(cps);
     }
 
