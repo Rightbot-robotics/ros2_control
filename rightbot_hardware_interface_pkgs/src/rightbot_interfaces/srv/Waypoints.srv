@@ -1,6 +1,0 @@
-bool get_waypoints_list
-bool reset_waypoints_list
----
-float32[] x_coords
-float32[] y_coords
-float32[] angles
