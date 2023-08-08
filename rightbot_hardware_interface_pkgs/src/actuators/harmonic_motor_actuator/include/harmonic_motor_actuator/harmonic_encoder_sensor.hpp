@@ -6,7 +6,7 @@
 #include <mutex>
 #include <json_reader/json_read.h>
 #include <sensor/sensor.hpp>
-#include "harmonic_motor_actuator/harmonic_motor_actuator_sockets.hpp"
+#include <harmonic_motor_actuator/harmonic_motor_actuator_sockets.hpp>
 #include <deque>
 #include <condition_variable>
 

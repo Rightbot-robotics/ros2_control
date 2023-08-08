@@ -5,11 +5,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-include_directories(
-        include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../json_reader/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../spdlog/include
-)
 
 install(DIRECTORY include/
         DESTINATION include/
@@ -24,6 +19,13 @@ find_package(socketcan_pkg REQUIRED)
 find_package(pluginlib)
 find_package(rightbot_hardware_interface)
 find_package(sensor)
+
+include_directories(
+        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../json_reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../spdlog/include
+
+)
 
 add_library(${PROJECT_NAME} SHARED
         src/absolute_encoder.cpp

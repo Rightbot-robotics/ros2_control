@@ -17,7 +17,7 @@
 #include "harmonic_motor_actuator/harmonic_motor_actuator_sockets.hpp"
 #include <harmonic_motor_actuator/harmonic_encoder_sensor.hpp>
 
-#include "hardware_interface/actuator_interface.hpp"
+#include <hardware_interface/actuator_interface.hpp>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"

@@ -17,7 +17,7 @@
 #include <canopen_pkg/PDO.h>
 #include <canopen_pkg/SDO.h>
 
-#include "harmonic_motor_actuator/harmonic_motor_actuator_params.hpp"
+#include <harmonic_motor_actuator/harmonic_motor_actuator_params.hpp>
 
 class HarmonicMotorActuatorSockets {
 
