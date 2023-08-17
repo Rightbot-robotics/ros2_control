@@ -39,6 +39,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
+    zero_point_count_ = stod(info.joints[0].parameters.at("zero_point_count"));
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
@@ -227,7 +228,8 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
-    position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/motor_ppr_);// axis multiplication for read
+	int offset_count = sensor_data["counts"].asInt() - zero_point_count_;
+    position_state_ = axis_*((offset_count*3.14*2)/motor_ppr_);// axis multiplication for read
     velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
@@ -549,7 +551,7 @@ int HarmonicMotorActuator::motorConfigNode(int motor_id){
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_err);
 
     // PDO TX2 velocity
-	if(motor_id_ ==21){
+	if(motor_id_ ==21  || motor_id_ == 17){
 		num_PDOs = 1;
 		Epos_pdo_mapping vel[] = {
 				{0x606C, 0x00, 32} // Speed feedback
@@ -892,17 +894,17 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)pos*axis_;
+	d.data.data = (int32_t)(pos*axis_ + zero_point_count_);
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 
-	if(motor_name_ != "rotation2_joint"){
+	if((motor_name_ != "rotation2_joint") || (motor_id_ != 17)){
 
 		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
 		std::this_thread::sleep_for(std::chrono::microseconds(500));
 		err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
 
 	}
-	else if ((motor_name_ == "rotation2_joint") && (trigger_once == false)){
+	else if (((motor_name_ == "rotation2_joint") || (motor_id_ == 17)) && (trigger_once == false)){
 
 		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
 		// std::this_thread::sleep_for(std::chrono::microseconds(500));
