@@ -39,7 +39,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
-    zero_point_count_ = stod(info.joints[0].parameters.at("zero_point_count"));
+    zero_point_count_ = stoi(info.joints[0].parameters.at("zero_point_count"));
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
