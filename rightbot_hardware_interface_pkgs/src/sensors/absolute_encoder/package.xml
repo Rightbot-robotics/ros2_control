@@ -12,6 +12,7 @@
   <depend>sensor</depend>
   <depend>socketcan_pkg</depend>
   <depend>canopen_pkg</depend>
+  <depend>rightbot_hardware_interface</depend>
 
   <depend>pluginlib</depend>
 

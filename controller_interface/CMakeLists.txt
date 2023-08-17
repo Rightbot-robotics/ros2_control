@@ -6,7 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(hardware_interface REQUIRED)
+find_package(rightbot_hardware_interface REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 
 add_library(
@@ -23,7 +23,7 @@ target_include_directories(
 )
 ament_target_dependencies(
   ${PROJECT_NAME}
-  hardware_interface
+  rightbot_hardware_interface
   rclcpp_lifecycle
 )
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -42,7 +42,7 @@ install(TARGETS ${PROJECT_NAME}
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
 
-  find_package(hardware_interface REQUIRED)
+  find_package(rightbot_hardware_interface REQUIRED)
   find_package(sensor_msgs REQUIRED)
 
   ament_add_gmock(test_controller_interface test/test_controller_interface.cpp)
@@ -56,7 +56,7 @@ if(BUILD_TESTING)
   ament_add_gmock(test_chainable_controller_interface test/test_chainable_controller_interface.cpp)
   target_link_libraries(test_chainable_controller_interface ${PROJECT_NAME})
   target_include_directories(test_chainable_controller_interface PRIVATE include)
-  ament_target_dependencies(test_chainable_controller_interface hardware_interface)
+  ament_target_dependencies(test_chainable_controller_interface rightbot_hardware_interface)
 
   ament_add_gmock(
     test_semantic_component_interface
@@ -65,7 +65,7 @@ if(BUILD_TESTING)
   target_include_directories(test_semantic_component_interface PRIVATE include)
   ament_target_dependencies(
     test_semantic_component_interface
-    hardware_interface
+    rightbot_hardware_interface
   )
 
   ament_add_gmock(
@@ -75,7 +75,7 @@ if(BUILD_TESTING)
   target_include_directories(test_force_torque_sensor PRIVATE include)
   ament_target_dependencies(
     test_force_torque_sensor
-    hardware_interface
+    rightbot_hardware_interface
   )
 
   ament_add_gmock(
@@ -85,13 +85,13 @@ if(BUILD_TESTING)
   target_include_directories(test_imu_sensor PRIVATE include)
   ament_target_dependencies(
     test_imu_sensor
-    hardware_interface
+    rightbot_hardware_interface
     sensor_msgs
   )
 endif()
 
 ament_export_dependencies(
-  hardware_interface
+  rightbot_hardware_interface
   rclcpp_lifecycle
   sensor_msgs
 )

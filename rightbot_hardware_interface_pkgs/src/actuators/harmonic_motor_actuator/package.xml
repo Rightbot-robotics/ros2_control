@@ -11,8 +11,10 @@
 
     <depend>actuator</depend>
     <depend>socketcan_pkg</depend>
+    <depend>rightbot_hardware_interface</depend>
     <depend>canopen_pkg</depend>
     <depend>rclcpp</depend>
+    <depend>sensor</depend>
 
     <depend>pluginlib</depend>
 
