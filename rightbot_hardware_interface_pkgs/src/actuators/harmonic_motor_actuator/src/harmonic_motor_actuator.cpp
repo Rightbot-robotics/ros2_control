@@ -228,8 +228,8 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 
-	int offset_count = (axis_ * sensor_data["counts"].asInt()) - zero_point_count_;
-    position_state_ = ((offset_count*3.14*2)/motor_ppr_);// axis multiplication for read
+	int offset_count = sensor_data["counts"].asInt() - zero_point_count_;
+    position_state_ = axis_*((offset_count*3.14*2)/motor_ppr_);// axis multiplication for read
     velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
