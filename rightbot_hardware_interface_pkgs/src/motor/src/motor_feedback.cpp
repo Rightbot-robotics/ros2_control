@@ -66,8 +66,9 @@ int MotorFeedback::motor_status_n_voltage_n_input_states_read(int motor_id, uint
 
         *input_states = (f.data[4] << 0) | (f.data[5] << 8);
 
-        actual_motor_current_register_value = (f.data[6] << 0) | (f.data[7] << 8);
-        *actual_motor_current = 0.01 * static_cast<float>(actual_motor_current_register_value);
+
+        int16_t motor_current_int = ((f.data[4] << 0) | (f.data[5] << 8));
+        *actual_motor_current = ((float)motor_current_int) * 0.01;
     }
 
     return err;
