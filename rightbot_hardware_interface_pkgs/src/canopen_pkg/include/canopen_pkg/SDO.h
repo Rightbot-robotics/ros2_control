@@ -29,6 +29,8 @@ typedef struct {
  **/
 int SDO_write(int fd, const SDO_data *d);
 
+int SDO_read(int fd, SDO_data *d, SDO_data *resp);
+
 
 /**
  * Sends an SDO acknowledgement package in return to frame f
@@ -37,5 +39,7 @@ int SDO_write(int fd, const SDO_data *d);
 int SDO_acknowledge(int fd, const my_can_frame *f);
 
 uint8_t SDO_calculate_ccd(char rw, int size);
+
+uint32_t SDO_calculate_size(uint8_t cdd);
 
 #endif
