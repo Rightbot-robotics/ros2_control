@@ -16,6 +16,8 @@ uint8_t SDO_calculate_ccd(char rw, int size) {
     }
 
     switch (size) {
+        case 0:
+            return base;
         case 1:
             return base + 0x0F;
         case 2:
