@@ -419,6 +419,8 @@ public:
   bool error_status = false;
 
   float previous_base_rotation_angle = 0.0f;
+  float command_angle = 0.0f;
+  float previous_command_angle = 0.0f;
 
   void auto_alignment(bool status, std::string camera_name);
   bool auto_alignment_status = false;

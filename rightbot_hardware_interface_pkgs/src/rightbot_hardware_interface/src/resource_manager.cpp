@@ -1077,8 +1077,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
   float angle_diff = 0.0f;
   static int count = 1;
 
-  float command_angle = 0.0f;
-  float previous_command_angle = 0.0f;
   if((!camera_homing_status) && (!command_homing_sent)){
     double angle = 0.0;
     bool component_available = false;
