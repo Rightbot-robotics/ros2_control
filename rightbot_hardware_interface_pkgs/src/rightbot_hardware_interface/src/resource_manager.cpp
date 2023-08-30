@@ -1076,6 +1076,9 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
   float camera_angle = 0.0f, base_rotation_angle = 0.0f;
   float angle_diff = 0.0f;
   static int count = 1;
+
+  float command_angle = 0.0f;
+  float previous_command_angle = 0.0f;
   if((!camera_homing_status) && (!command_homing_sent)){
     double angle = 0.0;
     bool component_available = false;
@@ -1124,7 +1127,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
       camera_homing_status = true;
       RCUTILS_LOG_ERROR_NAMED(
       "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
-
     }
 
   }
@@ -1145,69 +1147,82 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
   }
 
-  // if(camera_homing_status){
+  if(camera_homing_status && auto_alignment_status){
+    
+    float mounted_camera_angle = 0.0f;
+    
+    if(auto_align_camera_name == "left_camera"){
+      mounted_camera_angle = -0.69;      
+    } else if(auto_align_camera_name == "right_camera"){
+      mounted_camera_angle = 0.69;
+    } else {
+      mounted_camera_angle = 0.0;
+    }
+     
 
-  //   if(count > 10) {
-  //       count = 1;
-  //       for (auto & component : resource_storage_->actuators_){ 
+    if(count > 10) {
+        count = 1;
+        // for (auto & component : resource_storage_->actuators_){ 
 
-  //         bool component_available = false;
-  //         auto component_name = component.get_name();
+        //   bool component_available = false;
+        //   auto component_name = component.get_name();
 
-  //         if(component_name == "TruckUnloading_camera_rotation_joint") {
-  //           // RCUTILS_LOG_INFO_NAMED(
-  //           // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint ");
-  //           auto state_interfaces = component.export_state_interfaces();
+        //   if(component_name == "TruckUnloading_camera_rotation_joint") {
+        //     // RCUTILS_LOG_INFO_NAMED(
+        //     // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint ");
+        //     auto state_interfaces = component.export_state_interfaces();
 
-  //           for (auto & current_interface : state_interfaces){
+        //     for (auto & current_interface : state_interfaces){
 
-  //             if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
-  //               camera_angle = current_interface.get_value();
-  //               camera_angle = -camera_angle;
-  //               // RCUTILS_LOG_INFO_NAMED(
-  //               // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
+        //       if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+        //         camera_angle = current_interface.get_value();
+        //         camera_angle = -camera_angle;
+        //         // RCUTILS_LOG_INFO_NAMED(
+        //         // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
                 
-  //             }
-  //           }
-  //         }
-  //       }
-  //       for (auto & component : resource_storage_->actuators_){
-  //         auto component_name = component.get_name();
-  //         if(component_name == "Hardware_TruckUnloading_base_rotation_joint"){
-  //           bool component_available = true;
+        //       }
+        //     }
+        //   }
+        // }
+        for (auto & component : resource_storage_->actuators_){
+          auto component_name = component.get_name();
+          if(component_name == "Hardware_TruckUnloading_base_rotation_joint"){
+            bool component_available = true;
 
-  //           auto state_interfaces = component.export_state_interfaces();
-  //           for (auto & current_interface : state_interfaces){
+            auto state_interfaces = component.export_state_interfaces();
+            for (auto & current_interface : state_interfaces){
 
-  //             if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
-  //               base_rotation_angle = current_interface.get_value();
-  //               angle_diff = base_rotation_angle - camera_angle;
+              if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+                base_rotation_angle = current_interface.get_value();
+                // angle_diff = base_rotation_angle - camera_angle;
+                command_angle = base_rotation_angle + mounted_camera_angle ;
+
                
                 
-  //             }
-  //           }
-  //         }
+              }
+            }
+          }
 
-  //      }
+       }
 
-  //      // giving absolute angle to camera
-  //      if(abs(previous_base_rotation_angle -base_rotation_angle) > 0.035){
-  //                   //
-  //         RCUTILS_LOG_INFO_NAMED(
-  //           "resource_manager", "[camera_align] Command angle '%f', base_rotation_angle '%f', camera_rotation_angle '%f'",angle_diff,base_rotation_angle,camera_angle);
+       // giving absolute angle to camera
+       if((abs(previous_command_angle - command_angle) > 0.035) && (abs(command_angle) < 2.35)){
+                    //
+          RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[camera_align] Command angle '%f', base_rotation_angle '%f'",command_angle, base_rotation_angle);
 
-  //         // double angle_to_command_ = static_cast<double>(0.0);
-  //          double angle_to_command_ = -1.0 * static_cast<double>(base_rotation_angle);
+          // double angle_to_command_ = static_cast<double>(0.0);
+           double angle_to_command_ = -1.0 * static_cast<double>(command_angle);
           
-  //         camera_align(angle_to_command_);
+          camera_align(angle_to_command_);
 
-  //         previous_base_rotation_angle = base_rotation_angle;
+          previous_command_angle = command_angle;
 
-  //       }
-  //   } 
-  //   count++;
+        }
+    } 
+    count++;
       
-  // }
+  }
 
 
 }
@@ -1775,6 +1790,7 @@ void ResourceManager::camera_homing(double &homing_angle){
 
 bool ResourceManager::camera_align_service_handle(double &angle){
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   bool alignment_done = false;
 
   RCUTILS_LOG_INFO_NAMED("resource_manager", "[camera_align] Camera sending angle command [%f].", angle);
@@ -1881,6 +1897,19 @@ void ResourceManager::camera_align(double &align_angle){
     RCUTILS_LOG_INFO_NAMED(
     "resource_manager", "[camera_align] Component [TruckUnloading_camera_rotation_joint] not available ");
 
+  }
+
+}
+
+void ResourceManager::auto_alignment(bool status, std::string camera_name){
+  //
+  if (status){
+    // start auto alignment
+    auto_alignment_status = true;
+    auto_align_camera_name = camera_name;
+  } else {
+    // stop auto alignment
+    auto_alignment_status = false;
   }
 
 }

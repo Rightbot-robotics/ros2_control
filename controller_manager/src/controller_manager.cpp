@@ -2109,17 +2109,35 @@ void ControllerManager::camera_align_service(
     const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Response> response
 )
 {
-  double angle_to_command = request->angle;
+  RCLCPP_INFO(get_logger(), "camera_align_service");
+  if(request->auto_align){
+    std::string camera_name = request->camera_name;
+    if(("left_camera" == camera_name) || ("right_camera" == camera_name)){
+      RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting auto alignment to [%s] camera",camera_name.c_str());
+      resource_manager_->auto_alignment(true, camera_name);
+    } else {
+      RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting auto alignment. Camera name [%s] not recognized",camera_name.c_str());
+      // stop the auto alignment
+      camera_name = "invalid";
+      resource_manager_->auto_alignment(false, camera_name);
+    }
 
-  RCLCPP_INFO(get_logger(), "Camera align service. Angle to command %f", angle_to_command);
-  bool alignment_status = resource_manager_->camera_align_service_handle(angle_to_command);
+  } else {
+    // stop the auto alignment
+    std::string camera_name = "invalid";
+    resource_manager_->auto_alignment(false, camera_name);
+    double angle_to_command = request->angle;
+    RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting manual alignment. Angle to command %f", angle_to_command);
+    bool alignment_status = resource_manager_->camera_align_service_handle(angle_to_command);
 
-  if(alignment_status == true){
-    response->status = true;
+    if(alignment_status == true){
+      response->status = true;
+    }
+    else{
+      response->status = false;
+    }
   }
-  else{
-    response->status = false;
-  }
+  
 
 }
 

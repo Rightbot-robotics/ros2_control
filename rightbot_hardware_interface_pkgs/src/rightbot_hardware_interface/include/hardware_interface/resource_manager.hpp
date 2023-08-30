@@ -420,6 +420,10 @@ public:
 
   float previous_base_rotation_angle = 0.0f;
 
+  void auto_alignment(bool status, std::string camera_name);
+  bool auto_alignment_status = false;
+  std::string auto_align_camera_name;
+
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
 
