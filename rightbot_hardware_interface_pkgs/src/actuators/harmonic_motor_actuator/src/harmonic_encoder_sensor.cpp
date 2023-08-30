@@ -35,7 +35,21 @@ void HarmonicEncoderSensor::initialize(HarmonicMotorActuatorSockets::HarmonicMot
     read_err_ = 0;
     reading_loop_started = false;
 
-    
+    int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x6075;
+	req.subindex = 0x00;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] Motor rated current was not read...", motor_name_);
+    }
+
+    motor_rated_current_ = ((float)resp.data.data) / 1000;  // mA to A
+
+	logger_->info("[{}] Motor rated current: {} A", motor_name_, motor_rated_current_);
 
     read_motor_data_thread_ = std::thread(&HarmonicEncoderSensor::readMotorData, this);
 }
@@ -59,8 +73,6 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
     my_can_frame f;
     err = PDO_read(motor_sockets_->motor_status_pdo_fd, &f, timeout);
 
-    uint16_t actual_motor_current_register_value = 0;
-
     if (err != 0) {
         // Read error, or no data
         return err;
@@ -69,8 +81,8 @@ int HarmonicEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *s
     if (f.id == (PDO_TX1_ID + motor_id)) {
         *status = (f.data[0] << 0) | (f.data[1] << 8);
         *err_code = (f.data[2] << 0) | (f.data[3] << 8);
-        actual_motor_current_register_value = (f.data[4] << 0) | (f.data[5] << 8);
-        *actual_motor_current = static_cast<float>(actual_motor_current_register_value)/1000;
+        int16_t motor_current_int = ((f.data[4] << 0) | (f.data[5] << 8));
+        *actual_motor_current = (((float)motor_current_int) * motor_rated_current_)/1000;
         logger_->debug("[{}] Motor current: [{}]", motor_name_, *actual_motor_current);
 
         // *battery_vol = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);

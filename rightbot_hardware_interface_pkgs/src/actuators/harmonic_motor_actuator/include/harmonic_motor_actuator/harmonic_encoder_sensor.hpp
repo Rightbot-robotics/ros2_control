@@ -105,6 +105,8 @@ public:
     double vel_fb_[1]= {0};
     int guard_err_fb_ = -1;
 
+    float motor_rated_current_;
+
 };
 
 #endif // HARMONIC_ENCODER_SENSOR_H_
