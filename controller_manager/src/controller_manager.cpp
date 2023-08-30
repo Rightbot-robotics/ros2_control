@@ -2126,8 +2126,11 @@ void ControllerManager::camera_align_service(
     // stop the auto alignment
     std::string camera_name = "invalid";
     resource_manager_->auto_alignment(false, camera_name);
-    double angle_to_command = request->angle;
-    RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting manual alignment. Angle to command %f", angle_to_command);
+    
+    double angle_in_degree = request->angle;
+    RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting manual alignment. Received angle %f degrees", angle_in_degree);
+    double angle_to_command = angle_in_degree *(3.14/180.0);
+    RCLCPP_INFO(get_logger(), "[camera_align_service] Command angle %f radian", angle_to_command);
     bool alignment_status = resource_manager_->camera_align_service_handle(angle_to_command);
 
     if(alignment_status == true){
