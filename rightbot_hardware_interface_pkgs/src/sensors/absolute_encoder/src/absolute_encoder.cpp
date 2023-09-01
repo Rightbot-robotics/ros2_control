@@ -38,8 +38,8 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
     sensor_id_ = stoi(info.sensors[0].parameters.at("can_id"));
     sensor_name_ = info_.sensors[0].name;
     axis_ = stoi(info.sensors[0].parameters.at("axis"));
-    absolute_encoder_init_pos = ABS_POSITION;
-    abs_motor_ppr = ABS_MOTOR_PPR;
+    absolute_encoder_init_pos = stoi(info.sensors[0].parameters.at("zero_point_count"));
+    abs_motor_ppr = stoi(info.sensors[0].parameters.at("pulses_per_revolution"));
 
     logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
 
