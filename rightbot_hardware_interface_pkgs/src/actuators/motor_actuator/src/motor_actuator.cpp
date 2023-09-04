@@ -302,14 +302,21 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         encoder_sensor->enc_clear_can_buffer();
         
 
-        if(!check_homing_execution_status){
+        // if(!check_homing_execution_status){
 
-            if(sensor_data["read_status_encoder"].asBool()){
-                initial_counts_rotation = sensor_data["counts"].asInt();
-                logger_->info("[{}] actuator, initial counts: [{}] ", motor_name_, initial_counts_rotation);
-                initialization_done = true;
-            }
+        //     if(sensor_data["read_status_encoder"].asBool()){
+        //         initial_counts_rotation = sensor_data["counts"].asInt();
+        //         logger_->info("[{}] actuator, initial counts: [{}] ", motor_name_, initial_counts_rotation);
+        //         initialization_done = true;
+        //     }
+        // }
+
+        if(sensor_data["read_status_encoder"].asBool()){
+            initial_counts_rotation = sensor_data["counts"].asInt();
+            logger_->info("[{}] actuator, initial counts: [{}] ", motor_name_, initial_counts_rotation);
+            initialization_done = true;
         }
+
     }
 
 
@@ -332,7 +339,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
-        position_state_ = axis_*(((sensor_data["counts"].asInt() - initial_counts_rotation)*3.14*2)/(motor_ppr_*motor_gear_ratio));
+        position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
         logger_->debug("[{}] Read pos debug: [{}], counts: [{}]", motor_name_, position_state_, sensor_data["counts"].asInt() );
     }
@@ -355,34 +362,34 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
     logger_->debug("[{}] Read manufacturer_register: [{}], latched_fault: [{}], node_guard_error: [{}]", motor_name_, manufacturer_register_state_, latched_fault_state_, node_guard_error_state_);
 
-    if(check_homing_execution_status){
-        initialization_done = true;
+    // if(check_homing_execution_status){
+    //     initialization_done = true;
 
-        if(sensor_data["read_status_velocity"].asBool()){
-            // if(((status_state_ & (1 << 10)) >> 10)){
-            //     logger_->info("[{}] Homing success", motor_name_);
-            //     initial_counts_rotation = sensor_data["counts"].asInt();
+    //     if(sensor_data["read_status_velocity"].asBool()){
+    //         // if(((status_state_ & (1 << 10)) >> 10)){
+    //         //     logger_->info("[{}] Homing success", motor_name_);
+    //         //     initial_counts_rotation = sensor_data["counts"].asInt();
 
-            // }
-            logger_->debug("[{}] - homing_execution. Current vel [{}]", motor_name_, sensor_data["velocity"].asDouble());
+    //         // }
+    //         logger_->debug("[{}] - homing_execution. Current vel [{}]", motor_name_, sensor_data["velocity"].asDouble());
 
-            if(abs(sensor_data["velocity"].asDouble()) < 0.001){
+    //         if(abs(sensor_data["velocity"].asDouble()) < 0.001){
 			
-				homing_counter++;
+	// 			homing_counter++;
 
-			}
-			else {
-				homing_counter = 0;
-			}            
-        }
+	// 		}
+	// 		else {
+	// 			homing_counter = 0;
+	// 		}            
+    //     }
 
-        if(homing_counter > 5){
-            logger_->info("[{}] Homing success", motor_name_);
-            check_homing_execution_status = false;
-            initial_counts_rotation = sensor_data["counts"].asInt();
-            logger_->info("[{}] actuator, initial counts:[{}] homing complete.", motor_name_, initial_counts_rotation);
-        }
-    }
+    //     if(homing_counter > 5){
+    //         logger_->info("[{}] Homing success", motor_name_);
+    //         check_homing_execution_status = false;
+    //         initial_counts_rotation = sensor_data["counts"].asInt();
+    //         logger_->info("[{}] actuator, initial counts:[{}] homing complete.", motor_name_, initial_counts_rotation);
+    //     }
+    // }
 
     return hardware_interface::return_type::OK;
 }
@@ -514,7 +521,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
                 logger_->info("[{}] Position command: [{}] radian", motor_name_, position_command_);
                 double angle_in_degree = (position_command_*(180/3.14));
-                int counts = -initial_counts_rotation + static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_*motor_gear_ratio);
+                int counts = -initial_counts_rotation - initial_counts_offset + static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_*motor_gear_ratio);
                 logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
                 motor_controls_->set_absolute_position(motor_id_, axis_, counts); // send absolute position internally
             }
@@ -591,6 +598,7 @@ void MotorActuator::homing_execution(double &homing_pos){
     logger_->info("[{}] - Execute homing. Angle: [{}]", motor_name_,homing_pos);
 
     int counts = ((homing_pos*180)/3.14)*((motor_ppr*motor_gear_ratio)/360);
+    initial_counts_offset = counts;
 
     logger_->debug("[{}] - homing_execution counts value:: [{}]", motor_name_, counts);
 

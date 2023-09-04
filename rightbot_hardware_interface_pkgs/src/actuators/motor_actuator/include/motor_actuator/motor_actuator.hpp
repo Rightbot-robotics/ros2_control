@@ -134,6 +134,7 @@ private:
 
     bool initialization_done = false;
     int initial_counts = 0;
+    int initial_counts_offset = 0;
 
     bool using_default_max_velocity_ = false;
     bool using_default_acceleration_ = true;
