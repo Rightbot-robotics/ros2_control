@@ -42,6 +42,8 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
     abs_motor_ppr = stoi(info.sensors[0].parameters.at("pulses_per_revolution"));
 
     logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
+    logger_->info("[{}] Absolute Encoder Sensor zero point: {}", sensor_name_, absolute_encoder_init_pos);
+    logger_->info("[{}] Absolute Encoder Sensor ppr: {}", sensor_name_, abs_motor_ppr);
 
     const auto & state_interfaces = info_.sensors[0].state_interfaces;
     if (state_interfaces.size() != 1)
