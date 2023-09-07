@@ -147,7 +147,7 @@ int EncoderSensor::readData(int motor_id, EncoderData *encoder_data) {
     int rt_value = -1;
     if(true == status) {
         rt_value = 0;
-	logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
+	// logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
     }
     return 0;
 

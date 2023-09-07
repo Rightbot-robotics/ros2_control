@@ -61,7 +61,7 @@ void HarmonicEncoderSensor::init_json() {
 int HarmonicEncoderSensor::motor_request(void)
 {
 
-    logger_->debug("motor request");
+    // logger_->debug("motor request");
 	Socketcan_t data[1];
 	data[0].size = 1;
 	data[0].data = 0x00;
@@ -220,7 +220,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
     if (0 == err_pdo_2_) {
         encoder_data->pos_m = encoder_fb_[0];
-        logger_->debug("TEST [{}] Encoder_position: [{}]",motor_name_, encoder_fb_[0]);
+        // logger_->debug("TEST [{}] Encoder_position: [{}]",motor_name_, encoder_fb_[0]);
         encoder_data->read_status_encoder = true;
         // logger_->debug("[{}] - enc read success",motor_name_);
     }
@@ -230,12 +230,12 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
 
     if (0 == err_pdo_3_) {
         encoder_data->vel_m = vel_fb_[0];
-        logger_->debug("TEST [{}] Encoder_Velocity: [{}]", motor_name_, vel_fb_[0]);
+        // logger_->debug("TEST [{}] Encoder_Velocity: [{}]", motor_name_, vel_fb_[0]);
         encoder_data->read_status_velocity = true;
         // logger_->debug("[{}] - vel read success",motor_name_);
     }else {
         encoder_data->read_status_velocity = false;
-        logger_->debug("[{}] - vel read false",motor_name_);
+        // logger_->debug("[{}] - vel read false",motor_name_);
     }
 
     encoder_data->guard_err_m = guard_err_fb_;
@@ -251,7 +251,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
     int rt_value = -1;
     if(true == status) {
         rt_value = 0;
-	logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
+	// logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
     }
     return 0;
 
