@@ -547,14 +547,15 @@ void MotorActuator::homing_execution(double &homing_pos){
 
     // using this function for position reset of camera rotation joint using absolute encoder data
 
-    if(sync_with_absolute_encoder){
+    if(!sync_with_absolute_encoder && homing_pos != 0.000){
+        logger_->info("[{}] - Syncing with absolute encoder data angle: [{}] rad", motor_name_,homing_pos);
         int counts = ((homing_pos*180)/3.14)*((motor_ppr*motor_gear_ratio)/360);
         initial_counts_offset = counts;   
         motor_controls_->motorSetmode("position");
         sync_with_absolute_encoder = true;
     }
 
-    logger_->info("[{}] - Resetting pos data as: [{}] rad", motor_name_,homing_pos);
+    logger_->debug("[{}] - Resetting pos data as: [{}] rad", motor_name_,homing_pos);
     position_state_ = homing_pos;
 
 }
