@@ -1076,73 +1076,33 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
   float camera_angle = 0.0f, base_rotation_angle = 0.0f;
   float angle_diff = 0.0f;
   static int count = 1;
+  
+  double angle = 0.0;
+  bool component_available = false;
 
-  if((!camera_homing_status) && (!command_homing_sent)){
-    double angle = 0.0;
-    bool component_available = false;
+  for (auto & component : resource_storage_->sensors_){
 
-    for (auto & component : resource_storage_->sensors_){
-
-      auto component_name = component.get_name();
-
-      // RCUTILS_LOG_INFO_NAMED(
-      //         "resource_manager", "[camera_homing] components '%s' ", component_name.c_str());
-
+    auto component_name = component.get_name();
+    
+    if(component_name == "TruckUnloading_absolute_encoder_sensor"){
+      component_available = true;
       
-      if(component_name == "TruckUnloading_absolute_encoder_sensor"){
-        component_available = true;
-        
-        auto state_interfaces = component.export_state_interfaces();
-        for (auto & current_interface : state_interfaces){
+      auto state_interfaces = component.export_state_interfaces();
+      for (auto & current_interface : state_interfaces){
 
-          if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
-            angle = current_interface.get_value();
-
-            if(angle != 0.0){
-              if(abs(angle) > 0.0087){ //angle > 0.5 degree
-                RCUTILS_LOG_INFO_NAMED(
-                "resource_manager", "[camera_homing] Camera angle '%f'. Sending homing command. ", angle);
-                
-                double angle_in_radian = (angle);
-                camera_homing(angle_in_radian);
-                homing_start_time = std::chrono::system_clock::now();
-                command_homing_sent = true;
-                // camera_homing_status = true;
-
-              } else {
-                RCUTILS_LOG_INFO_NAMED(
-                "resource_manager", "[camera_homing] Camera angle '%f'. Already at home position", angle);
-                camera_homing_status = true;
-              }
-            }
-              
-          }
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+          angle = current_interface.get_value();
+          camera_homing(angle); // for syncing camera position with absolute encoder
+          camera_homing_status = true;
         }
       }
     }
-
-    if(!component_available){
-      camera_homing_status = true;
-      RCUTILS_LOG_ERROR_NAMED(
-      "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
-    }
-
   }
 
-  if(command_homing_sent){
-    auto time_passed_since_homing_sent = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now() - homing_start_time);
-
-    if(time_passed_since_homing_sent.count()>5000){
-      camera_homing_status = true;
-      command_homing_sent = false;
-      RCUTILS_LOG_INFO_NAMED(
-                "resource_manager", "[camera_homing] Camera homing success..");
-
-    }
-
-    
-
+  if(!component_available){
+    camera_homing_status = true;
+    RCUTILS_LOG_ERROR_NAMED(
+    "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
   }
 
   if(camera_homing_status && auto_alignment_status){
@@ -1762,8 +1722,8 @@ void ResourceManager::camera_homing(double &homing_angle){
   // say data is 10 degree
 
   // double homing_angle = 0.175;
-  RCUTILS_LOG_INFO_NAMED(
-    "resource_manager", "[camera_homing] angle %f ", homing_angle);
+  // RCUTILS_LOG_INFO_NAMED(
+  //   "resource_manager", "[camera_homing] angle %f ", homing_angle);
 
   bool component_available = false;
 

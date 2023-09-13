@@ -1,0 +1,111 @@
+[1mdiff --git a/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/include/motor_actuator/motor_actuator.hpp b/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/include/motor_actuator/motor_actuator.hpp[m
+[1mindex 0616924..c9bca08 100644[m
+[1m--- a/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/include/motor_actuator/motor_actuator.hpp[m
+[1m+++ b/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/include/motor_actuator/motor_actuator.hpp[m
+[36m@@ -154,6 +154,8 @@[m [mprivate:[m
+ [m
+     char STATUS_IF_TRUE[5] = "true";[m
+ [m
+[32m+[m[32m    bool sync_with_absolute_encoder = false;[m
+[32m+[m
+     enum Control_mode {[m
+ 	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection[m
+ 	ACTUATOR_DISABLE = 1, //Contour position mode=1 - mode selection[m
+[1mdiff --git a/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/src/motor_actuator.cpp b/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/src/motor_actuator.cpp[m
+[1mindex 615cc5a..5ac4cbb 100644[m
+[1m--- a/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/src/motor_actuator.cpp[m
+[1m+++ b/rightbot_hardware_interface_pkgs/src/actuators/motor_actuator/src/motor_actuator.cpp[m
+[36m@@ -339,21 +339,11 @@[m [mhardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c[m
+         }[m
+         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));[m
+     } else {[m
+[31m-        position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));[m
+[32m+[m[32m        // position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));[m
+         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);[m
+         logger_->debug("[{}] Read pos debug: [{}], counts: [{}]", motor_name_, position_state_, sensor_data["counts"].asInt() );[m
+     }[m
+[31m-    [m
+[31m-    // if(homing_at_zero){[m
+[31m-    //     // position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));[m
+[31m-    //     position_state_ = total_travel_distance - (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));[m
+ [m
+[31m-    // } else {[m
+[31m-    //     // position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));[m
+[31m-    //     position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));[m
+[31m-    [m
+[31m-    // }[m
+[31m-    [m
+     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();[m
+     latched_fault_state_ = sensor_data["latched_fault"].asInt();[m
+     node_guard_error_state_ = sensor_data["guard_err"].asInt();[m
+[36m@@ -362,35 +352,6 @@[m [mhardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c[m
+     logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);[m
+     logger_->debug("[{}] Read manufacturer_register: [{}], latched_fault: [{}], node_guard_error: [{}]", motor_name_, manufacturer_register_state_, latched_fault_state_, node_guard_error_state_);[m
+ [m
+[31m-    // if(check_homing_execution_status){[m
+[31m-    //     initialization_done = true;[m
+[31m-[m
+[31m-    //     if(sensor_data["read_status_velocity"].asBool()){[m
+[31m-    //         // if(((status_state_ & (1 << 10)) >> 10)){[m
+[31m-    //         //     logger_->info("[{}] Homing success", motor_name_);[m
+[31m-    //         //     initial_counts_rotation = sensor_data["counts"].asInt();[m
+[31m-[m
+[31m-    //         // }[m
+[31m-    //         logger_->debug("[{}] - homing_execution. Current vel [{}]", motor_name_, sensor_data["velocity"].asDouble());[m
+[31m-[m
+[31m-    //         if(abs(sensor_data["velocity"].asDouble()) < 0.001){[m
+[31m-			[m
+[31m-	// 			homing_counter++;[m
+[31m-[m
+[31m-	// 		}[m
+[31m-	// 		else {[m
+[31m-	// 			homing_counter = 0;[m
+[31m-	// 		}            [m
+[31m-    //     }[m
+[31m-[m
+[31m-    //     if(homing_counter > 5){[m
+[31m-    //         logger_->info("[{}] Homing success", motor_name_);[m
+[31m-    //         check_homing_execution_status = false;[m
+[31m-    //         initial_counts_rotation = sensor_data["counts"].asInt();[m
+[31m-    //         logger_->info("[{}] actuator, initial counts:[{}] homing complete.", motor_name_, initial_counts_rotation);[m
+[31m-    //     }[m
+[31m-    // }[m
+[31m-[m
+     return hardware_interface::return_type::OK;[m
+ }[m
+ [m
+[36m@@ -520,6 +481,9 @@[m [mhardware_interface::return_type MotorActuator::write(const rclcpp::Time & time,[m
+             } else {[m
+ [m
+                 logger_->info("[{}] Position command: [{}] radian", motor_name_, position_command_);[m
+[32m+[m
+[32m+[m[32m                //position_state;[m
+[32m+[m
+                 double angle_in_degree = (position_command_*(180/3.14));[m
+                 int counts = -initial_counts_rotation + initial_counts_offset + static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_*motor_gear_ratio);[m
+                 logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);[m
+[36m@@ -595,15 +559,19 @@[m [mvoid MotorActuator::data_request(){[m
+ [m
+ void MotorActuator::homing_execution(double &homing_pos){[m
+ [m
+[31m-    logger_->info("[{}] - Execute homing. Angle: [{}]", motor_name_,homing_pos);[m
+[32m+[m[32m    // using this function for position reset of camera rotation joint using absolute encoder data[m
+ [m
+[31m-    int counts = ((homing_pos*180)/3.14)*((motor_ppr*motor_gear_ratio)/360);[m
+[31m-    initial_counts_offset = counts;[m
+[32m+[m[32m    logger_->info("[{}] - Resetting pos data as: [{}] rad", motor_name_,homing_pos);[m
+ [m
+[31m-    logger_->debug("[{}] - homing_execution counts value:: [{}]", motor_name_, counts);[m
+[32m+[m[32m    // int counts = ((homing_pos*180)/3.14)*((motor_ppr*motor_gear_ratio)/360);[m
+[32m+[m[32m    position_state_ = homing_pos;[m
+ [m
+     motor_controls_->motorSetmode("position");[m
+[31m-    // motor_controls_->set_relative_position(motor_id_, axis_, counts);[m
+[32m+[m
+[32m+[m[32m    if(sync_with_absolute_encoder){[m
+[32m+[m[32m        sync_with_absolute_encoder = true;[m
+[32m+[m[32m    }[m
+[32m+[m
+     check_homing_execution_status = true;[m
+ [m
+ }[m

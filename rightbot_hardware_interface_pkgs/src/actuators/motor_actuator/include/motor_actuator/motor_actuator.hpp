@@ -154,6 +154,8 @@ private:
 
     char STATUS_IF_TRUE[5] = "true";
 
+    bool sync_with_absolute_encoder = false;
+
     enum Control_mode {
 	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection
 	ACTUATOR_DISABLE = 1, //Contour position mode=1 - mode selection
