@@ -556,7 +556,7 @@ void MotorActuator::homing_execution(double &homing_pos){
     }
 
     logger_->debug("[{}] - Resetting pos data as: [{}] rad", motor_name_,homing_pos);
-    position_state_ = homing_pos;
+    position_state_ = -homing_pos;
 
 }
 
