@@ -1164,7 +1164,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
        }
 
        // giving absolute angle to camera
-       if((abs(previous_command_angle - command_angle) > 0.035) && (abs(command_angle) < 2.35)){
+       if((abs(previous_command_angle - command_angle) > 0.0175) && (abs(command_angle) < 2.35)){
                     //
           RCUTILS_LOG_INFO_NAMED(
             "resource_manager", "[camera_align] Command angle '%f', base_rotation_angle '%f'",command_angle, base_rotation_angle);
