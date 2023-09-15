@@ -469,10 +469,10 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
             } else {
 
-                logger_->info("[{}] Position command: [{}] radian", motor_name_, position_command_);
+                logger_->debug("[{}] Position command: [{}] radian", motor_name_, position_command_);
                 double angle_in_degree = (position_command_*(180/3.14));
                 int counts = -initial_counts_rotation + initial_counts_offset + static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_*motor_gear_ratio);
-                logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
+                logger_->debug("[{}] Position command in counts: [{}]", motor_name_, counts);
                 motor_controls_->set_absolute_position(motor_id_, axis_, counts); // send absolute position internally
             }
         }
