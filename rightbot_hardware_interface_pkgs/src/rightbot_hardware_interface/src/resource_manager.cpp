@@ -1118,7 +1118,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     }
      
 
-    if(count > 2) {
+    if(count > 0) {
         count = 1;
         // for (auto & component : resource_storage_->actuators_){ 
 
