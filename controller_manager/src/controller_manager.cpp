@@ -2154,7 +2154,7 @@ void ControllerManager::error_monitoring(){
 
   while(true){
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     resource_manager_->get_error_data(&error_data_, &system_error);
 
@@ -2171,7 +2171,7 @@ void ControllerManager::error_monitoring(){
     }
 
     auto time_passed_since_last_error_published = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - publish_time);
-    if(time_passed_since_last_error_published.count()> 200){
+    if(time_passed_since_last_error_published.count()> 50){
       error_publisher->publish(message);
       publish_time = std::chrono::system_clock::now();
 
