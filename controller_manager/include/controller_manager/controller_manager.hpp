@@ -40,6 +40,7 @@
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 #include "controller_manager_msgs/srv/unload_controller.hpp"
 
+#include "diagnostic_updater/diagnostic_updater.hpp"
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/resource_manager.hpp"
 
@@ -60,6 +61,8 @@ namespace controller_manager
 {
 using ControllersListIterator = std::vector<controller_manager::ControllerSpec>::const_iterator;
 
+rclcpp::NodeOptions get_cm_node_options();
+
 class ControllerManager : public rclcpp::Node
 {
 public:
@@ -71,13 +74,15 @@ public:
     std::unique_ptr<hardware_interface::ResourceManager> resource_manager,
     std::shared_ptr<rclcpp::Executor> executor,
     const std::string & manager_node_name = "controller_manager",
-    const std::string & namespace_ = "");
+    const std::string & namespace_ = "",
+    const rclcpp::NodeOptions & options = get_cm_node_options());
 
   CONTROLLER_MANAGER_PUBLIC
   ControllerManager(
     std::shared_ptr<rclcpp::Executor> executor,
     const std::string & manager_node_name = "controller_manager",
-    const std::string & namespace_ = "");
+    const std::string & namespace_ = "",
+    const rclcpp::NodeOptions & options = get_cm_node_options());
 
   CONTROLLER_MANAGER_PUBLIC
   virtual ~ControllerManager() = default;
@@ -408,6 +413,9 @@ private:
   controller_interface::return_type check_preceeding_controllers_for_deactivate(
     const std::vector<ControllerSpec> & controllers, int strictness,
     const ControllersListIterator controller_it);
+
+  void controller_activity_diagnostic_callback(diagnostic_updater::DiagnosticStatusWrapper & stat);
+  diagnostic_updater::Updater diagnostics_updater_;
 
   std::shared_ptr<rclcpp::Executor> executor_;
 

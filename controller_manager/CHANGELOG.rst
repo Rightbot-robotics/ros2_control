@@ -2,6 +2,59 @@
 Changelog for package controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.24.1 (2023-03-09)
+-------------------
+
+2.24.0 (2023-02-28)
+-------------------
+* fix AttributeError: Parameter object attribute name is read-only (`#957 <https://github.com/ros-controls/ros2_control/issues/957>`_) (`#958 <https://github.com/ros-controls/ros2_control/issues/958>`_)
+* Expose node options to controller manager (`#942 <https://github.com/ros-controls/ros2_control/issues/942>`_) (`#946 <https://github.com/ros-controls/ros2_control/issues/946>`_)
+* Contributors: Bence Magyar, methylDragon,Noel Jiménez García
+
+2.23.0 (2023-02-20)
+-------------------
+* Adds list_hardware_components to CLI `#796 <https://github.com/ros-controls/ros2_control/issues/796>`_ - Adds list_hardware_components to CLI (`#891 <https://github.com/ros-controls/ros2_control/issues/891>`_) (`#937 <https://github.com/ros-controls/ros2_control/issues/937>`_)
+* Do not use CLI calls but direct API for setting parameters. (backport `#910 <https://github.com/ros-controls/ros2_control/issues/910>`_) (`#913 <https://github.com/ros-controls/ros2_control/issues/913>`_)
+* Contributors: Andy McEvoy, Denis Stogl
+
+2.22.0 (2023-01-31)
+-------------------
+* Optimize output of controller spawner (backport `#909 <https://github.com/ros-controls/ros2_control/issues/909>`_) (`#911 <https://github.com/ros-controls/ros2_control/issues/911>`_)
+* Namespace Loaded Controllers (`#852 <https://github.com/ros-controls/ros2_control/issues/852>`_) (`#914 <https://github.com/ros-controls/ros2_control/issues/914>`_)
+* Add diagnostics (backport `#820 <https://github.com/ros-controls/ros2_control/issues/820>`_) (`#922 <https://github.com/ros-controls/ros2_control/issues/922>`_)
+* Contributors: Bence Magyar, Denis Stogl, Tony Najjar
+
+2.21.0 (2023-01-24)
+-------------------
+* ControllerManager: catch exception by reference (`#906 <https://github.com/ros-controls/ros2_control/issues/906>`_) (`#907 <https://github.com/ros-controls/ros2_control/issues/907>`_)
+* Fix update rate setting from gazebo_ros2_control (backport `#874 <https://github.com/ros-controls/ros2_control/issues/874>`_) (`#904 <https://github.com/ros-controls/ros2_control/issues/904>`_)
+* Contributors: Christopher Wecht, Tony Najjar, Denis Stogl
+
+2.20.0 (2023-01-12)
+-------------------
+* Add backward_ros to controller_manager (`#886 <https://github.com/ros-controls/ros2_control/issues/886>`_) (`#892 <https://github.com/ros-controls/ros2_control/issues/892>`_)
+* Contributors: Bence Magyar
+
+2.19.0 (2023-01-06)
+-------------------
+* Prevent controller manager from crashing when controller's plugin has error during loading. (`#881 <https://github.com/ros-controls/ros2_control/issues/881>`_) (`#882 <https://github.com/ros-controls/ros2_control/issues/882>`_)
+* Contributors: Denis Štogl
+
+2.18.0 (2022-12-03)
+-------------------
+* Use a thread priority library from realtime_tools (`#794 <https://github.com/ros-controls/ros2_control/issues/794>`_) (`#868 <https://github.com/ros-controls/ros2_control/issues/868>`_)
+* Fix const-ness in std::chrono::time_point construction and explicitly use std::chrono::nanoseconds as std::chrono::time_point template parameter to help compilation on macOS as its std::chrono::system_clock::time_point defaults to std::chrono::milliseconds for duration type (`#848 <https://github.com/ros-controls/ros2_control/issues/848>`_) (`#866 <https://github.com/ros-controls/ros2_control/issues/866>`_)
+* Contributors: Andy Zelenak, light-tech
+
+2.17.0 (2022-11-27)
+-------------------
+
+2.16.0 (2022-10-17)
+-------------------
+* Search for controller manager in the same namespace as spawner (`#810 <https://github.com/ros-controls/ros2_control/issues/810>`_) (`#839 <https://github.com/ros-controls/ros2_control/issues/839>`_)
+* Don't ask to export reference interface if controller not 'inactive' or 'active' (`#824 <https://github.com/ros-controls/ros2_control/issues/824>`_) (`#843 <https://github.com/ros-controls/ros2_control/issues/843>`_)
+* Contributors: Denis Štogl, Tony Najjar
+
 2.15.0 (2022-09-19)
 -------------------
 

@@ -2,6 +2,40 @@
 Changelog for package controller_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.24.1 (2023-03-09)
+-------------------
+
+2.24.0 (2023-02-28)
+-------------------
+
+2.23.0 (2023-02-20)
+-------------------
+
+2.22.0 (2023-01-31)
+-------------------
+
+2.21.0 (2023-01-24)
+-------------------
+
+2.20.0 (2023-01-12)
+-------------------
+* Update imu_sensor.hpp (`#893 <https://github.com/ros-controls/ros2_control/issues/893>`_) (`#896 <https://github.com/ros-controls/ros2_control/issues/896>`_)
+* Contributors: flochre
+
+2.19.0 (2023-01-06)
+-------------------
+
+2.18.0 (2022-12-03)
+-------------------
+
+2.17.0 (2022-11-27)
+-------------------
+
+2.16.0 (2022-10-17)
+-------------------
+* Add docs in export interface configurations for controllers. (`#804 <https://github.com/ros-controls/ros2_control/issues/804>`_) (`#842 <https://github.com/ros-controls/ros2_control/issues/842>`_)
+* Contributors: Denis Štogl
+
 2.15.0 (2022-09-19)
 -------------------
 

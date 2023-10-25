@@ -80,6 +80,7 @@ if(BUILD_TESTING)
     test_differential_transmission_loader
     test/differential_transmission_loader_test.cpp
   )
+
   target_include_directories(test_differential_transmission_loader PUBLIC include rightbot_hardware_interface)
   ament_target_dependencies(test_differential_transmission_loader rightbot_hardware_interface)
 endif()

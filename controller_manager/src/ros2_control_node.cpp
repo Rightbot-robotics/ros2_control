@@ -19,8 +19,8 @@
 #include <thread>
 
 #include "controller_manager/controller_manager.hpp"
-#include "controller_manager/realtime.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "realtime_tools/thread_priority.hpp"
 
 using namespace std::chrono_literals;
 
@@ -48,9 +48,9 @@ int main(int argc, char ** argv)
   std::thread cm_thread(
     [cm]()
     {
-      if (controller_manager::has_realtime_kernel())
+      if (realtime_tools::has_realtime_kernel())
       {
-        if (!controller_manager::configure_sched_fifo(kSchedPriority))
+        if (!realtime_tools::configure_sched_fifo(kSchedPriority))
         {
           RCLCPP_WARN(cm->get_logger(), "Could not enable FIFO RT scheduling policy");
         }
@@ -62,8 +62,9 @@ int main(int argc, char ** argv)
 
       // for calculating sleep time
       auto const period = std::chrono::nanoseconds(1'000'000'000 / cm->get_update_rate());
-      std::chrono::system_clock::time_point next_iteration_time =
-        std::chrono::system_clock::time_point(std::chrono::nanoseconds(cm->now().nanoseconds()));
+      auto const cm_now = std::chrono::nanoseconds(cm->now().nanoseconds());
+      std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>
+        next_iteration_time{cm_now};
 
       // for calculating the measured period of the loop
       rclcpp::Time previous_time = cm->now();

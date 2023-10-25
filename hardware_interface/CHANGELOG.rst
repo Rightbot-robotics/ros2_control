@@ -2,6 +2,46 @@
 Changelog for package hardware_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.24.1 (2023-03-09)
+-------------------
+* Revert "Make double parsing locale independent (`#921 <https://github.com/ros-controls/ros2_control/issues/921>`_)" (`#966 <https://github.com/ros-controls/ros2_control/issues/966>`_)
+* Contributors: Bence Magyar
+
+2.24.0 (2023-02-28)
+-------------------
+
+2.23.0 (2023-02-20)
+-------------------
+
+2.22.0 (2023-01-31)
+-------------------
+* Make double parsing locale independent (`#921 <https://github.com/ros-controls/ros2_control/issues/921>`_) (`#924 <https://github.com/ros-controls/ros2_control/issues/924>`_)
+* Contributors: Henning Kayser
+
+2.21.0 (2023-01-24)
+-------------------
+
+2.20.0 (2023-01-12)
+-------------------
+* 🔧 Fixes and updated on pre-commit hooks and their action (backport `#890 <https://github.com/ros-controls/ros2_control/issues/890>`_) (`#895 <https://github.com/ros-controls/ros2_control/issues/895>`_)
+* Contributors: Denis Štogl
+
+2.19.0 (2023-01-06)
+-------------------
+* ResourceManager doesn't always log an error on shutdown anymore (`#867 <https://github.com/ros-controls/ros2_control/issues/867>`_) (`#871 <https://github.com/ros-controls/ros2_control/issues/871>`_)
+* Contributors: Christopher Wecht
+
+2.18.0 (2022-12-03)
+-------------------
+
+2.17.0 (2022-11-27)
+-------------------
+
+2.16.0 (2022-10-17)
+-------------------
+* fix broken links (issue `#831 <https://github.com/ros-controls/ros2_control/issues/831>`_) (`#833 <https://github.com/ros-controls/ros2_control/issues/833>`_) (`#845 <https://github.com/ros-controls/ros2_control/issues/845>`_)
+* Contributors: Manuel Muth
+
 2.15.0 (2022-09-19)
 -------------------
 

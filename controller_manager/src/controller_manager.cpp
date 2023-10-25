@@ -139,15 +139,16 @@ rclcpp::NodeOptions get_cm_node_options()
 
 ControllerManager::ControllerManager(
   std::shared_ptr<rclcpp::Executor> executor, const std::string & manager_node_name,
-  const std::string & namespace_)
-: rclcpp::Node(manager_node_name, namespace_, get_cm_node_options()),
+  const std::string & namespace_, const rclcpp::NodeOptions & options)
+: rclcpp::Node(manager_node_name, namespace_, options),
   resource_manager_(std::make_unique<hardware_interface::ResourceManager>()),
   executor_(executor),
   loader_(std::make_shared<pluginlib::ClassLoader<controller_interface::ControllerInterface>>(
     kControllerInterfaceNamespace, kControllerInterfaceClassName)),
   chainable_loader_(
     std::make_shared<pluginlib::ClassLoader<controller_interface::ChainableControllerInterface>>(
-      kControllerInterfaceNamespace, kChainableControllerInterfaceClassName))
+      kControllerInterfaceNamespace, kChainableControllerInterfaceClassName)),
+  diagnostics_updater_(this)
 {
   if (!get_parameter("update_rate", update_rate_))
   {
@@ -163,6 +164,9 @@ ControllerManager::ControllerManager(
 
   init_resource_manager(robot_description);
 
+  diagnostics_updater_.setHardwareID("ros2_control");
+  diagnostics_updater_.add(
+    "Controllers Activity", this, &ControllerManager::controller_activity_diagnostic_callback);
   init_services();
 
 }
@@ -170,16 +174,24 @@ ControllerManager::ControllerManager(
 ControllerManager::ControllerManager(
   std::unique_ptr<hardware_interface::ResourceManager> resource_manager,
   std::shared_ptr<rclcpp::Executor> executor, const std::string & manager_node_name,
-  const std::string & namespace_)
-: rclcpp::Node(manager_node_name, namespace_, get_cm_node_options()),
+  const std::string & namespace_, const rclcpp::NodeOptions & options)
+: rclcpp::Node(manager_node_name, namespace_, options),
   resource_manager_(std::move(resource_manager)),
   executor_(executor),
   loader_(std::make_shared<pluginlib::ClassLoader<controller_interface::ControllerInterface>>(
     kControllerInterfaceNamespace, kControllerInterfaceClassName)),
   chainable_loader_(
     std::make_shared<pluginlib::ClassLoader<controller_interface::ChainableControllerInterface>>(
-      kControllerInterfaceNamespace, kChainableControllerInterfaceClassName))
+      kControllerInterfaceNamespace, kChainableControllerInterfaceClassName)),
+  diagnostics_updater_(this)
 {
+  if (!get_parameter("update_rate", update_rate_))
+  {
+    RCLCPP_WARN(get_logger(), "'update_rate' parameter not set, using default value.");
+  }
+  diagnostics_updater_.setHardwareID("ros2_control");
+  diagnostics_updater_.add(
+    "Controllers Activity", this, &ControllerManager::controller_activity_diagnostic_callback);
   init_services();
 }
 
@@ -325,13 +337,23 @@ controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_c
 
   controller_interface::ControllerInterfaceBaseSharedPtr controller;
 
-  if (loader_->isClassAvailable(controller_type))
+  try
   {
-    controller = loader_->createSharedInstance(controller_type);
+    if (loader_->isClassAvailable(controller_type))
+    {
+      controller = loader_->createSharedInstance(controller_type);
+    }
+    if (chainable_loader_->isClassAvailable(controller_type))
+    {
+      controller = chainable_loader_->createSharedInstance(controller_type);
+    }
   }
-  if (chainable_loader_->isClassAvailable(controller_type))
+  catch (const pluginlib::CreateClassException & e)
   {
-    controller = chainable_loader_->createSharedInstance(controller_type);
+    RCLCPP_ERROR(
+      get_logger(), "Error happened during creation of controller '%s' with type '%s':\n%s",
+      controller_name.c_str(), controller_type.c_str(), e.what());
+    return nullptr;
   }
 
   ControllerSpec controller_spec;
@@ -1291,24 +1313,25 @@ void ControllerManager::list_controllers_srv_cb(
       {
         controller_state.required_state_interfaces = state_interface_config.names;
       }
-    }
-    // check for chained interfaces
-    for (const auto & interface : controller_state.required_command_interfaces)
-    {
-      auto prefix_interface_type_pair = split_command_interface(interface);
-      auto prefix = prefix_interface_type_pair.first;
-      auto interface_type = prefix_interface_type_pair.second;
-      if (controller_chain_map.find(prefix) != controller_chain_map.end())
+      // check for chained interfaces
+      for (const auto & interface : controller_state.required_command_interfaces)
       {
-        controller_chain_map[controller_state.name].insert(prefix);
-        controller_chain_interface_map[controller_state.name].push_back(interface_type);
+        auto prefix_interface_type_pair = split_command_interface(interface);
+        auto prefix = prefix_interface_type_pair.first;
+        auto interface_type = prefix_interface_type_pair.second;
+        if (controller_chain_map.find(prefix) != controller_chain_map.end())
+        {
+          controller_chain_map[controller_state.name].insert(prefix);
+          controller_chain_interface_map[controller_state.name].push_back(interface_type);
+        }
       }
-    }
-    auto references = controllers[i].c->export_reference_interfaces();
-    controller_state.reference_interfaces.reserve(references.size());
-    for (const auto & reference : references)
-    {
-      controller_state.reference_interfaces.push_back(reference.get_interface_name());
+      // check reference interfaces only if controller is inactive or active
+      auto references = controllers[i].c->export_reference_interfaces();
+      controller_state.reference_interfaces.reserve(references.size());
+      for (const auto & reference : references)
+      {
+        controller_state.reference_interfaces.push_back(reference.get_interface_name());
+      }
     }
     response->controller.push_back(controller_state);
     // keep track of controllers that are part of a chain
@@ -2213,6 +2236,31 @@ void ControllerManager::read_data(){
 
     }
 
+  }
+
+void ControllerManager::controller_activity_diagnostic_callback(
+  diagnostic_updater::DiagnosticStatusWrapper & stat)
+{
+  // lock controllers
+  std::lock_guard<std::recursive_mutex> guard(rt_controllers_wrapper_.controllers_lock_);
+  const std::vector<ControllerSpec> & controllers = rt_controllers_wrapper_.get_updated_list(guard);
+  bool all_active = true;
+  for (size_t i = 0; i < controllers.size(); ++i)
+  {
+    if (!is_controller_active(controllers[i].c))
+    {
+      all_active = false;
+    }
+    stat.add(controllers[i].info.name, controllers[i].c->get_state().label());
+  }
+
+  if (all_active)
+  {
+    stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "All controllers are active");
+  }
+  else
+  {
+    stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Not all controllers are active");
   }
 
 }
