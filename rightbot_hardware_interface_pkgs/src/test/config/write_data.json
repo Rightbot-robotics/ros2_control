@@ -1,0 +1,10 @@
+{
+    "timeout": 0,
+    "mode": "velocity",
+    "velocity": 0,
+    "relative_pos": 0,
+    "max_vel": 0,
+    "accel": 0,
+    "decel": 0
+    
+}

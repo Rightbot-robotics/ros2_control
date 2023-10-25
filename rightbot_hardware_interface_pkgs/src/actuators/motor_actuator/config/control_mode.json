@@ -1,0 +1,4 @@
+{
+    "action": "change_control_mode",
+    "control_mode": "enable"
+}

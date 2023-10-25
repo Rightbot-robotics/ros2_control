@@ -1,0 +1,9 @@
+{
+  "sensor_name": "dummy_sensor_1",
+  "sensor_data_type": "sensor_2",
+  "x": 5,
+  "y": 6,
+  "ang": 0,
+  "status": "offline"
+}
+ 

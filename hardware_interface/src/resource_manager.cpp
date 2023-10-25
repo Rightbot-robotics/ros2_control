@@ -788,6 +788,7 @@ bool ResourceManager::command_interface_exists(const std::string & key) const
 bool ResourceManager::command_interface_is_available(const std::string & name) const
 {
   std::lock_guard<std::recursive_mutex> guard(resource_interfaces_lock_);
+  
   return std::find(
            resource_storage_->available_command_interfaces_.begin(),
            resource_storage_->available_command_interfaces_.end(),

@@ -9,6 +9,10 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     ament_index_cpp
     controller_interface
     controller_manager_msgs
+    rightbot_hardware_interface
+    pluginlib
+    rclcpp
+    rightbot_interfaces
     diagnostic_updater
     hardware_interface
     pluginlib

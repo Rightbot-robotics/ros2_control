@@ -52,6 +52,11 @@
 #include "rclcpp/node_interfaces/node_parameters_interface.hpp"
 #include "rclcpp/parameter.hpp"
 
+#include "rightbot_interfaces/srv/motor_recovery.hpp"
+#include "rightbot_interfaces/srv/gripper.hpp"
+#include "rightbot_interfaces/msg/ros_control_error.hpp"
+#include "rightbot_interfaces/srv/camera_align.hpp"
+
 namespace controller_manager
 {
 using ControllersListIterator = std::vector<controller_manager::ControllerSpec>::const_iterator;
@@ -189,6 +194,65 @@ public:
   // Per controller update rate support
   CONTROLLER_MANAGER_PUBLIC
   unsigned int get_update_rate() const;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void exit();
+
+  CONTROLLER_MANAGER_PUBLIC
+  void handle_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Response> response
+  );
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::MotorRecovery>> motor_recovery_server;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void handle_gripper_pump_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+  );
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::Gripper>> gripper_server;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void camera_align_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Response> response
+  );
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::CameraAlign>> camera_align_server;
+
+  CONTROLLER_MANAGER_PUBLIC
+  rclcpp::Publisher<rightbot_interfaces::msg::RosControlError>::SharedPtr error_publisher;
+
+  CONTROLLER_MANAGER_PUBLIC
+  class Error {
+    public:
+        std::thread thread;
+        std::mutex mutex;
+    } error_;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void error_monitoring();
+
+  CONTROLLER_MANAGER_PUBLIC
+  void camera_homing();
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::thread read_thread_;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void read_data();
+
+  CONTROLLER_MANAGER_PUBLIC
+  bool read_data_start = false;
+
 
 protected:
   CONTROLLER_MANAGER_PUBLIC

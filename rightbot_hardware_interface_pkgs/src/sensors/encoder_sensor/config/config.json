@@ -1,0 +1,23 @@
+{
+    "sensor_list": [
+      {
+        "sensor_name": "wheel_left_encoder",
+        "sensor_data_type": "motor_encoder_sensor",
+        "motor_id": 12,
+        "motor_axis": 1
+      },
+      {
+        "sensor_name": "wheel_right_encoder",
+        "sensor_data_type": "motor_encoder_sensor",
+        "motor_id": 13,
+        "motor_axis": 1
+      },
+      {
+        "sensor_name": "rotate_motor_encoder",
+        "sensor_data_type": "motor_encoder_sensor",
+        "motor_id": 15,
+        "motor_axis": 1
+      }
+      
+    ]
+  }

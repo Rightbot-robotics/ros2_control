@@ -168,6 +168,7 @@ ControllerManager::ControllerManager(
   diagnostics_updater_.add(
     "Controllers Activity", this, &ControllerManager::controller_activity_diagnostic_callback);
   init_services();
+
 }
 
 ControllerManager::ControllerManager(
@@ -225,6 +226,8 @@ void ControllerManager::init_resource_manager(const std::string & robot_descript
   {
     resource_manager_->activate_all_components();
   }
+
+  resource_manager_->clear_can_buffer();
 }
 
 void ControllerManager::init_services()
@@ -279,6 +282,32 @@ void ControllerManager::init_services()
       "~/set_hardware_component_state",
       std::bind(&ControllerManager::set_hardware_component_state_srv_cb, this, _1, _2),
       rmw_qos_profile_services_hist_keep_all, best_effort_callback_group_);
+
+  motor_recovery_server =
+    create_service<rightbot_interfaces::srv::MotorRecovery>("motor_recovery", std::bind(
+        &ControllerManager::handle_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  gripper_server =
+    create_service<rightbot_interfaces::srv::Gripper>("gripper_pump_control", std::bind(
+        &ControllerManager::handle_gripper_pump_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+  error_publisher = 
+    create_publisher<rightbot_interfaces::msg::RosControlError>("arm_error_topic", 10);
+
+  error_.thread = std::thread(&ControllerManager::error_monitoring, this);
+
+  camera_align_server =
+    create_service<rightbot_interfaces::srv::CameraAlign>("camera_align", std::bind(
+        &ControllerManager::camera_align_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+  read_thread_ = std::thread(&ControllerManager::read_data, this);
+
+
 }
 
 controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_controller(
@@ -1668,7 +1697,8 @@ std::vector<std::string> ControllerManager::get_controller_names()
 
 void ControllerManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-  resource_manager_->read(time, period);
+  read_data_start = true;
+  // resource_manager_->read(time, period);
 }
 
 controller_interface::return_type ControllerManager::update(
@@ -2051,6 +2081,163 @@ controller_interface::return_type ControllerManager::check_preceeding_controller
   return controller_interface::return_type::OK;
 };
 
+void ControllerManager::exit()
+{
+  resource_manager_->deactivate_all_components();
+}
+
+void ControllerManager::handle_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::MotorRecovery::Response> response
+)
+{
+  RCLCPP_INFO(get_logger(), "Motor recovery service for '%s'", request->motor_name.c_str());
+
+  if(request->function_name == "RESET_FAULT"){
+    RCLCPP_INFO(get_logger(), "Function name '%s'", request->function_name.c_str());
+    resource_manager_->reset_component(request->motor_name);
+  }
+  else if(request->function_name == "REINITIALIZE_ACTUATOR"){
+    RCLCPP_INFO(get_logger(), "Function name '%s'", request->function_name.c_str());
+    resource_manager_->reinitialize_actuator(request->motor_name);
+  }
+  else {
+    RCLCPP_INFO(get_logger(), "Function name '%s' not recognized", request->function_name.c_str());
+  }
+
+
+  response->status = true;
+
+}
+
+void ControllerManager::handle_gripper_pump_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
+)
+{
+  //
+  RCLCPP_INFO(get_logger(), "GRIPPER/PUMP service.");
+
+  resource_manager_->driver_one_gpio_control(request->pump_one, request->gripper_one);
+
+  resource_manager_->driver_two_gpio_control(request->pump_two, request->gripper_two);
+
+}
+
+void ControllerManager::camera_align_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::CameraAlign::Response> response
+)
+{
+  RCLCPP_INFO(get_logger(), "camera_align_service");
+  if(request->auto_align){
+    std::string camera_name = request->camera_name;
+    if(("left_camera" == camera_name) || ("right_camera" == camera_name)){
+      RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting auto alignment to [%s] camera",camera_name.c_str());
+      resource_manager_->auto_alignment(true, camera_name);
+    } else {
+      RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting auto alignment. Camera name [%s] not recognized",camera_name.c_str());
+      // stop the auto alignment
+      camera_name = "invalid";
+      resource_manager_->auto_alignment(false, camera_name);
+    }
+
+  } else {
+    // stop the auto alignment
+    std::string camera_name = "invalid";
+    resource_manager_->auto_alignment(false, camera_name);
+    
+    double angle_in_degree = request->angle;
+    RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting manual alignment. Received angle %f degrees", angle_in_degree);
+    double angle_to_command = angle_in_degree *(3.14/180.0);
+    RCLCPP_INFO(get_logger(), "[camera_align_service] Command angle %f radian", angle_to_command);
+    bool alignment_status = resource_manager_->camera_align_service_handle(angle_to_command);
+
+    if(alignment_status == true){
+      response->status = true;
+    }
+    else{
+      response->status = false;
+    }
+  }
+  
+
+}
+
+void ControllerManager::error_monitoring(){
+
+  hardware_interface::ComponentErrorData error_data_;
+
+  bool system_error = false;
+
+  auto publish_time = std::chrono::system_clock::now();
+
+  while(true){
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    resource_manager_->get_error_data(&error_data_, &system_error);
+
+    int components_number = error_data_.component_name.size();
+
+    auto message = rightbot_interfaces::msg::RosControlError();
+
+    for (auto & component : error_data_.component_name) {
+      //
+      message.component_name = error_data_.component_name;
+      message.status = error_data_.status;
+      message.error_register = error_data_.error_register;
+      message.error_type = error_data_.error_type;
+    }
+
+    auto time_passed_since_last_error_published = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - publish_time);
+    if(time_passed_since_last_error_published.count()> 50){
+      error_publisher->publish(message);
+      publish_time = std::chrono::system_clock::now();
+
+    }
+
+    if(system_error){
+      //send stopping command to all actuators
+    }
+  }
+}
+
+void ControllerManager::camera_homing(){
+  // resource_manager_->camera_homing();
+
+}
+
+void ControllerManager::read_data(){
+
+  RCLCPP_INFO(get_logger(), "read data thread");
+
+  while(true){
+    // RCLCPP_INFO(get_logger(), "read thread false");
+    if(read_data_start){
+
+      // RCLCPP_INFO(get_logger(), "read thread true");
+
+      rclcpp::Time previous_time = rclcpp::Clock().now();;
+      auto const current_time = rclcpp::Clock().now();;
+      auto const measured_period = current_time - previous_time;
+      // previous_time = current_time;
+
+      auto read_start_time = std::chrono::high_resolution_clock::now(); 
+
+      resource_manager_->read(current_time, measured_period);
+
+      auto read_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - read_start_time);
+
+      std::this_thread::sleep_for(std::chrono::microseconds(20000-read_time.count()));
+
+    }
+
+  }
+
 void ControllerManager::controller_activity_diagnostic_callback(
   diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
@@ -2075,6 +2262,7 @@ void ControllerManager::controller_activity_diagnostic_callback(
   {
     stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Not all controllers are active");
   }
+
 }
 
 }  // namespace controller_manager

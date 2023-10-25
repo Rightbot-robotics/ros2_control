@@ -1,0 +1,22 @@
+{
+    "motor_actuator": {
+        "motor_ppr" : 4096,
+        "using_default_max_velocity": "yes",
+        "using_default_acceleration": "yes",
+        "default_max_velocity": 50.0,
+        "default_acceleration": 10.0
+    },
+
+    "harmonic_motor_actuator": {
+        "motor_ppr" : 524288,
+        "using_default_max_velocity": "yes",
+        "using_default_acceleration": "yes",
+        "default_max_velocity": 2.0,
+        "default_acceleration": 1.0
+    }
+
+}
+
+
+
+  

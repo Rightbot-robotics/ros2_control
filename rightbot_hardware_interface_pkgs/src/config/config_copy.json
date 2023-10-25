@@ -1,0 +1,232 @@
+{
+    "controller_manager": {
+        "sensors": {
+            "lidar": {
+                "active_status" : "false"
+            },
+            "realsense": {
+                "active_status" : "true"
+            }
+        },
+        "read_loop_frequency_in_ms": 10
+    },
+
+    "command_interface": {
+        "actuator_list": [
+            {
+                "actuator_name": "wheel_left",
+                "actuator_data_type": "motor_actuator",
+                "can_id": 12,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "wheel_right",
+                "actuator_data_type": "motor_actuator",
+                "can_id": 13,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "lifting_motor_one",
+                "actuator_data_type": "motor_actuator",
+                "can_id": 14,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "harmonic_motor_one",
+                "actuator_data_type": "harmonic_motor_actuator",
+                "can_id": 16,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "harmonic_motor_two",
+                "actuator_data_type": "harmonic_motor_actuator",
+                "can_id": 17,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "harmonic_motor_three",
+                "actuator_data_type": "harmonic_motor_actuator",
+                "can_id": 18,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "harmonic_motor_four",
+                "actuator_data_type": "harmonic_motor_actuator",
+                "can_id": 19,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "harmonic_motor_five",
+                "actuator_data_type": "harmonic_motor_actuator",
+                "can_id": 20,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            },
+            {
+                "actuator_name": "harmonic_motor_six",
+                "actuator_data_type": "harmonic_motor_actuator",
+                "can_id": 21,
+                "motor_axis": 1,
+                "actuator_group_coupled": "yes",
+                "actuator_group_number": 1
+            }
+        ]
+    },
+        
+    "state_interface": {
+        "sensor_list": [
+            {
+                "sensor_name": "wheel_left",
+                "sensor_data_type": "encoder_sensor",
+                "can_id": 12,
+                "motor_axis": 1  
+            },
+            {
+                "sensor_name": "wheel_right",
+                "sensor_data_type": "encoder_sensor",
+                "can_id": 13,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "lifting_motor_one",
+                "sensor_data_type": "encoder_sensor",
+                "can_id": 14,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "harmonic_motor_one",
+                "sensor_data_type": "harmonic_motor_encoder_sensor",
+                "can_id": 16,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "harmonic_motor_two",
+                "sensor_data_type": "harmonic_motor_encoder_sensor",
+                "can_id": 17,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "harmonic_motor_three",
+                "sensor_data_type": "harmonic_motor_encoder_sensor",
+                "can_id": 18,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "harmonic_motor_four",
+                "sensor_data_type": "harmonic_motor_encoder_sensor",
+                "can_id": 19,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "harmonic_motor_five",
+                "sensor_data_type": "harmonic_motor_encoder_sensor",
+                "can_id": 20,
+                "motor_axis": 1
+            },
+            {
+                "sensor_name": "harmonic_motor_six",
+                "sensor_data_type": "harmonic_motor_encoder_sensor",
+                "can_id": 21,
+                "motor_axis": 1
+            }
+
+        ]
+    },
+
+    "motor_actuator": {
+        "write_data" : {
+            "timeout": 0,
+            "mode": "velocity",
+            "velocity": 0,
+            "relative_pos": 0,
+            "max_vel": 0,
+            "accel": 0,
+            "decel": 0
+        },
+
+        "control_mode" : {
+            "action": "change_control_mode",
+            "control_mode": "enable"
+        }
+    },
+
+    "encoder_sensor": {
+        "motor_data" : {
+        "status": 0,
+        "battery_voltage": 0,
+        "counts": 0,
+        "velocity": 0,
+        "manufacturer_register": 0,
+        "latched_fault": 0,
+        "read_status": 0,
+        "timestamp": 0
+        }
+    },
+
+    "barcode_sensor": {
+        "sensor_name": "dummy_sensor_1",
+        "sensor_data_type": "sensor_2",
+        "x": 5,
+        "y": 6,
+        "ang": 0,
+        "status": "offline"
+    },
+
+    "node_guarding": {
+        "connection_break_interval_in_ms": 200,
+        "logging_interval_in_ms": 21
+    },
+
+    "diff_controller": {
+        "wheel_radius": 0.1,
+        "wheel_diameter": 0.2,
+        "encoder_counts": 4096,
+        "wheel_separation": 0.380
+    },
+
+    "sync_turn_controller": {
+        "wheel_radius": 0.1,
+        "wheel_diameter": 0.2,
+        "encoder_counts": 4096,
+        "wheel_separation": 0.380,
+        "robot_length": 2.2,
+        "diff_drive_angle": 90.0,
+        "center_of_rotation": 0.0,
+        "rotation_time": 2.0,
+        "rotation_time_diff_drive": 2.0,
+        "rotate_motor_cpr": 524287
+    },
+
+    "spline_turn_controller": {
+        "wheel_radius": 0.1,
+        "wheel_diameter": 0.2,
+        "encoder_counts": 4096,
+        "robot_length": 2.2,
+        "cutoff_distance": 2.3,
+        "omni_wheel_distance": 2.2,
+        "position_mode_accel": 7.5,
+        "position_mode_max_vel": 1125.0
+    }
+
+
+
+}
+
+
+
+  

@@ -15,6 +15,7 @@
   <depend>backward_ros</depend>
   <depend>controller_interface</depend>
   <depend>controller_manager_msgs</depend>
+  <depend>rightbot_hardware_interface</depend>
   <depend>diagnostic_updater</depend>
   <depend>hardware_interface</depend>
   <depend>launch</depend>
@@ -26,6 +27,17 @@
   <depend>ros2_control_test_assets</depend>
   <depend>ros2param</depend>
   <depend>ros2run</depend>
+  <depend>rightbot_interfaces</depend>
+
+  <depend>actuator</depend>
+  <depend>sensor</depend>
+  <depend>motor</depend>
+  <depend>socketcan_pkg</depend>
+  <depend>canopen_pkg</depend>
+  <depend>motor_actuator</depend>
+  <depend>encoder_sensor</depend>
+  <depend>harmonic_motor_actuator</depend>
+  <depend>absolute_encoder_sensor</depend>
 
   <test_depend>ament_cmake_gmock</test_depend>
 
