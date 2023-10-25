@@ -2237,6 +2237,7 @@ void ControllerManager::read_data(){
     }
 
   }
+}
 
 void ControllerManager::controller_activity_diagnostic_callback(
   diagnostic_updater::DiagnosticStatusWrapper & stat)
