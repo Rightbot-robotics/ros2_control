@@ -65,6 +65,8 @@ public:
 
     void data_request() override;
 
+    void node_guarding_request() override;
+
     void init_json(std::string path);
 
 

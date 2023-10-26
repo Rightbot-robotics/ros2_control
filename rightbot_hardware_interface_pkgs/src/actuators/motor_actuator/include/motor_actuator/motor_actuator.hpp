@@ -68,6 +68,8 @@ public:
 
     void data_request() override;
 
+    void node_guarding_request() override;
+
 
 private:
 

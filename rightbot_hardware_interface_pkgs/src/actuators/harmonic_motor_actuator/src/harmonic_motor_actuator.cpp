@@ -386,6 +386,11 @@ void HarmonicMotorActuator::data_request(){
     requestData();
 }
 
+void HarmonicMotorActuator::node_guarding_request(){
+	
+	//node guarding not available on current firmware
+
+}
 
 bool HarmonicMotorActuator::Homing(){
 

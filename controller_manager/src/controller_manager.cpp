@@ -2174,12 +2174,19 @@ void ControllerManager::error_monitoring(){
   bool system_error = false;
 
   auto publish_time = std::chrono::system_clock::now();
+  
+  bool system_error_status = false;
 
   while(true){
 
+
+    if(!system_error_status){
+      resource_manager_->node_guarding_requests();
+    }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-    resource_manager_->get_error_data(&error_data_, &system_error);
+    system_error_status = resource_manager_->get_error_data(&error_data_, &system_error);
 
     int components_number = error_data_.component_name.size();
 

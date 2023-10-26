@@ -560,6 +560,12 @@ void MotorActuator::homing_execution(double &homing_pos){
 
 }
 
+void MotorActuator::node_guarding_request(){
+    
+    motor_controls_->nodeGuardingRequest();
+
+}
+
 bool MotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base

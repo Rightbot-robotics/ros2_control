@@ -107,6 +107,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   void data_request();
 
+  HARDWARE_INTERFACE_PUBLIC
+  void node_guarding_request();
+
 private:
   std::unique_ptr<ActuatorInterface> impl_;
 };

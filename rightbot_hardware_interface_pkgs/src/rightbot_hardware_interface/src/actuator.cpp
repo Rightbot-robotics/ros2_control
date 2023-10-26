@@ -272,4 +272,8 @@ void Actuator::data_request(){
   impl_->data_request();
 }
 
+void Actuator::node_guarding_request(){
+  impl_->node_guarding_request();
+}
+
 }  // namespace hardware_interface

@@ -393,7 +393,7 @@ public:
 
   void clear_can_buffer();
 
-  void get_error_data(ComponentErrorData *error_data_, bool *system_error_status);
+  bool get_error_data(ComponentErrorData *error_data_, bool *system_error_status);
 
   std::string get_zlac_driver_error(int error);
 
@@ -425,6 +425,7 @@ public:
   void auto_alignment(bool status, std::string camera_name);
   bool auto_alignment_status = false;
   std::string auto_align_camera_name;
+  void node_guarding_requests();
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;

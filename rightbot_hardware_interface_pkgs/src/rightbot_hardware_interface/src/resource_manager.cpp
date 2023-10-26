@@ -1623,7 +1623,27 @@ std::string ResourceManager::get_harmonic_driver_error(int error){
   
 }
 
-void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *system_error_status){
+void ResourceManager::node_guarding_requests(){
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    auto component_name = component.get_name();
+
+    if(component_name == "Hardware_TruckUnloading_h_gantry_joint") {
+      component.data_request();
+      
+    }
+
+    if(component_name == "Hardware_TruckUnloading_v_gantry_joint") {
+      component.data_request();
+      
+    }
+
+  }
+
+}
+
+bool ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *system_error_status){
 
   int components_number = resource_storage_->actuators_.size();
 
@@ -1713,6 +1733,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
     *system_error_status = error_status;
 
   }
+  return error_status;
 
 }
 
