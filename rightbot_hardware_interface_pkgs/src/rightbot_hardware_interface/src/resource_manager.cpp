@@ -1630,12 +1630,12 @@ void ResourceManager::node_guarding_requests(){
     auto component_name = component.get_name();
 
     if(component_name == "Hardware_TruckUnloading_h_gantry_joint") {
-      component.data_request();
+      component.node_guarding_request();
       
     }
 
     if(component_name == "Hardware_TruckUnloading_v_gantry_joint") {
-      component.data_request();
+      component.node_guarding_request();
       
     }
 
@@ -1643,7 +1643,7 @@ void ResourceManager::node_guarding_requests(){
 
 }
 
-bool ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *system_error_status){
+void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *system_error_status){
 
   int components_number = resource_storage_->actuators_.size();
 
@@ -1691,7 +1691,7 @@ bool ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
           logger_->info("[{}] - Interval between responses > {} us: {} milliseconds", component_name, connection_break_interval, time_passed_response_.count());
           actuator_connection_break_status_[component_name] = true;
           
-          error_status = error_status && true;
+          error_status = error_status || true;
         }
       }
       
@@ -1714,7 +1714,7 @@ bool ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
 
     if((error_register != 0.0) && (actuator_connection_break_status_[component_name] == true)){
       error_type = error_type + " Connection break ";
-      error_status = error_status && true;
+      error_status = error_status || true;
       // logger_->error("[{}] - test log [{}] ", component_name, error_type);
 
     } else if((error_register == 0.0) && (actuator_connection_break_status_[component_name] == true)) {
@@ -1730,10 +1730,10 @@ bool ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
     error_data_->error_register.push_back(error_register);
     error_data_->error_type.push_back(error_type);
 
+    // logger_->debug("[node_guarding] error status {}", error_status);
     *system_error_status = error_status;
 
   }
-  return error_status;
 
 }
 

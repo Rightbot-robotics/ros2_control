@@ -2180,13 +2180,15 @@ void ControllerManager::error_monitoring(){
   while(true){
 
 
-    if(!system_error_status){
+    if(!system_error){
       resource_manager_->node_guarding_requests();
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-    system_error_status = resource_manager_->get_error_data(&error_data_, &system_error);
+    resource_manager_->get_error_data(&error_data_, &system_error);
+    // RCLCPP_INFO(get_logger(), "error monitoring %d", system_error);
+
 
     int components_number = error_data_.component_name.size();
 

@@ -393,7 +393,7 @@ public:
 
   void clear_can_buffer();
 
-  bool get_error_data(ComponentErrorData *error_data_, bool *system_error_status);
+  void get_error_data(ComponentErrorData *error_data_, bool *system_error_status);
 
   std::string get_zlac_driver_error(int error);
 
