@@ -202,7 +202,6 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
 
             return CallbackReturn::ERROR;
         }
-        
     }
  
     logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
@@ -215,6 +214,10 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     if(motor_name_ == "camera_rotation_joint"){
         velocity_mode = false;
         motor_controls_->motorSetmode("position");
+    } else{
+        // except camera all other motors have node guarding
+        motor_->set_guard_time(motor_id_,50);
+        motor_->set_life_time_factor(motor_id_,6);
     }
 
     if(velocity_mode){

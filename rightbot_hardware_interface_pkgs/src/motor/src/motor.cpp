@@ -173,7 +173,6 @@ bool Motor::motor_init(int motor_id) {
         return MOTOR_ERROR;
     }
 
-
     // set_guard_time(motor_id, 50);
     // set_life_time_factor(motor_id, 4);
     // logger_->info("Node guard error handling setting for motor: [{}]", motor_sockets->motor_name_);
