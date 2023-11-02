@@ -32,7 +32,7 @@ bool HarmonicMotorActuatorSockets::createSockets(int motor_id) {
         can_interface = "can0";
     }
     else{
-        can_interface = "can0";
+        can_interface = "can2";
     }
 
     // Open connections to the CAN-network
