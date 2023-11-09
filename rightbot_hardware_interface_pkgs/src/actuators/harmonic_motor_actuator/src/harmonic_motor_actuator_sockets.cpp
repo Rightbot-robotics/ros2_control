@@ -29,10 +29,10 @@ bool HarmonicMotorActuatorSockets::createSockets(int motor_id) {
 
     std::string can_interface;
     if(motor_name_ == "base_rotation_joint"){
-        can_interface = "can0";
+        can_interface = "can2";
     }
     else{
-        can_interface = "can2";
+        can_interface = "can0";
     }
 
     // Open connections to the CAN-network
