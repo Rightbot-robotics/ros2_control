@@ -1101,8 +1101,8 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 
   if(!component_available){
     camera_homing_status = true;
-    RCUTILS_LOG_ERROR_NAMED(
-    "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
+    // RCUTILS_LOG_ERROR_NAMED(
+    // "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
   }
 
   if(camera_homing_status && auto_alignment_status){
@@ -1889,6 +1889,74 @@ void ResourceManager::auto_alignment(bool status, std::string camera_name){
   } else {
     // stop auto alignment
     auto_alignment_status = false;
+  }
+
+}
+
+void ResourceManager::lift_conveyor(float height){
+
+  bool component_available = false;
+  std::string actuator_name = "TruckUnloading_camera_rotation_joint";
+
+  if(height < 0.27){
+    height = 0.270;
+  }
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[lift_conveyor] available components %s ",current_component_.c_str());
+
+    if(current_component_ == actuator_name){
+      component_available = true;
+
+      auto command_interfaces = component.export_command_interfaces();
+      for (auto & current_interface : command_interfaces){
+
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+          // double angle_to_command = static_cast<double>(align_angle);
+          // current_interface.set_value(angle_to_command);
+          RCUTILS_LOG_DEBUG_NAMED(
+            "resource_manager", "[lift_conveyor] %s align angle '%f' ",actuator_name.c_str(), height);
+        }
+      }
+    }
+
+    
+  }
+
+  for (auto & component : resource_storage_->systems_)
+  {
+    std::string current_component_ = component.get_name();
+    auto command_interfaces = component.export_command_interfaces();
+    
+    RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[lift_conveyor] current system component %s ",current_component_.c_str());
+    for (auto & current_interface : command_interfaces){
+      std::string interface_name = current_interface.get_name();
+
+      if(interface_name == "hinge_joint/position"){
+        component_available = true;
+        RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[lift_conveyor] fake system available component hinge_joint/position");
+        float height_in_mm = height * 1000 ;
+        float angle = acos((825-height_in_mm)/2932.5533) - 79.1105*(3.14/180);
+        RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[lift_conveyor] hinge joint height received: %f, angle to joint : %f", height, angle);
+        current_interface.set_value(angle);
+        }
+
+      }
+      
+    
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[lift_conveyor] Component %s not available ", actuator_name.c_str());
+
   }
 
 }

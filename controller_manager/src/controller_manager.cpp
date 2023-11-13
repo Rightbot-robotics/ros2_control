@@ -294,6 +294,13 @@ void ControllerManager::init_services()
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
+  dummy_conveyor_server =
+    create_service<rightbot_interfaces::srv::DummyConveyorCommand>("dummy_conveyor_control", std::bind(
+        &ControllerManager::dummy_conveyor_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+
   error_publisher = 
     create_publisher<rightbot_interfaces::msg::RosControlError>("arm_error_topic", 10);
 
@@ -2165,6 +2172,20 @@ void ControllerManager::camera_align_service(
   }
   
 
+}
+
+void ControllerManager::dummy_conveyor_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::DummyConveyorCommand::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::DummyConveyorCommand::Response> response
+)
+{
+
+  RCLCPP_INFO(get_logger(), "dummy conveyor service");
+
+  resource_manager_->lift_conveyor(request->height);
+  
+  response->status = true;
 }
 
 void ControllerManager::error_monitoring(){

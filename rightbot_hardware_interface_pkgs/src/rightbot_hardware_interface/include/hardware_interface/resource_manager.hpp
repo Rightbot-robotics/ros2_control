@@ -426,6 +426,7 @@ public:
   bool auto_alignment_status = false;
   std::string auto_align_camera_name;
   void node_guarding_requests();
+  void lift_conveyor(float height);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
