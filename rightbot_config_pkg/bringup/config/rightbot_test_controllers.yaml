@@ -13,9 +13,7 @@ controller_manager:
 position_trajectory_controller:
   ros__parameters:
     joints:
-      - base_rotation_joint
-      - camera_joint
-
+      - hinge_joint
     command_interfaces:
       - position
       - velocity
