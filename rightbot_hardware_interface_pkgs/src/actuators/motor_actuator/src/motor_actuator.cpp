@@ -197,6 +197,9 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     motor_->motor_enable(motor_id_);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+    motor_->set_guard_time(motor_id_,0);
+    motor_->set_life_time_factor(motor_id_,0);
+
     if(homing_active){
         if(!Homing()){
 
@@ -214,10 +217,6 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     if(motor_name_ == "camera_rotation_joint"){
         velocity_mode = false;
         motor_controls_->motorSetmode("position");
-    } else{
-        // except camera all other motors have node guarding
-        motor_->set_guard_time(motor_id_,50);
-        motor_->set_life_time_factor(motor_id_,6);
     }
 
     if(velocity_mode){
@@ -636,6 +635,10 @@ bool MotorActuator::Homing(){
     else{
         // std::cout << "homing achieved" << std::endl;
         logger_->info("[{}] Homing achieved", motor_name_);
+        if(motor_name_ != "camera_rotation_joint"){
+            motor_->set_guard_time(motor_id_,50);
+            motor_->set_life_time_factor(motor_id_,6);
+        }
         return true;
     }
 
