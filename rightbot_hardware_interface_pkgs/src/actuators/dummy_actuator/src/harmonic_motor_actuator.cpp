@@ -158,25 +158,25 @@ std::vector<hardware_interface::CommandInterface> DummyActuator::export_command_
 hardware_interface::return_type DummyActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     
-    status_state_ = 1;
-    error_code_state_ = 1;
+    status_state_ = 0;
+    error_code_state_ = 0;
 	actual_motor_current_state_ = 0.0;
 
-	int offset_count = 1;
+	int offset_count = 0;
     position_state_ = position_command_;// axis multiplication for read
     velocity_state_ = 0.0;
 
-    node_guard_error_state_ = 1;
+    node_guard_error_state_ = 0;
 
-	if(sensor_data["read_status"].asBool() == true) {
-		logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
-	    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
-    	logger_->debug("[{}] Read node_guard_error_state_: [{}]", motor_name_, node_guard_error_state_);
+	// if(sensor_data["read_status"].asBool() == true) {
+	// 	logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
+	//     logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
+    // 	logger_->debug("[{}] Read node_guard_error_state_: [{}]", motor_name_, node_guard_error_state_);
 
-	}
-	else {
-		logger_->debug("[{}] read status false", motor_name_);
-	}
+	// }
+	// else {
+	// 	logger_->debug("[{}] read status false", motor_name_);
+	// }
 	
     return hardware_interface::return_type::OK;
 }
