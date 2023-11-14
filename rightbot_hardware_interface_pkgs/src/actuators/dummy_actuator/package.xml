@@ -23,7 +23,7 @@
 
     <export>
         <build_type>ament_cmake</build_type>
-        <dummy_actuator plugin="harmonic_motor_actuator_plugin_description.xml" />
+        <dummy_actuator plugin="dummy_actuator_plugin_description.xml" />
 
     </export>
 </package>

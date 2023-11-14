@@ -3,23 +3,23 @@
 //
 
 #include "harmonic_motor_actuator/harmonic_motor_actuator.hpp"
-PLUGINLIB_EXPORT_CLASS(HarmonicMotorActuator, hardware_interface::ActuatorInterface)
+PLUGINLIB_EXPORT_CLASS(DummyActuator, hardware_interface::ActuatorInterface)
 
 
-HarmonicMotorActuator::HarmonicMotorActuator() {
+DummyActuator::DummyActuator() {
 
 }
 
-HarmonicMotorActuator::~HarmonicMotorActuator(){
+DummyActuator::~DummyActuator(){
 
 	motorControlword(motor_id_, Disable_Voltage);
 
 
 }
 
-CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::HardwareInfo & info){
+CallbackReturn DummyActuator::on_init(const hardware_interface::HardwareInfo & info){
     // We hardcode the info
-    logger_ = spdlog::get("hardware_interface")->clone("harmonic_motor_actuator");
+    logger_ = spdlog::get("hardware_interface")->clone("dummy_actuator");
    
     // logger_->info(" Harmonic Motor Actuator Init");
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
@@ -32,7 +32,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
 
-	logger_->info("Harmonic Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
+	logger_->info("DummyActuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
@@ -90,7 +90,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State & previous_state){
+CallbackReturn DummyActuator::on_configure(const rclcpp_lifecycle::State & previous_state){
     
     logger_->info("on_configure for: [{}]",motor_name_);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -98,7 +98,7 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
+CallbackReturn DummyActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
 
 	logger_->info("on_configure for: [{}]",motor_name_);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -107,7 +107,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 
 }
 
-CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
+CallbackReturn DummyActuator::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
 	logger_->info("on_deactivate for: [{}]",motor_name_);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -116,7 +116,7 @@ CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::Stat
 
 }
 
-std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_state_interfaces(){
+std::vector<hardware_interface::StateInterface> DummyActuator::export_state_interfaces(){
     
     // We can read a position and a velocity
     std::vector<hardware_interface::StateInterface> state_interfaces;
@@ -138,7 +138,7 @@ std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_st
 
 }
 
-std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_command_interfaces(){
+std::vector<hardware_interface::CommandInterface> DummyActuator::export_command_interfaces(){
 
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -155,7 +155,7 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
 
 }
 
-hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
+hardware_interface::return_type DummyActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
     
     status_state_ = 1;
@@ -181,7 +181,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+hardware_interface::return_type DummyActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
 	if(previous_control_state_command_ != control_state_command_){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
@@ -200,45 +200,45 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
     return hardware_interface::return_type::OK;
 }
 
-CallbackReturn HarmonicMotorActuator::on_shutdown(const rclcpp_lifecycle::State & previous_state){
+CallbackReturn DummyActuator::on_shutdown(const rclcpp_lifecycle::State & previous_state){
 
 	return CallbackReturn::SUCCESS;
 
 }
 
-CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & previous_state){
+CallbackReturn DummyActuator::on_error(const rclcpp_lifecycle::State & previous_state){
 
 	return CallbackReturn::SUCCESS;
 
 }
 
-void HarmonicMotorActuator::fault_reset(){
+void DummyActuator::fault_reset(){
     logger_->debug("[{}] - reset fault", motor_name_);
 }
 
-void HarmonicMotorActuator::reinitialize_actuator(){
+void DummyActuator::reinitialize_actuator(){
     logger_->debug("[{}] - reinitialize actuator", motor_name_);
 }
 
-void HarmonicMotorActuator::clear_can_buffer(){
+void DummyActuator::clear_can_buffer(){
 
 }
 
-void HarmonicMotorActuator::homing_execution(double &homing_pos){
+void DummyActuator::homing_execution(double &homing_pos){
 
 }
 
-void HarmonicMotorActuator::data_request(){
+void DummyActuator::data_request(){
     
 }
 
-void HarmonicMotorActuator::node_guarding_request(){
+void DummyActuator::node_guarding_request(){
 	
 	//node guarding not available on current firmware
 
 }
 
-bool HarmonicMotorActuator::Homing(){
+bool DummyActuator::Homing(){
 
     Json::Value sensor_data_homing;
 	bool homing_achieved = false;
@@ -316,7 +316,7 @@ bool HarmonicMotorActuator::Homing(){
 
 }
 
-void HarmonicMotorActuator::init_json(std::string path){
+void DummyActuator::init_json(std::string path){
 
     Json::Value config_data;
     JsonRead config_parser("/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json");
@@ -346,7 +346,7 @@ void HarmonicMotorActuator::init_json(std::string path){
 
 }
 
-int HarmonicMotorActuator::initMotor(){
+int DummyActuator::initMotor(){
     // 
     int err = 0;
 
@@ -378,7 +378,7 @@ int HarmonicMotorActuator::initMotor(){
 
 }
 
-int HarmonicMotorActuator::motorConfigNode(int motor_id){
+int DummyActuator::motorConfigNode(int motor_id){
     int err = 0;
 	int num_PDOs;
 
@@ -451,7 +451,7 @@ int HarmonicMotorActuator::motorConfigNode(int motor_id){
 
 }
 
-int HarmonicMotorActuator::motorControlword(uint16_t motor_id, enum Epos_ctrl ctrl) {
+int DummyActuator::motorControlword(uint16_t motor_id, enum Epos_ctrl ctrl) {
 	
     SDO_data d;
 	d.nodeid = motor_id;
@@ -463,7 +463,7 @@ int HarmonicMotorActuator::motorControlword(uint16_t motor_id, enum Epos_ctrl ct
 	return SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int HarmonicMotorActuator::motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
+int DummyActuator::motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
 
 	SDO_data d;
 	d.nodeid = node_id;
@@ -475,7 +475,7 @@ int HarmonicMotorActuator::motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint
 	return SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int HarmonicMotorActuator::motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, uint8_t num_objects, Epos_pdo_mapping* objects) {
+int DummyActuator::motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, uint8_t num_objects, Epos_pdo_mapping* objects) {
 
 	
 	int err = 0;
@@ -513,7 +513,7 @@ int HarmonicMotorActuator::motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_
 	return SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int HarmonicMotorActuator::set_tpdo1_cobid(uint16_t node) {
+int DummyActuator::set_tpdo1_cobid(uint16_t node) {
 	SDO_data d;
 	d.nodeid = node;
 	d.index = 0x1800;
@@ -524,7 +524,7 @@ int HarmonicMotorActuator::set_tpdo1_cobid(uint16_t node) {
 	return SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int HarmonicMotorActuator::setTPDO_cobid(uint16_t node_id, uint8_t n){
+int DummyActuator::setTPDO_cobid(uint16_t node_id, uint8_t n){
 
 	auto tpdo_id = 0x00000180;
 
@@ -552,7 +552,7 @@ int HarmonicMotorActuator::setTPDO_cobid(uint16_t node_id, uint8_t n){
 
 }
 
-int HarmonicMotorActuator::motorSetmode(enum Motor_mode mode){
+int DummyActuator::motorSetmode(enum Motor_mode mode){
 
 	int err = 0;
 
@@ -569,7 +569,7 @@ int HarmonicMotorActuator::motorSetmode(enum Motor_mode mode){
 
 }
 
-int HarmonicMotorActuator::enableMotor(void) { 
+int DummyActuator::enableMotor(void) { 
 	int err = 0;
 	//Stop PDO-communication
 	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
@@ -584,7 +584,7 @@ int HarmonicMotorActuator::enableMotor(void) {
 	return err;
 }
 
-int HarmonicMotorActuator::disableMotor(void) {
+int DummyActuator::disableMotor(void) {
 	int err = 0;
 
 	//Stop PDO-communication
@@ -602,7 +602,7 @@ int HarmonicMotorActuator::disableMotor(void) {
 }
 
 
-int HarmonicMotorActuator::haltMotor(void) {
+int DummyActuator::haltMotor(void) {
 	int err = 0;
 
 	//Stop PDO-communication
@@ -615,7 +615,7 @@ int HarmonicMotorActuator::haltMotor(void) {
 	return err;
 }
 
-int HarmonicMotorActuator::resetFault(void) {
+int DummyActuator::resetFault(void) {
 	int err = 0;
 
 	//Stop PDO-communication
@@ -629,7 +629,7 @@ int HarmonicMotorActuator::resetFault(void) {
 	return err;
 }
 
-int HarmonicMotorActuator::reinitializeMotor(void) {
+int DummyActuator::reinitializeMotor(void) {
 	int err = 0;
 
     previous_mode = "not_set";
@@ -657,7 +657,7 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
     return err;
 }
 
-int HarmonicMotorActuator::quickStopMotor(void) {
+int DummyActuator::quickStopMotor(void) {
 	int err = 0;
 
 	//Stop PDO-communication
@@ -670,7 +670,7 @@ int HarmonicMotorActuator::quickStopMotor(void) {
 	return err;
 }
 
-int HarmonicMotorActuator::set_target_velocity(float vel) {
+int DummyActuator::set_target_velocity(float vel) {
 	int err = 0;
 
 	SDO_data d;
@@ -684,7 +684,7 @@ int HarmonicMotorActuator::set_target_velocity(float vel) {
 	return err;
 }
 
-int HarmonicMotorActuator::set_profile_velocity(float vel) {
+int DummyActuator::set_profile_velocity(float vel) {
 	int err = 0;
 
 	SDO_data d;
@@ -698,7 +698,7 @@ int HarmonicMotorActuator::set_profile_velocity(float vel) {
 	return err;
 }
 
-int HarmonicMotorActuator::set_profile_acc(float acc) {
+int DummyActuator::set_profile_acc(float acc) {
 	int err = 0;
 
 	SDO_data d;
@@ -712,7 +712,7 @@ int HarmonicMotorActuator::set_profile_acc(float acc) {
 	return err;
 }
 
-int HarmonicMotorActuator::set_profile_deacc(float deacc) {
+int DummyActuator::set_profile_deacc(float deacc) {
 	int err = 0;
 
 	SDO_data d;
@@ -726,17 +726,17 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 	return err;
 }
 
-int HarmonicMotorActuator::rpm_to_countspersec(float rpm) {
+int DummyActuator::rpm_to_countspersec(float rpm) {
 	int counts_per_sec = static_cast<int>((rpm*EROB_CPR)/60.0);
 	return counts_per_sec;
 }
 
-int HarmonicMotorActuator::motor_rps2_to_cps2(float rpss) {
+int DummyActuator::motor_rps2_to_cps2(float rpss) {
     int m_cps2 = (int)(rpss * EROB_CPR);
     return m_cps2;
 }
 
-int HarmonicMotorActuator::set_relative_position(int32_t pos) {
+int DummyActuator::set_relative_position(int32_t pos) {
 	
 	int err = 0;
 
@@ -768,7 +768,7 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 }
 
 
-void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
+void DummyActuator::writeData(Json::Value &actuator_data){
 
     actuator_data_["timeout"] = actuator_data["timeout"];
     actuator_data_["mode"] = actuator_data["mode"];
@@ -810,7 +810,7 @@ void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
 
 }
 
-void HarmonicMotorActuator::goToInitPos(){
+void DummyActuator::goToInitPos(){
 
 	set_profile_velocity(8);
 	set_profile_acc(8);
@@ -823,7 +823,7 @@ void HarmonicMotorActuator::goToInitPos(){
 
 }
 
-void HarmonicMotorActuator::sendNodeGuardingRequest(){
+void DummyActuator::sendNodeGuardingRequest(){
 
 	Socketcan_t data[1];
     uint32_t cob_id;
@@ -842,13 +842,13 @@ void HarmonicMotorActuator::sendNodeGuardingRequest(){
 
 }
 
-void HarmonicMotorActuator::requestData(){
+void DummyActuator::requestData(){
 	
 	encoder_sensor_->motor_request();
 
 }
 
-void HarmonicMotorActuator::changeActuatorControlMode(Json::Value &actuator_control_mode){
+void DummyActuator::changeActuatorControlMode(Json::Value &actuator_control_mode){
 
 	if (actuator_control_mode["action"].asString() == "change_control_mode"){
         if (actuator_control_mode["control_mode"].asString() == "motor_reset"){
@@ -883,12 +883,12 @@ void HarmonicMotorActuator::changeActuatorControlMode(Json::Value &actuator_cont
 
 }
 
-double HarmonicMotorActuator::radianToDegree(double rad){
+double DummyActuator::radianToDegree(double rad){
 	double degrees = rad * (180/3.14);
 	return degrees;
 }
 
-double HarmonicMotorActuator::degreeToRadian(double deg){
+double DummyActuator::degreeToRadian(double deg){
 	double radian = deg * (3.14/180);
 	return radian;
 }

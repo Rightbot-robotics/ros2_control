@@ -27,16 +27,16 @@
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-class HarmonicMotorActuator : public hardware_interface::ActuatorInterface {
+class DummyActuator : public hardware_interface::ActuatorInterface {
 
 public:
 
-    typedef std::shared_ptr<HarmonicMotorActuator> HarmonicMotorActuatorSPtr;
-    typedef std::unique_ptr<HarmonicMotorActuator> HarmonicMotorActuatorUPtr;
+    typedef std::shared_ptr<DummyActuator> DummyActuatorSPtr;
+    typedef std::unique_ptr<DummyActuator> DummyActuatorUPtr;
 
-    HarmonicMotorActuator();
+    DummyActuator();
 
-    ~HarmonicMotorActuator();
+    ~DummyActuator();
 
     void writeData(Json::Value &actuator_data);
 
