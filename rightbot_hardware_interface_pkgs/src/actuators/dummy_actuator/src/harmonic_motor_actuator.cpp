@@ -163,7 +163,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 	actual_motor_current_state_ = 0.0;
 
 	int offset_count = 1;
-    position_state_ = 0.0;// axis multiplication for read
+    position_state_ = position_command_;// axis multiplication for read
     velocity_state_ = 0.0;
 
     node_guard_error_state_ = 1;
