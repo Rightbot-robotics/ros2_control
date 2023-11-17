@@ -1947,11 +1947,11 @@ void ResourceManager::lift_conveyor(float height){
         component_available = true;
         RCUTILS_LOG_INFO_NAMED(
             "resource_manager", "[lift_conveyor] fake system available component hinge_joint/position");
-        float height_in_mm = height * 1000 ;
-        float angle = acos((825-height_in_mm)/2932.5533) - 79.1105*(3.14/180);
+        // float height_in_mm = height * 1000 ;
+        // float angle = acos((825-height_in_mm)/2932.5533) - 79.1105*(3.14/180);
         RCUTILS_LOG_INFO_NAMED(
-            "resource_manager", "[lift_conveyor] hinge joint height received: %f, angle to joint : %f", height, angle);
-        current_interface.set_value(angle);
+            "resource_manager", "[lift_conveyor] hinge angle: %f", height);
+        current_interface.set_value(height); //
         }
 
       }
