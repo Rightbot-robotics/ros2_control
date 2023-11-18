@@ -1922,8 +1922,8 @@ void ResourceManager::lift_conveyor(float height){
         if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
           // float height_in_mm = height * 1000 ;
           // float angle = acos((825-height_in_mm)/2932.5533) - 79.1105*(3.14/180);
-          RCUTILS_LOG_INFO_NAMED(
-              "resource_manager", "[lift_conveyor] hinge angle to joint : %f", height);
+          // RCUTILS_LOG_INFO_NAMED(
+          //     "resource_manager", "[lift_conveyor] hinge angle to joint : %f", height);
           current_interface.set_value(height);
         }
       }

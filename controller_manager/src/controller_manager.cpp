@@ -2181,7 +2181,7 @@ void ControllerManager::dummy_conveyor_service(
 )
 {
 
-  RCLCPP_INFO(get_logger(), "dummy conveyor service");
+  // RCLCPP_INFO(get_logger(), "dummy conveyor service");
 
   resource_manager_->lift_conveyor(request->height);
   
