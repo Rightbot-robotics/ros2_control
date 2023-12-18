@@ -108,7 +108,13 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     previous_mode = "not_set";
     harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
     
-	disableMotor();
+	resetHeartbeatConsumerTime();
+	NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
+	motorControlword(motor_id_, Disable_Voltage);
+	NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
+    NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Comunication);
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
     initMotor();
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
@@ -560,7 +566,7 @@ int HarmonicMotorActuator::initMotor(){
 
 	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node); 
 	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Comunication); 
-	// err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Node); 
+	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Node); 
 
     err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational); 
 	if (err != 0) {
@@ -841,7 +847,9 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 
     previous_mode = "not_set";
 	err |= resetHeartbeatConsumerTime();
+	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 	err |= motorControlword(motor_id_, Disable_Voltage);
+	err |= NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	logger_->info("Reinitializing motor: {}", motor_name_);
     err |= initMotor();
