@@ -276,4 +276,8 @@ void Actuator::node_guarding_request(){
   impl_->node_guarding_request();
 }
 
+void Actuator::send_heartbeat(){
+  impl_->send_heartbeat();
+}
+
 }  // namespace hardware_interface

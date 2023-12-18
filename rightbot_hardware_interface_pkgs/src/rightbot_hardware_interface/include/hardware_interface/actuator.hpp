@@ -110,6 +110,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   void node_guarding_request();
 
+  HARDWARE_INTERFACE_PUBLIC
+  void send_heartbeat();
+
 private:
   std::unique_ptr<ActuatorInterface> impl_;
 };

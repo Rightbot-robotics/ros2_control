@@ -238,6 +238,10 @@ void DummyActuator::node_guarding_request(){
 
 }
 
+void DummyActuator::send_heartbeat(){
+	return;
+}
+
 bool DummyActuator::Homing(){
 
     Json::Value sensor_data_homing;

@@ -1639,6 +1639,14 @@ void ResourceManager::node_guarding_requests(){
       
     }
 
+    if(component_name == "Hardware_TruckUnloading_elbow_rotation_joint") {
+      component.send_heartbeat();
+    }
+
+    if(component_name == "Hardware_TruckUnloading_base_rotation_joint") {
+      component.send_heartbeat();
+    }
+
   }
 
 }

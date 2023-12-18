@@ -209,6 +209,8 @@ public:
 
   virtual void node_guarding_request() = 0;
 
+  virtual void send_heartbeat() = 0;
+
   const rclcpp_lifecycle::State & get_state() const { return lifecycle_state_; }
 
   /// Set life-cycle state of the actuator hardware.

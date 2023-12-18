@@ -31,6 +31,8 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+	heartbeat_producer_node_id_ = (uint8_t)stoi(info.joints[0].parameters.at("heartbeat_producer_node_id"));
+	heartbeat_producer_time_ = (uint16_t)stoi(info.joints[0].parameters.at("heartbeat_producer_time"));
 
 	logger_->info("Harmonic Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 
@@ -106,6 +108,7 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     previous_mode = "not_set";
     harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
     
+	disableMotor();
     initMotor();
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
@@ -152,6 +155,8 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 		set_target_velocity(0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
+
+	setHeartbeatConsumerTime();
 
     return CallbackReturn::SUCCESS;
 
@@ -362,6 +367,37 @@ CallbackReturn HarmonicMotorActuator::on_error(const rclcpp_lifecycle::State & p
 
 }
 
+int HarmonicMotorActuator::setHeartbeatConsumerTime(){
+	int err;
+	SDO_data req;
+	req.nodeid = motor_id_;
+	req.index = 0x1016;
+	req.subindex = 0x01;
+	req.data.size = 4;
+	req.data.data = (heartbeat_producer_node_id_ << 16) | (heartbeat_producer_time_);
+	err = SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
+	if(err != 0){
+		logger_->error("Could not set Heartbeat Consumer Time");
+	}
+	else {
+		logger_->info("Set Heartbeat Consumer Time");
+	}
+	return err;
+}
+
+int HarmonicMotorActuator::resetHeartbeatConsumerTime(){
+	int err;
+	SDO_data req;
+	req.nodeid = motor_id_;
+	req.index = 0x1016;
+	req.subindex = 0x01;
+	req.data.size = 4;
+	req.data.data = 0x00;
+	err = SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
+	logger_->info("Reset Heartbeat Consumer Time");
+	return err;
+}
+
 void HarmonicMotorActuator::fault_reset(){
     logger_->debug("[{}] - reset fault", motor_name_);
 	resetFault();
@@ -389,6 +425,22 @@ void HarmonicMotorActuator::data_request(){
 void HarmonicMotorActuator::node_guarding_request(){
 	
 	//node guarding not available on current firmware
+
+}
+
+void HarmonicMotorActuator::send_heartbeat(){
+	
+	Socketcan_t data[1];
+    uint32_t cob_id;
+    uint32_t node_id;
+
+    data[0].size = 1;
+    data[0].data = 0x05;
+
+    node_id = (uint32_t)heartbeat_producer_node_id_;
+    cob_id = NMT_TX + node_id;
+
+    socketcan_write(harmonic_motor_actuator_sockets_->nmt_motor_cfg_fd, cob_id, 1, data);
 
 }
 
@@ -747,6 +799,7 @@ int HarmonicMotorActuator::disableMotor(void) {
 	encoder_sensor_->stop_read_thread();
 
 	std::this_thread::sleep_for(std::chrono::microseconds(50000));
+	err |= resetHeartbeatConsumerTime();
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	
 	//Close PDO-communication
@@ -787,6 +840,7 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 	int err = 0;
 
     previous_mode = "not_set";
+	err |= resetHeartbeatConsumerTime();
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	logger_->info("Reinitializing motor: {}", motor_name_);
@@ -807,6 +861,8 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 		set_target_velocity(0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
+
+	err |= setHeartbeatConsumerTime();
 
     return err;
 }

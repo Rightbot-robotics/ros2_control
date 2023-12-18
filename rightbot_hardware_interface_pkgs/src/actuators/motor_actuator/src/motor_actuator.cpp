@@ -568,6 +568,12 @@ void MotorActuator::node_guarding_request(){
 
 }
 
+void MotorActuator::send_heartbeat(){
+    // Hub motor does not use heartbeat mechanism
+    return;
+
+}
+
 bool MotorActuator::Homing(){
 
     // 100 rpm , 10 rps2 base

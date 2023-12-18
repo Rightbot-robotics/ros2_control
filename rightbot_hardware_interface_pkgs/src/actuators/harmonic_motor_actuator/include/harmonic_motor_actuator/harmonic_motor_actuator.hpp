@@ -67,6 +67,8 @@ public:
 
     void node_guarding_request() override;
 
+    void send_heartbeat() override;
+
     void init_json(std::string path);
 
 
@@ -77,6 +79,8 @@ private:
     int motor_id_;
     int axis_;
     int zero_point_count_;
+    uint8_t heartbeat_producer_node_id_;
+    uint16_t heartbeat_producer_time_;
 
     int initMotor();
     int motorConfigNode(int motor_id);
@@ -104,6 +108,8 @@ private:
 
     int set_relative_position(int32_t pos);
     void goToInitPos();
+    int setHeartbeatConsumerTime();
+    int resetHeartbeatConsumerTime();
 
     std::shared_ptr<spdlog::logger> logger_;
     HarmonicMotorActuatorSockets::HarmonicMotorActuatorSocketsSPtr harmonic_motor_actuator_sockets_;

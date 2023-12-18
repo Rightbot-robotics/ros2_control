@@ -67,6 +67,8 @@ public:
 
     void node_guarding_request() override;
 
+    void send_heartbeat() override;
+
     void init_json(std::string path);
 
 
