@@ -108,11 +108,13 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     previous_mode = "not_set";
     harmonic_motor_actuator_sockets_ = std::make_shared<HarmonicMotorActuatorSockets>(motor_id_, motor_name_);
     
+	set_target_velocity(0.0);
 	resetHeartbeatConsumerTime();
 	NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 	motorControlword(motor_id_, Disable_Voltage);
 	NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
     NMT_change_state(harmonic_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Comunication);
+	set_target_velocity(0.0);
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     initMotor();
