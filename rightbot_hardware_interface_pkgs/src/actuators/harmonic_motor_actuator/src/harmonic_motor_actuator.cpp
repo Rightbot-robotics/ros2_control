@@ -134,10 +134,10 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	
 	double quick_stop_angle_counts = hardcoded_params_["quick_stop"]["stop_angle_deg"].asDouble() * (360.0 / motor_ppr_);
 	double max_vel_cps = (double)rpm_to_countspersec(default_max_velocity_);
-	double quick_stop_deaccleration = (max_vel_cps * max_vel_cps) / (2.0 * quick_stop_angle_counts);
+	double quick_stop_deaccleration_cps2 = (max_vel_cps * max_vel_cps) / (2.0 * quick_stop_angle_counts);
 	logger_->info("[{}] Quick stop, stop angle deg.: [{}]", motor_name_, hardcoded_params_["quick_stop"]["stop_angle_deg"].asDouble());
-	logger_->info("[{}] Setting quick stop deceleration: [{}]",motor_name_, quick_stop_deaccleration);
-	set_quick_stop_deceleration(quick_stop_deaccleration);
+	logger_->info("[{}] Setting quick stop deceleration cps2: [{}]",motor_name_, quick_stop_deaccleration_cps2);
+	set_quick_stop_deceleration(quick_stop_deaccleration_cps2);
 
 	// if(motor_name_ == "elbow_rotation_joint"){
 	// 	set_relative_position(0);
@@ -887,7 +887,7 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 	return err;
 }
 
-int HarmonicMotorActuator::set_quick_stop_deceleration(float deacc) {
+int HarmonicMotorActuator::set_quick_stop_deceleration(float deacc_cps2) {
 	int err = 0;
 
 	SDO_data req;
@@ -902,7 +902,7 @@ int HarmonicMotorActuator::set_quick_stop_deceleration(float deacc) {
 	req.index = 0x6085;
 	req.subindex = 0x00;
 	req.data.size = 4;
-	req.data.data = (int32_t)motor_rps2_to_cps2(deacc);
+	req.data.data = (int32_t)deacc_cps2;
 	SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
 
 	return err;
