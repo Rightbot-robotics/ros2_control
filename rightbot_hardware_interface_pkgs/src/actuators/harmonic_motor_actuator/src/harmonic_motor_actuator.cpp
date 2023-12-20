@@ -135,6 +135,7 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	double quick_stop_angle_counts = hardcoded_params_["quick_stop"]["stop_angle_deg"].asDouble() * (360.0 / motor_ppr_);
 	double max_vel_cps = (double)rpm_to_countspersec(default_max_velocity_);
 	double quick_stop_deaccleration = (max_vel_cps * max_vel_cps) / (2.0 * quick_stop_angle_counts);
+	logger_->info("[{}] Quick stop, stop angle deg.: [{}]", motor_name_, hardcoded_params_["quick_stop"]["stop_angle_deg"].asDouble());
 	logger_->info("[{}] Setting quick stop deceleration: [{}]",motor_name_, quick_stop_deaccleration);
 	set_quick_stop_deceleration(quick_stop_deaccleration);
 
