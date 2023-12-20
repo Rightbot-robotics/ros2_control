@@ -101,6 +101,7 @@ private:
     int set_profile_deacc(float deacc);
     int rpm_to_countspersec(float rpm);
     int motor_rps2_to_cps2(float rpss);
+    int set_quick_stop_deceleration(float decel);
 
     int set_relative_position(int32_t pos);
     void goToInitPos();
@@ -113,6 +114,8 @@ private:
     std::string previous_mode;
 
     Json::Value sensor_data;
+
+    Json::Value hardcoded_params_;
 
     double status_state_ = std::numeric_limits<double>::quiet_NaN();
     double error_code_state_ = std::numeric_limits<double>::quiet_NaN();
@@ -137,6 +140,7 @@ private:
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
+    double quick_stop_deceleration_ = 0.0;
 
     double acceleration_epsilon = 10e-4;
     double velocity_epsilon = 10e-5;

@@ -31,7 +31,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
-
+	hardcoded_params_ = HarmonicMotorActuatorParams().get_params()[motor_name_];
 	logger_->info("Harmonic Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 
 	std::string config_path;
@@ -131,6 +131,12 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
+	
+	double quick_stop_angle_counts = hardcoded_params_["quick_stop"]["stop_angle_deg"].asDouble() * (360.0 / motor_ppr_);
+	double max_vel_cps = (double)rpm_to_countspersec(default_max_velocity_);
+	double quick_stop_deaccleration = (max_vel_cps * max_vel_cps) / (2.0 * quick_stop_angle_counts);
+	logger_->info("[{}] Setting quick stop deceleration: [{}]",motor_name_, quick_stop_deaccleration);
+	set_quick_stop_deceleration(quick_stop_deaccleration);
 
 	// if(motor_name_ == "elbow_rotation_joint"){
 	// 	set_relative_position(0);
@@ -876,6 +882,27 @@ int HarmonicMotorActuator::set_profile_deacc(float deacc) {
 	d.data.size = 4;
 	d.data.data = (int32_t)motor_rps2_to_cps2(deacc);
 	err |= SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
+
+	return err;
+}
+
+int HarmonicMotorActuator::set_quick_stop_deceleration(float deacc) {
+	int err = 0;
+
+	SDO_data req;
+	req.nodeid = motor_id_;
+	
+	req.index = 0x605A;
+	req.subindex = 0x00;
+	req.data.size = 2;
+	req.data.data = 0x0002;
+	SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
+
+	req.index = 0x6085;
+	req.subindex = 0x00;
+	req.data.size = 4;
+	req.data.data = (int32_t)motor_rps2_to_cps2(deacc);
+	SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
 
 	return err;
 }

@@ -5,6 +5,8 @@
 #ifndef HARMONIC_MOTOR_ACTUATOR_PARAMS_HPP
 #define HARMONIC_MOTOR_ACTUATOR_PARAMS_HPP
 
+#include <json_reader/json_read.h>
+
 #define MOTOR_SOCKETS_ERROR   (-1)
 #define MOTOR_ERROR       (-1)
 #define EROB_TIMEOUT	(-2)
@@ -39,6 +41,57 @@ enum Motor_mode {
 	Motor_mode_Position = 1, //Contour position mode=1 - mode selection
 	Motor_mode_Interpolated_Position_Mode = 7
     
+};
+
+class HarmonicMotorActuatorParams {
+	public:
+		HarmonicMotorActuatorParams() {
+			std::string param_string = R"(
+				{
+					"base_rotation_joint": {
+						"quick_stop": {
+							"stop_angle_deg": 5.0
+						}
+					},
+					"elbow_rotation_joint": {
+						"quick_stop": {
+							"stop_angle_deg": 5.0
+						}
+					},
+					"wrist_rotation_joint": {
+						"quick_stop": {
+							"stop_angle_deg": 5.0
+						}
+					},
+					"rotation1_joint": {
+						"quick_stop": {
+							"stop_angle_deg": 5.0
+						}
+					},
+					"rotation2_joint": {
+						"quick_stop": {
+							"stop_angle_deg": 5.0
+						}
+					}.
+				}
+			)";
+			Json::Reader reader;
+			bool parsingSuccessful = reader.parse(param_string, params_);
+
+    		// Check for parsing success
+			if (!parsingSuccessful) {
+				std::cerr << "Failed to parse JSON string: " << reader.getFormattedErrorMessages() << std::endl;
+			}
+		}
+
+		~HarmonicMotorActuatorParams() {
+		}
+
+		Json::Value get_params() {
+			return params_;
+		}
+	private:
+		Json::Value params_;
 };
 
 #endif //HARMONIC_MOTOR_ACTUATOR_PARAMS_HPP
