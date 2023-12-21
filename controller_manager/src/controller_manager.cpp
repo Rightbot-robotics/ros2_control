@@ -300,6 +300,11 @@ void ControllerManager::init_services()
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
+  robot_global_position_server = 
+    create_service<rightbot_interfaces::srv::RobotGlobalPos>("robot_global_position", std::bind(
+        &ControllerManager::robot_global_position_service,
+        this,
+        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   error_publisher = 
     create_publisher<rightbot_interfaces::msg::RosControlError>("arm_error_topic", 10);
@@ -2184,6 +2189,18 @@ void ControllerManager::dummy_conveyor_service(
   // RCLCPP_INFO(get_logger(), "dummy conveyor service");
 
   resource_manager_->lift_conveyor(request->height);
+  
+  response->status = true;
+}
+
+void ControllerManager::robot_global_position_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::RobotGlobalPos::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::RobotGlobalPos::Response> response
+)
+{
+
+  resource_manager_->update_global_position(request->x, request->y, request->angle);
   
   response->status = true;
 }

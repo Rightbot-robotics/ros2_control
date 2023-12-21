@@ -57,6 +57,7 @@
 #include "rightbot_interfaces/msg/ros_control_error.hpp"
 #include "rightbot_interfaces/srv/camera_align.hpp"
 #include <rightbot_interfaces/srv/dummy_conveyor_command.hpp>
+#include <rightbot_interfaces/srv/robot_global_pos.hpp>
 
 namespace controller_manager
 {
@@ -238,6 +239,16 @@ public:
 
   CONTROLLER_MANAGER_PUBLIC
   std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::DummyConveyorCommand>> dummy_conveyor_server;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void robot_global_position_service(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<rightbot_interfaces::srv::RobotGlobalPos::Request> request,
+    const std::shared_ptr<rightbot_interfaces::srv::RobotGlobalPos::Response> response
+  );
+
+  CONTROLLER_MANAGER_PUBLIC
+  std::shared_ptr<rclcpp::Service<rightbot_interfaces::srv::RobotGlobalPos>> robot_global_position_server;
 
   CONTROLLER_MANAGER_PUBLIC
   rclcpp::Publisher<rightbot_interfaces::msg::RosControlError>::SharedPtr error_publisher;

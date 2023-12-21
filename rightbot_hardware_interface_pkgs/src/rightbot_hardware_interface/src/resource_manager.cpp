@@ -1967,4 +1967,50 @@ void ResourceManager::lift_conveyor(float height){
 
 }
 
+void ResourceManager::update_global_position(float x, float y, float angle){
+
+  bool component_available;
+
+  for (auto & component : resource_storage_->systems_)
+  {
+    std::string current_component_ = component.get_name();
+    auto command_interfaces = component.export_command_interfaces();
+    
+    RCUTILS_LOG_INFO_NAMED(
+            "resource_manager", "[update_global_position] current system component %s ",current_component_.c_str());
+    for (auto & current_interface : command_interfaces){
+      std::string interface_name = current_interface.get_name();
+
+      if(interface_name == "x_motion_joint/position"){
+        component_available = true;
+        current_interface.set_value(x);
+      } else {
+        component_available = component_available && false;
+      }
+     
+      if(interface_name == "y_motion_joint/position"){
+        component_available = true;
+        current_interface.set_value(y);
+      } else {
+        component_available = component_available && false;
+      }
+
+      if(interface_name == "rotation_joint/position"){
+        component_available = true;
+        current_interface.set_value(angle);
+      } else {
+        component_available = component_available && false;
+      }
+
+    }
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[update_global_position] Required joints not available ");
+
+  }
+
+}
+
 }  // namespace hardware_interface
