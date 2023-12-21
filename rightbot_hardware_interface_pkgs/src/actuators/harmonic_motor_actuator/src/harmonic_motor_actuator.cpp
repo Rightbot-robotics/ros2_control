@@ -437,6 +437,7 @@ void HarmonicMotorActuator::node_guarding_request(){
 }
 
 void HarmonicMotorActuator::send_heartbeat(){
+
 	
 	Socketcan_t data[1];
     uint32_t cob_id;
@@ -449,6 +450,11 @@ void HarmonicMotorActuator::send_heartbeat(){
     cob_id = NMT_TX + node_id;
 
     socketcan_write(harmonic_motor_actuator_sockets_->nmt_motor_cfg_fd, cob_id, 1, data);
+
+	if(!heartbeat_consumer_time_set_){
+		setHeartbeatConsumerTime();
+		heartbeat_consumer_time_set_ = true;
+	}
 
 }
 

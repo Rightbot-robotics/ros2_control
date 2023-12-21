@@ -2204,6 +2204,7 @@ void ControllerManager::error_monitoring(){
     if(!system_error){
       resource_manager_->node_guarding_requests();
     }
+    resource_manager_->send_heartbeat();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 

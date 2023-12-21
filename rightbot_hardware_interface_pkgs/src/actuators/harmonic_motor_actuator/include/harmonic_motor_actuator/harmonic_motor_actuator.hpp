@@ -148,6 +148,7 @@ private:
     double velocity_epsilon = 10e-5;
 
     bool trigger_once = false;
+    bool heartbeat_consumer_time_set_ = false;
 
     enum Control_mode {
 	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection

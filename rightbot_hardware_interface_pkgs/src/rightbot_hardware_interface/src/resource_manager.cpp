@@ -1639,6 +1639,26 @@ void ResourceManager::node_guarding_requests(){
       
     }
 
+  }
+
+}
+
+void ResourceManager::send_heartbeat(){
+
+  if(initial_heartbeat_) {
+    // to set heartbeat object dictionary
+    initial_heartbeat_ = false;
+    for (auto & component : resource_storage_->actuators_)
+    {
+      component.send_heartbeat();
+    }
+    return;
+  }
+
+  for (auto & component : resource_storage_->actuators_)
+  {
+    auto component_name = component.get_name();
+
     if(component_name == "Hardware_TruckUnloading_elbow_rotation_joint") {
       component.send_heartbeat();
     }
