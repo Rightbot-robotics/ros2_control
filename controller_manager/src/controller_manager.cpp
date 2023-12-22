@@ -317,6 +317,9 @@ void ControllerManager::init_services()
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
+  global_pose_subscription_ = this->create_subscription<rightbot_interfaces::msg::BaseGlobalPos>(
+    "base_global_position", 10, std::bind(&ControllerManager::globalPoseCallback, this, _1));
+
   read_thread_ = std::thread(&ControllerManager::read_data, this);
 
 
@@ -2284,6 +2287,12 @@ void ControllerManager::read_data(){
     }
 
   }
+}
+
+void ControllerManager::globalPoseCallback(const rightbot_interfaces::msg::BaseGlobalPos::SharedPtr global_pose){
+
+  resource_manager_->update_global_position(global_pose->x, global_pose->y, global_pose->angle);
+
 }
 
 void ControllerManager::controller_activity_diagnostic_callback(

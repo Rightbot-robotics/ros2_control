@@ -1976,8 +1976,8 @@ void ResourceManager::update_global_position(float x, float y, float angle){
     std::string current_component_ = component.get_name();
     auto command_interfaces = component.export_command_interfaces();
     
-    RCUTILS_LOG_INFO_NAMED(
-            "resource_manager", "[update_global_position] current system component %s ",current_component_.c_str());
+    // RCUTILS_LOG_INFO_NAMED(
+    //         "resource_manager", "[update_global_position] current system component %s ",current_component_.c_str());
     for (auto & current_interface : command_interfaces){
       std::string interface_name = current_interface.get_name();
 

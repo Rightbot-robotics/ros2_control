@@ -58,6 +58,7 @@
 #include "rightbot_interfaces/srv/camera_align.hpp"
 #include <rightbot_interfaces/srv/dummy_conveyor_command.hpp>
 #include <rightbot_interfaces/srv/robot_global_pos.hpp>
+#include <rightbot_interfaces/msg/base_global_pos.hpp>
 
 namespace controller_manager
 {
@@ -252,6 +253,12 @@ public:
 
   CONTROLLER_MANAGER_PUBLIC
   rclcpp::Publisher<rightbot_interfaces::msg::RosControlError>::SharedPtr error_publisher;
+
+  CONTROLLER_MANAGER_PUBLIC
+  rclcpp::Subscription<rightbot_interfaces::msg::BaseGlobalPos>::SharedPtr global_pose_subscription_;
+
+  CONTROLLER_MANAGER_PUBLIC
+  void globalPoseCallback(const rightbot_interfaces::msg::BaseGlobalPos::SharedPtr global_pose);
 
   CONTROLLER_MANAGER_PUBLIC
   class Error {
