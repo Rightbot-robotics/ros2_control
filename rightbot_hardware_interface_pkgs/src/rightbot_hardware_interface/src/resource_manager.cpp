@@ -1782,7 +1782,7 @@ bool ResourceManager::camera_align_service_handle(double &angle){
 
   std::chrono::system_clock::time_point camera_align_start_time = std::chrono::system_clock::now();      
   auto time_passed_camera_align_started = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - camera_align_start_time);
-  hardware_interface::StateInterface *camera_joint_status_interface;
+  hardware_interface::StateInterface *camera_joint_status_interface = nullptr;
   bool component_available = false;
 
   for (auto & component : resource_storage_->actuators_)
