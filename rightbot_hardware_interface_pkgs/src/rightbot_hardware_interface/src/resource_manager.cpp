@@ -519,11 +519,13 @@ public:
 
   void load_and_initialize_system(const HardwareInfo & hardware_info)
   {
+    RCUTILS_LOG_INFO_NAMED("resource_manager", "Trying to load system interface for: %s", hardware_info.name.c_str());
     check_for_duplicates(hardware_info);
     load_hardware<System, SystemInterface>(hardware_info, system_loader_, systems_);
     initialize_hardware(hardware_info, systems_.back());
     import_state_interfaces(systems_.back());
     import_command_interfaces(systems_.back());
+    RCUTILS_LOG_INFO_NAMED("resource_manager", "Loaded system interface for: %s", hardware_info.name.c_str());
   }
 
   void initialize_actuator(
@@ -622,6 +624,7 @@ void ResourceManager::load_urdf(const std::string & urdf, bool validate_interfac
 
 
   const auto hardware_info = hardware_interface::parse_control_resources_from_urdf(urdf);
+  logger_->info("Loaded hardware info");
   for (const auto & individual_hardware_info : hardware_info)
   {
     if (individual_hardware_info.type == actuator_type)

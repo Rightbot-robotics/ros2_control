@@ -312,7 +312,7 @@ void ControllerManager::init_services()
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-  read_thread_ = std::thread(&ControllerManager::read_data, this);
+  // read_thread_ = std::thread(&ControllerManager::read_data, this);
 
 
 }
@@ -1705,7 +1705,7 @@ std::vector<std::string> ControllerManager::get_controller_names()
 void ControllerManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   read_data_start = true;
-  // resource_manager_->read(time, period);
+  resource_manager_->read(time, period);
 }
 
 controller_interface::return_type ControllerManager::update(

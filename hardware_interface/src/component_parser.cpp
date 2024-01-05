@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
 
 #include "hardware_interface/component_parser.hpp"
 #include "hardware_interface/hardware_info.hpp"
@@ -551,16 +552,19 @@ HardwareInfo parse_resource_from_xml(
 
 std::vector<HardwareInfo> parse_control_resources_from_urdf(const std::string & urdf)
 {
+  std::cerr << "In parser function" << std::endl;
   // Check if everything OK with URDF string
   if (urdf.empty())
   {
     throw std::runtime_error("empty URDF passed to robot");
   }
   tinyxml2::XMLDocument doc;
+  std::cerr << "Trying to parse URDF" << std::endl;
   if (!doc.Parse(urdf.c_str()) && doc.Error())
   {
     throw std::runtime_error("invalid URDF passed in to robot parser");
   }
+  std::cerr << "Successfully parsed URDF" << std::endl;
   if (doc.Error())
   {
     throw std::runtime_error("invalid URDF passed in to robot parser");

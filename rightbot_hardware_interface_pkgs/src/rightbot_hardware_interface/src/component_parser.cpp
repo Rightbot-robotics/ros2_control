@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
 
 #include "hardware_interface/component_parser.hpp"
 #include "hardware_interface/hardware_info.hpp"
@@ -65,7 +66,8 @@ std::string get_text_for_element(
   const auto get_text_output = element_it->GetText();
   if (!get_text_output)
   {
-    throw std::runtime_error("text not specified in the " + tag_name + " tag");
+    std::cerr << "text not specified in the " << tag_name << " tag" << std::endl;
+    return "";
   }
   return get_text_output;
 }
