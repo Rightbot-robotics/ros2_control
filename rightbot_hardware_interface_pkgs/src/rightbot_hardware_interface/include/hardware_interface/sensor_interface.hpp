@@ -141,6 +141,8 @@ public:
 
   virtual void clear_can_buffer() = 0;
   
+  virtual void data_request() = 0;
+  
 protected:
   HardwareInfo info_;
   rclcpp_lifecycle::State lifecycle_state_;

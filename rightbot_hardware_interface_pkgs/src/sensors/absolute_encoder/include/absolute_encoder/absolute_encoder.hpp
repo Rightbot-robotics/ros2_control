@@ -56,6 +56,8 @@ public:
 
     void clear_can_buffer() override;
 
+    void data_request() override;
+
 
 private:
 

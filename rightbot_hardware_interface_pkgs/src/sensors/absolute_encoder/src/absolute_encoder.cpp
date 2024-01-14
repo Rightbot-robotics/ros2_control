@@ -161,6 +161,10 @@ void AbsoluteEncoderSensor::clear_can_buffer(){
 
 }
 
+void AbsoluteEncoderSensor::data_request() {
+    requestData();
+}
+
 
 
 

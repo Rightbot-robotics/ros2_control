@@ -213,4 +213,9 @@ void Sensor::clear_can_buffer(){
   impl_->clear_can_buffer();
 
 }
+
+void Sensor::data_request(){
+  impl_->data_request();
+
+}
 }  // namespace hardware_interface
