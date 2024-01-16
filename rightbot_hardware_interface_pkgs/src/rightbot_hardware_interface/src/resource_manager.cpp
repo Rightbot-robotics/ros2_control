@@ -1056,6 +1056,11 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
       component.data_request();
       
     }
+  }
+
+  for (auto & component : resource_storage_->sensors_)
+  {
+    auto component_name = component.get_name();
 
     if(component_name == "TruckUnloading_absolute_encoder_sensor") {
       component.data_request();

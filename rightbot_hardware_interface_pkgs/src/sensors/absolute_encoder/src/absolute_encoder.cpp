@@ -203,7 +203,7 @@ int AbsoluteEncoderSensor::requestData(){
     Socketcan_t data[1];
  	data[0].size = 1;
  	data[0].data = 0x00;
- 	return socketcan_write(absolute_encoder_sockets_->abs_cfg_fd, 128, 1, data);
+ 	return socketcan_write(absolute_encoder_sockets_->abs_sync_fd, 128, 1, data);
 }
 
 int AbsoluteEncoderSensor::encoder_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
