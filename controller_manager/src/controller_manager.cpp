@@ -2145,11 +2145,13 @@ void ControllerManager::camera_align_service(
     if(("left_camera" == camera_name) || ("right_camera" == camera_name)){
       RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting auto alignment to [%s] camera",camera_name.c_str());
       resource_manager_->auto_alignment(true, camera_name);
+      response->status = true;
     } else {
       RCLCPP_INFO(get_logger(), "[camera_align_service] Requesting auto alignment. Camera name [%s] not recognized",camera_name.c_str());
       // stop the auto alignment
       camera_name = "invalid";
       resource_manager_->auto_alignment(false, camera_name);
+      response->status = false;
     }
 
   } else {

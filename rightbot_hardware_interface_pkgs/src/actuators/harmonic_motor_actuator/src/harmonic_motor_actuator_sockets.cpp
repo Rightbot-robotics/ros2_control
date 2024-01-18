@@ -31,7 +31,10 @@ bool HarmonicMotorActuatorSockets::createSockets(int motor_id) {
     if(motor_name_ == "base_rotation_joint"){
         can_interface = "can2";
     }
-    else{
+    else if(motor_name_ == "camera_rotation_joint"){
+        can_interface = "can3";
+    }
+    else {
         can_interface = "can0";
     }
 
