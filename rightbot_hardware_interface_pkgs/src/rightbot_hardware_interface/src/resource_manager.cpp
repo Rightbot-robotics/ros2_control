@@ -1977,4 +1977,60 @@ void ResourceManager::lift_conveyor(float height){
 
 }
 
+void ResourceManager::move_conveyor(float distance){ 
+  bool component_available = false;
+  std::string actuator_name = "TruckUnloading_base_link_conveyor_joint";
+
+  //executes this when using system interface
+  for (auto & component : resource_storage_->actuators_)
+  {
+    std::string current_component_ = component.get_name();
+
+    // RCUTILS_LOG_INFO_NAMED(
+    //         "resource_manager", "[lift_conveyor] available components %s ",current_component_.c_str());
+
+    if(current_component_ == actuator_name){
+      component_available = true;
+
+      auto command_interfaces = component.export_command_interfaces();
+      for (auto & current_interface : command_interfaces){
+
+        if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
+          current_interface.set_value(distance);
+        }
+      }
+    }
+
+    
+  }
+
+  //executes this when using system interface
+  for (auto & component : resource_storage_->systems_)
+  {
+    std::string current_component_ = component.get_name();
+    auto command_interfaces = component.export_command_interfaces();
+    
+    // RCUTILS_LOG_INFO_NAMED(
+    //         "resource_manager", "[lift_conveyor] current system component %s ",current_component_.c_str());
+    for (auto & current_interface : command_interfaces){
+      std::string interface_name = current_interface.get_name();
+
+      if(interface_name == "base_link_conveyor_joint/position"){
+        component_available = true;
+        current_interface.set_value(distance); //
+        }
+
+      }
+      
+    
+  }
+
+  if(!component_available){
+    RCUTILS_LOG_INFO_NAMED(
+    "resource_manager", "[lift_conveyor] Component %s not available ", actuator_name.c_str());
+
+  }
+
+
+}
 }  // namespace hardware_interface

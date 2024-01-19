@@ -314,6 +314,8 @@ void ControllerManager::init_services()
 
   read_thread_ = std::thread(&ControllerManager::read_data, this);
 
+  x_motion_conveyor_subscription_ = create_subscription<std_msgs::msg::Float64>(
+        "x_motion_conveyor", 10, std::bind(&ControllerManager::xMotionConveyorCallback, this, std::placeholders::_1));
 
 }
 
@@ -2186,6 +2188,12 @@ void ControllerManager::dummy_conveyor_service(
   resource_manager_->lift_conveyor(request->height);
   
   response->status = true;
+}
+
+void ControllerManager::xMotionConveyorCallback(const std_msgs::msg::Float64::SharedPtr msg){
+  
+  resource_manager_->move_conveyor(msg->data);
+
 }
 
 void ControllerManager::error_monitoring(){

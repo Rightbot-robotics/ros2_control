@@ -58,6 +58,8 @@
 #include "rightbot_interfaces/srv/camera_align.hpp"
 #include <rightbot_interfaces/srv/dummy_conveyor_command.hpp>
 
+#include <std_msgs/msg/float64.hpp>
+
 namespace controller_manager
 {
 using ControllersListIterator = std::vector<controller_manager::ControllerSpec>::const_iterator;
@@ -241,6 +243,12 @@ public:
 
   CONTROLLER_MANAGER_PUBLIC
   rclcpp::Publisher<rightbot_interfaces::msg::RosControlError>::SharedPtr error_publisher;
+
+  CONTROLLER_MANAGER_PUBLIC
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr x_motion_conveyor_subscription_;
+
+  CONTROLLER_MANAGER_PUBLIC  
+  void xMotionConveyorCallback(const std_msgs::msg::Float64::SharedPtr msg);
 
   CONTROLLER_MANAGER_PUBLIC
   class Error {
