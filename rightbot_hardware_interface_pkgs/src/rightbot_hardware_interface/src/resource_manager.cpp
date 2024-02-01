@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <iostream>
 
 #include "hardware_interface/actuator.hpp"
 #include "hardware_interface/actuator_interface.hpp"
@@ -1145,6 +1146,15 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
         }
       }
 
+    }
+
+    for(auto &component: resource_storage_->systems_) {
+      for(auto &current_interface : component.export_state_interfaces()) {
+        if(current_interface.get_name() == "base_rotation_joint/position" ) {
+          base_rotation_angle = current_interface.get_value();
+          command_angle = base_rotation_angle + mounted_camera_angle;
+        }
+      }
     }
 
     // giving absolute angle to camera
