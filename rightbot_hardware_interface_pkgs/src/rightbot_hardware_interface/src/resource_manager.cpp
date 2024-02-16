@@ -1979,6 +1979,10 @@ void ResourceManager::lift_conveyor(float height){
 
 void ResourceManager::refresh_low_frequency_trigger(const rclcpp::Time & time) {
   low_freq_loop_.do_trigger_ = false;
+  if(low_freq_loop_.in_first_loop_) {
+    low_freq_loop_.in_first_loop_ = false;
+    low_freq_loop_.next_trigger_time_ = time;
+  }
   if(low_freq_loop_.next_trigger_time_ < time){
     low_freq_loop_.do_trigger_ = true;
     low_freq_loop_.next_trigger_time_ = time + low_freq_loop_.trigger_period_;
