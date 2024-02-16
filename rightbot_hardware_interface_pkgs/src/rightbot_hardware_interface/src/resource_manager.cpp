@@ -1041,23 +1041,15 @@ return_type ResourceManager::set_component_state(
 void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
 
-  for (auto & component : resource_storage_->actuators_)
-  {
-    auto component_name = component.get_name();
+  refresh_low_frequency_trigger(time);
+  if(low_freq_loop_.do_trigger_){
+    for (auto & component : resource_storage_->actuators_)
+    {
+      auto component_name = component.get_name();
 
-    if(component_name == "Hardware_TruckUnloading_h_gantry_joint") {
-      component.data_request();
-      
-    }
-
-    if(component_name == "Hardware_TruckUnloading_base_rotation_joint") {
-      component.data_request();
-      
-    }
-
-    if(component_name == "Hardware_TruckUnloading_elbow_rotation_joint") {
-      component.data_request();
-      
+      if(component_name == "right_armbase_actuator") {
+        component.data_request(); 
+      }
     }
   }
 
@@ -1065,14 +1057,23 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
   
   for (auto & component : resource_storage_->actuators_)
   {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+      continue;
+    }
     component.read(time, period);
   }
   for (auto & component : resource_storage_->sensors_)
   {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+      continue;
+    }
     component.read(time, period);
   }
   for (auto & component : resource_storage_->systems_)
   {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+      continue;
+    }
     component.read(time, period);
   }
 
@@ -1192,10 +1193,16 @@ void ResourceManager::write(const rclcpp::Time & time, const rclcpp::Duration & 
 {
   for (auto & component : resource_storage_->actuators_)
   {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+      continue;
+    }
     component.write(time, period);
   }
   for (auto & component : resource_storage_->systems_)
   {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+      continue;
+    }
     component.write(time, period);
   }
 }
@@ -1968,6 +1975,18 @@ void ResourceManager::lift_conveyor(float height){
 
   }
 
+}
+
+void ResourceManager::refresh_low_frequency_trigger(const rclcpp::Time & time) {
+  low_freq_loop_.do_trigger_ = false;
+  if(low_freq_loop_.next_trigger_time_ < time){
+    low_freq_loop_.do_trigger_ = true;
+    low_freq_loop_.next_trigger_time_ = time + low_freq_loop_.trigger_period_;
+  }
+}
+
+bool ResourceManager::is_low_frequency_component(const std::string & name) {
+  return std::find(low_freq_components_.begin(), low_freq_components_.end(), name) != low_freq_components_.end();
 }
 
 }  // namespace hardware_interface

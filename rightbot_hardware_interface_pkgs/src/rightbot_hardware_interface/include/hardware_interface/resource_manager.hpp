@@ -427,6 +427,8 @@ public:
   std::string auto_align_camera_name;
   void node_guarding_requests();
   void lift_conveyor(float height);
+  void refresh_low_frequency_trigger(const rclcpp::Time & time);
+  bool is_low_frequency_component(const std::string & name);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
@@ -439,6 +441,16 @@ private:
   mutable std::recursive_mutex claimed_command_interfaces_lock_;
   std::unique_ptr<ResourceStorage> resource_storage_;
   std::shared_ptr<spdlog::logger> logger_;
+
+  std::vector<std::string> low_freq_components_{
+    "right_armbase_actuator"
+  };
+  struct LowFrequencyLoop {
+    rclcpp::Time next_trigger_time_ = rclcpp::Time(0, 0);
+    std::chrono::milliseconds trigger_period_ = std::chrono::milliseconds(5);
+    bool do_trigger_;
+  }low_freq_loop_;
+
 };
 
 }  // namespace hardware_interface
