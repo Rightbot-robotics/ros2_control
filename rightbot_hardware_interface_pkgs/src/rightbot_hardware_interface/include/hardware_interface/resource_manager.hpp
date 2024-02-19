@@ -429,6 +429,7 @@ public:
   void lift_conveyor(float height);
   void refresh_low_frequency_trigger(const rclcpp::Time & time);
   bool is_low_frequency_component(const std::string & name);
+  bool is_node_guarding_component(const std::string & name);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
@@ -445,10 +446,20 @@ private:
   std::vector<std::string> low_freq_components_{
     "right_armbase_actuator"
   };
+  std::vector<std::string> node_guarding_components_{
+    "right_armbase_actuator"
+  };
   struct LowFrequencyLoop {
-    rclcpp::Time next_trigger_time_ = rclcpp::Time(0, 0);
-    rclcpp::Duration trigger_period_ = rclcpp::Duration(0, 20'000'000);
-    bool do_trigger_;
+    rclcpp::Time next_sync_trigger_time_ = rclcpp::Time(0, 0);
+    rclcpp::Time next_read_trigger_time_ = rclcpp::Time(0, 0);
+    rclcpp::Time next_loop_update_time_ = rclcpp::Time(0, 0);
+    rclcpp::Duration total_loop_period_ = rclcpp::Duration(0, 20'000'000);
+    rclcpp::Duration sync_trigger_period_ = rclcpp::Duration(0, 13'000'000);
+    rclcpp::Duration read_trigger_period_ = rclcpp::Duration(0, 20'000'000);
+    bool sync_trigger_;
+    bool sync_trigger_sent_;
+    bool read_trigger_;
+    bool read_trigger_sent_;
     bool in_first_loop_ = true;
   }low_freq_loop_;
 

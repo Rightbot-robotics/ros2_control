@@ -1042,7 +1042,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 {
 
   refresh_low_frequency_trigger(time);
-  if(low_freq_loop_.do_trigger_){
+  if(low_freq_loop_.sync_trigger_){
     for (auto & component : resource_storage_->actuators_)
     {
       auto component_name = component.get_name();
@@ -1057,21 +1057,21 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
   
   for (auto & component : resource_storage_->actuators_)
   {
-    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.read_trigger_) {
       continue;
     }
     component.read(time, period);
   }
   for (auto & component : resource_storage_->sensors_)
   {
-    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.read_trigger_) {
       continue;
     }
     component.read(time, period);
   }
   for (auto & component : resource_storage_->systems_)
   {
-    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.read_trigger_) {
       continue;
     }
     component.read(time, period);
@@ -1193,14 +1193,14 @@ void ResourceManager::write(const rclcpp::Time & time, const rclcpp::Duration & 
 {
   for (auto & component : resource_storage_->actuators_)
   {
-    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.read_trigger_) {
       continue;
     }
     component.write(time, period);
   }
   for (auto & component : resource_storage_->systems_)
   {
-    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.do_trigger_) {
+    if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.read_trigger_) {
       continue;
     }
     component.write(time, period);
@@ -1639,12 +1639,7 @@ void ResourceManager::node_guarding_requests(){
   {
     auto component_name = component.get_name();
 
-    if(component_name == "Hardware_TruckUnloading_h_gantry_joint") {
-      component.node_guarding_request();
-      
-    }
-
-    if(component_name == "Hardware_TruckUnloading_v_gantry_joint") {
+    if(is_node_guarding_component(component_name)) {
       component.node_guarding_request();
       
     }
@@ -1978,19 +1973,45 @@ void ResourceManager::lift_conveyor(float height){
 }
 
 void ResourceManager::refresh_low_frequency_trigger(const rclcpp::Time & time) {
-  low_freq_loop_.do_trigger_ = false;
+  low_freq_loop_.sync_trigger_ = false;
+  low_freq_loop_.read_trigger_ = false;
+
   if(low_freq_loop_.in_first_loop_) {
     low_freq_loop_.in_first_loop_ = false;
-    low_freq_loop_.next_trigger_time_ = time;
+    low_freq_loop_.sync_trigger_sent_ = true;
+    low_freq_loop_.read_trigger_sent_ = true;
+    low_freq_loop_.next_sync_trigger_time_ = time;
+    low_freq_loop_.next_read_trigger_time_ = time;
+    low_freq_loop_.next_loop_update_time_ = time - low_freq_loop_.total_loop_period_;
   }
-  if(low_freq_loop_.next_trigger_time_ < time){
-    low_freq_loop_.do_trigger_ = true;
-    low_freq_loop_.next_trigger_time_ = time + low_freq_loop_.trigger_period_;
+
+
+  if(low_freq_loop_.next_sync_trigger_time_ < time && !low_freq_loop_.sync_trigger_sent_) {
+    low_freq_loop_.sync_trigger_ = true;
+    low_freq_loop_.sync_trigger_sent_ = true;
+  }
+
+  if(low_freq_loop_.next_read_trigger_time_ < time && !low_freq_loop_.read_trigger_sent_) {
+    low_freq_loop_.read_trigger_ = true;
+    low_freq_loop_.read_trigger_sent_ = true;
+  }
+
+
+  if(low_freq_loop_.next_loop_update_time_ < time) {
+    low_freq_loop_.sync_trigger_sent_ = false;
+    low_freq_loop_.read_trigger_sent_ = false;
+    low_freq_loop_.next_loop_update_time_ = time + low_freq_loop_.total_loop_period_;
+    low_freq_loop_.next_sync_trigger_time_ = time + low_freq_loop_.sync_trigger_period_;
+    low_freq_loop_.next_read_trigger_time_ = time + low_freq_loop_.read_trigger_period_;
   }
 }
 
 bool ResourceManager::is_low_frequency_component(const std::string & name) {
   return std::find(low_freq_components_.begin(), low_freq_components_.end(), name) != low_freq_components_.end();
+}
+
+bool ResourceManager::is_node_guarding_component(const std::string & name) {
+  return std::find(node_guarding_components_.begin(), node_guarding_components_.end(), name) != node_guarding_components_.end();
 }
 
 }  // namespace hardware_interface
