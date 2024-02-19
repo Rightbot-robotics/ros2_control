@@ -447,7 +447,7 @@ private:
   };
   struct LowFrequencyLoop {
     rclcpp::Time next_trigger_time_ = rclcpp::Time(0, 0);
-    rclcpp::Duration trigger_period_ = rclcpp::Duration(0, 5'000'000);
+    rclcpp::Duration trigger_period_ = rclcpp::Duration(0, 20'000'000);
     bool do_trigger_;
     bool in_first_loop_ = true;
   }low_freq_loop_;
