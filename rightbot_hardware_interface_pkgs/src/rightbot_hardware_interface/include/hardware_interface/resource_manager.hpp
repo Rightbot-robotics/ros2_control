@@ -444,10 +444,12 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   std::vector<std::string> low_freq_components_{
-    "right_armbase_actuator"
+    "right_armbase_actuator",
+    "left_armbase_actuator"
   };
   std::vector<std::string> node_guarding_components_{
-    "right_armbase_actuator"
+    "right_armbase_actuator",
+    "left_armbase_actuator"
   };
   struct LowFrequencyLoop {
     rclcpp::Time next_sync_trigger_time_ = rclcpp::Time(0, 0);
