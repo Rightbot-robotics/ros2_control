@@ -1040,7 +1040,6 @@ return_type ResourceManager::set_component_state(
 
 void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-
   refresh_low_frequency_trigger(time);
   if(low_freq_loop_.sync_trigger_){
     for (auto & component : resource_storage_->actuators_)
@@ -1053,8 +1052,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     }
   }
 
-  // std::this_thread::sleep_for(std::chrono::milliseconds(5));
-  
   for (auto & component : resource_storage_->actuators_)
   {
     if(is_low_frequency_component(component.get_name()) && !low_freq_loop_.read_trigger_) {
@@ -1076,117 +1073,6 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     }
     component.read(time, period);
   }
-
-  float camera_angle = 0.0f, base_rotation_angle = 0.0f;
-  float angle_diff = 0.0f;
-  static int count = 1;
-  
-  double angle = 0.0;
-  bool component_available = false;
-
-  for (auto & component : resource_storage_->sensors_){
-
-    auto component_name = component.get_name();
-    
-    if(component_name == "TruckUnloading_absolute_encoder_sensor"){
-      component_available = true;
-      
-      auto state_interfaces = component.export_state_interfaces();
-      for (auto & current_interface : state_interfaces){
-
-        if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
-          angle = current_interface.get_value();
-          camera_homing(angle); // for syncing camera position with absolute encoder
-          camera_homing_status = true;
-        }
-      }
-    }
-  }
-
-  if(!component_available){
-    camera_homing_status = true;
-    // RCUTILS_LOG_ERROR_NAMED(
-    // "resource_manager", "[camera_homing] Component [Hardware_TruckUnloading_absolute_encoder_sensor] not available ");
-  }
-
-  if(camera_homing_status && auto_alignment_status){
-    
-    float mounted_camera_angle = 0.0f;
-    
-    if(auto_align_camera_name == "left_camera"){
-      mounted_camera_angle = -0.69;      
-    } else if(auto_align_camera_name == "right_camera"){
-      mounted_camera_angle = 0.69;
-    } else {
-      mounted_camera_angle = 0.0;
-    }
-     
-
-    if(count > 2) {
-        count = 1;
-        // for (auto & component : resource_storage_->actuators_){ 
-
-        //   bool component_available = false;
-        //   auto component_name = component.get_name();
-
-        //   if(component_name == "TruckUnloading_camera_rotation_joint") {
-        //     // RCUTILS_LOG_INFO_NAMED(
-        //     // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint ");
-        //     auto state_interfaces = component.export_state_interfaces();
-
-        //     for (auto & current_interface : state_interfaces){
-
-        //       if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
-        //         camera_angle = current_interface.get_value();
-        //         camera_angle = -camera_angle;
-        //         // RCUTILS_LOG_INFO_NAMED(
-        //         // "resource_manager", "[camera_align] Hardware_TruckUnloading_camera_rotation_joint camera angle '%f' ",camera_angle);
-                
-        //       }
-        //     }
-        //   }
-        // }
-        for (auto & component : resource_storage_->actuators_){
-          auto component_name = component.get_name();
-          if(component_name == "Hardware_TruckUnloading_base_rotation_joint"){
-            bool component_available = true;
-
-            auto state_interfaces = component.export_state_interfaces();
-            for (auto & current_interface : state_interfaces){
-
-              if(current_interface.get_interface_name() == hardware_interface::HW_IF_POSITION){
-                base_rotation_angle = current_interface.get_value();
-                // angle_diff = base_rotation_angle - camera_angle;
-                command_angle = base_rotation_angle + mounted_camera_angle ;
-
-               
-                
-              }
-            }
-          }
-
-       }
-
-       // giving absolute angle to camera
-       if((abs(previous_command_angle - command_angle) > 0.00) && (abs(command_angle) < 2.35)){
-                    //
-          RCUTILS_LOG_DEBUG_NAMED(
-            "resource_manager", "[camera_align] Command angle '%f', base_rotation_angle '%f'",command_angle, base_rotation_angle);
-
-          // double angle_to_command_ = static_cast<double>(0.0);
-           double angle_to_command_ = -1.0 * static_cast<double>(command_angle);
-          
-          camera_align(angle_to_command_);
-
-          previous_command_angle = command_angle;
-
-        }
-    } 
-    count++;
-      
-  }
-
-
 }
 
 void ResourceManager::write(const rclcpp::Time & time, const rclcpp::Duration & period)
