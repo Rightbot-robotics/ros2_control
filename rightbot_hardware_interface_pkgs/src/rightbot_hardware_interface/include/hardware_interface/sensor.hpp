@@ -80,6 +80,9 @@ public:
   HARDWARE_INTERFACE_PUBLIC
   void clear_can_buffer();
 
+  HARDWARE_INTERFACE_PUBLIC
+  void data_request();
+
 private:
   std::unique_ptr<SensorInterface> impl_;
 };
