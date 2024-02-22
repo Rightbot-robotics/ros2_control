@@ -17,12 +17,24 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "controller_manager/controller_manager.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "realtime_tools/thread_priority.hpp"
 
+struct TimeData {
+  rclcpp::Time time;
+  std::chrono::microseconds read_period;
+  std::chrono::microseconds update_period;
+  std::chrono::microseconds write_period;
+  std::chrono::microseconds total_operation_period;
+};
+
 using namespace std::chrono_literals;
+
+const bool display_normal_time_data = false;
+const std::chrono::microseconds normal_time_log_period = 5s;
 
 namespace
 {
@@ -48,6 +60,26 @@ int main(int argc, char ** argv)
   std::thread cm_thread(
     [cm]()
     {
+
+      std::chrono::microseconds read_time;
+      std::chrono::microseconds update_time;
+      std::chrono::microseconds write_time;
+      std::chrono::microseconds total_operation_time;
+      std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+      std::chrono::time_point<std::chrono::high_resolution_clock> read_end_time;
+      std::chrono::time_point<std::chrono::high_resolution_clock> update_end_time;
+      std::chrono::time_point<std::chrono::high_resolution_clock> write_end_time;
+      std::string time_log_string;
+
+      size_t time_logging_window = 10;
+      size_t data_length = 0;
+      std::vector<TimeData> time_data;
+      time_data.reserve(time_logging_window);
+      for(size_t i=0; i<time_logging_window; i++) {
+        time_data.push_back({rclcpp::Time(0), 0ms, 0ms, 0ms, 0ms});
+      }
+
+
       if (realtime_tools::has_realtime_kernel())
       {
         if (!realtime_tools::configure_sched_fifo(kSchedPriority))
@@ -68,6 +100,7 @@ int main(int argc, char ** argv)
 
       // for calculating the measured period of the loop
       rclcpp::Time previous_time = cm->now();
+      rclcpp::Time last_normal_time_log = cm->now();
 
       while (rclcpp::ok())
       {
@@ -77,18 +110,44 @@ int main(int argc, char ** argv)
         previous_time = current_time;
 
         // execute update loop
-        auto start_time = std::chrono::high_resolution_clock::now(); 
+        start_time = std::chrono::high_resolution_clock::now(); 
         cm->read(cm->now(), measured_period);
-        auto read_end_time = std::chrono::high_resolution_clock::now();
+        read_end_time = std::chrono::high_resolution_clock::now();
         cm->update(cm->now(), measured_period);
-        auto update_end_time = std::chrono::high_resolution_clock::now();
+        update_end_time = std::chrono::high_resolution_clock::now();
         cm->write(cm->now(), measured_period);
-        auto write_end_time = std::chrono::high_resolution_clock::now();
+        write_end_time = std::chrono::high_resolution_clock::now();
 
-        auto read_time = std::chrono::duration_cast<std::chrono::microseconds>(read_end_time - start_time);
-        auto update_time = std::chrono::duration_cast<std::chrono::microseconds>(update_end_time - read_end_time);
-        auto write_time = std::chrono::duration_cast<std::chrono::microseconds>(write_end_time - update_end_time);
-        // RCLCPP_INFO(cm->get_logger(), "controller manager time read: %d us update: %d us write: %d us", read_time.count(), update_time.count(), write_time.count());
+        read_time = std::chrono::duration_cast<std::chrono::microseconds>(read_end_time - start_time);
+        update_time = std::chrono::duration_cast<std::chrono::microseconds>(update_end_time - read_end_time);
+        write_time = std::chrono::duration_cast<std::chrono::microseconds>(write_end_time - update_end_time);
+        total_operation_time = std::chrono::duration_cast<std::chrono::microseconds>(write_end_time - start_time);
+
+        if(total_operation_time > period || display_normal_time_data) {
+          time_data[data_length].time = current_time;
+          time_data[data_length].read_period = read_time;
+          time_data[data_length].update_period = update_time;
+          time_data[data_length].write_period = write_time;
+          time_data[data_length].total_operation_period = total_operation_time;
+          data_length++;
+          if(data_length == time_logging_window) {
+            data_length = 0;
+            if(!display_normal_time_data ||
+            (display_normal_time_data && (cm->now() - last_normal_time_log) > normal_time_log_period)) {
+              last_normal_time_log = cm->now();
+              time_log_string = "Time taken logs:\n";
+              time_log_string += "Timestamp\t\t\tRead(us)\tUpdate(us)\tWrite(us)\tTotal(us)\n";
+              for(size_t i=0; i<time_logging_window; i++) {
+                time_log_string += (std::to_string(time_data[i].time.seconds()) + "\t\t");
+                time_log_string += (std::to_string(time_data[i].read_period.count()) + "\t\t");
+                time_log_string += (std::to_string(time_data[i].update_period.count()) + "\t\t");
+                time_log_string += (std::to_string(time_data[i].write_period.count()) + "\t\t");
+                time_log_string += (std::to_string(time_data[i].total_operation_period.count()) + "\n");
+              }
+              RCLCPP_INFO(cm->get_logger(), time_log_string.c_str());
+            }
+          }
+        }
 
         // wait until we hit the end of the period
         next_iteration_time += period;
