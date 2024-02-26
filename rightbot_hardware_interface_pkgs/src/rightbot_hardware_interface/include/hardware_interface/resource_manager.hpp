@@ -399,6 +399,8 @@ public:
 
   std::string get_harmonic_driver_error(int error);
 
+  std::string get_ur_arm_safety_message(int error);
+
   bool camera_homing_status = false;
   void camera_homing(double &homing_angle);
   void camera_align(double &align_angle);

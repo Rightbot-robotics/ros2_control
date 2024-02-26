@@ -1519,6 +1519,42 @@ std::string ResourceManager::get_harmonic_driver_error(int error){
   
 }
 
+
+std::string ResourceManager::get_ur_arm_safety_message(int error) {
+  switch (error)
+  {
+  case 1:
+    return "Normal";
+  case 2:
+    return "Reduced mode";
+  case 3:
+    return "Protective stop";
+  case 4:
+    return "Recovery";
+  case 5:
+    return "Safeguard stop";
+  case 6:
+    return "System emergency stop";
+  case 7:
+    return "Robot emergency stop";
+  case 8:
+    return "Violation";
+  case 9:
+    return "Fault";
+  case 10:
+    return "Validate joint ID";
+  case 11:
+    return "Undefined safety mode";
+  case 12:
+    return "Automatic mode safeguard stop";
+  case 13:
+    return "System three position enabling stop";
+  default:
+    break;
+  }
+  return "Error code unrecognized";
+}
+
 void ResourceManager::node_guarding_requests(){
 
   for (auto & component : resource_storage_->actuators_)
@@ -1624,6 +1660,46 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
     // logger_->debug("[node_guarding] error status {}", error_status);
     *system_error_status = error_status;
 
+  }
+
+  for(auto & component : resource_storage_->systems_) {
+    std::string component_name = component.get_name();
+    std::string tf_prefix;
+
+    if(component_name == "right_ur_arm") {
+      tf_prefix = "right_";
+    }
+    else if(component_name == "left_ur_arm") {
+      tf_prefix = "left_";
+    }
+    else {
+      continue;
+    }
+
+    auto state_interfaces = component.export_state_interfaces();
+    int robot_mode = -1;
+    int safety_mode = -1;
+    std::string error_type;
+    for(auto state_interface : state_interfaces) {
+      if(state_interface.get_name() == tf_prefix+"gpio/safety_mode"){
+        safety_mode = (int)state_interface.get_value();
+      }
+      if(state_interface.get_name() == tf_prefix+"gpio/robot_mode"){
+        robot_mode = (int)state_interface.get_value();
+      }
+      if(safety_mode != -1 && robot_mode != -1) {
+        break;
+      }
+    }
+    error_type = get_ur_arm_safety_message(safety_mode);
+    if(safety_mode == 1) {
+      safety_mode = 0;
+    }
+
+    error_data_->component_name.push_back(component_name);
+    error_data_->status.push_back(robot_mode);
+    error_data_->error_register.push_back(safety_mode);
+    error_data_->error_type.push_back(error_type);
   }
 
 }
