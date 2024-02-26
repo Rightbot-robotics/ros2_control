@@ -1555,6 +1555,36 @@ std::string ResourceManager::get_ur_arm_safety_message(int error) {
   return "Error code unrecognized";
 }
 
+
+std::string ResourceManager::get_ur_arm_robot_state_message(int error) {
+  switch (error)
+  {
+  case -1:
+    return "No controller";
+  case 0:
+    return "Disconnected";
+  case 1:
+    return "Confirm safety";
+  case 2:
+    return "Booting";
+  case 3:
+    return "Power off";
+  case 4:
+    return "Power on";
+  case 5:
+    return "Idle";
+  case 6:
+    return "Backdrive";
+  case 7:
+    return "Running";
+  case 8:
+    return "Updating firmware";
+  default:
+    break;
+  }
+  return "Error code unrecognized";
+}
+
 void ResourceManager::node_guarding_requests(){
 
   for (auto & component : resource_storage_->actuators_)
@@ -1691,7 +1721,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         break;
       }
     }
-    error_type = get_ur_arm_safety_message(safety_mode);
+    error_type = get_ur_arm_robot_state_message(robot_mode) + "; " + get_ur_arm_safety_message(safety_mode);
     if(safety_mode == 1) {
       safety_mode = 0;
     }

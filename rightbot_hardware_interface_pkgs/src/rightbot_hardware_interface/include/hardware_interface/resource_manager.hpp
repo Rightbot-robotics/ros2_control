@@ -401,6 +401,8 @@ public:
 
   std::string get_ur_arm_safety_message(int error);
 
+  std::string get_ur_arm_robot_state_message(int error);
+
   bool camera_homing_status = false;
   void camera_homing(double &homing_angle);
   void camera_align(double &align_angle);
