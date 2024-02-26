@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include <deque>
+#include <fstream>
 
 #include <sensor/sensor.hpp>
 #include <json_reader/json_read.h>
@@ -38,6 +39,7 @@ public:
     void getData(Json::Value &sensor_data);
 
     int requestData();
+    void data_request();
 
     // 
     int readEncCounts(float* angle);
@@ -69,6 +71,7 @@ private:
     int enableSensor();
     float convertToAngle(int counts);
     void readData();
+    void updateCountsFile();
 
     typedef struct {
         uint16_t index;
@@ -94,9 +97,20 @@ private:
     std::mutex read_mutex_;
     std::thread read_enc_data_thread_;
 
+    std::thread count_file_update_thread_;
+    std::mutex count_file_update_mutex_;
+    std::condition_variable count_file_update_cv_;
+    bool update_file_ = false;
+    std::string counts_file_name_;
+
     
     int absolute_encoder_init_pos;
     int abs_motor_ppr;
+    int prev_counts;
+    int curr_counts;
+    int counts_diff;
+    int num_rotations;
+    int multi_turn_counts;
 
     bool reading_loop_started = false;
 

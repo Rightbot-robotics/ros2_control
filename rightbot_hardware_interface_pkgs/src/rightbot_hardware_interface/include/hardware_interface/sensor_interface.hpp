@@ -140,6 +140,8 @@ public:
   void set_state(const rclcpp_lifecycle::State & new_state) { lifecycle_state_ = new_state; }
 
   virtual void clear_can_buffer() = 0;
+
+  virtual void data_request() = 0;
   
 protected:
   HardwareInfo info_;

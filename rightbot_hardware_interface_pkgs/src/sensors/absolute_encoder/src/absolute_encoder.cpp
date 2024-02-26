@@ -40,10 +40,20 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
     axis_ = stoi(info.sensors[0].parameters.at("axis"));
     absolute_encoder_init_pos = stoi(info.sensors[0].parameters.at("zero_point_count"));
     abs_motor_ppr = stoi(info.sensors[0].parameters.at("pulses_per_revolution"));
+    counts_file_name_ = sensor_name_ + "_counts.txt";
+    prev_counts = abs_motor_ppr;
+
+    std::string current_count_value;
+    std::ifstream counts_file("/data/" + counts_file_name_);
+    while(getline(counts_file, current_count_value)){
+        num_rotations = stoi(current_count_value);
+    }
+    counts_file.close();
 
     logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
     logger_->info("[{}] Absolute Encoder Sensor zero point: {}", sensor_name_, absolute_encoder_init_pos);
     logger_->info("[{}] Absolute Encoder Sensor ppr: {}", sensor_name_, abs_motor_ppr);
+    logger_->info("[{}] Absolute Encoder Sensor num rotations: {}", sensor_name_, num_rotations);
 
     const auto & state_interfaces = info_.sensors[0].state_interfaces;
     if (state_interfaces.size() != 1)
@@ -78,6 +88,7 @@ CallbackReturn AbsoluteEncoderSensor::on_configure(const rclcpp_lifecycle::State
     initSensor();
 
     read_enc_data_thread_ = std::thread(&AbsoluteEncoderSensor::readData, this);
+    count_file_update_thread_ = std::thread(&AbsoluteEncoderSensor::updateCountsFile, this);
 
     
     return CallbackReturn::SUCCESS;
@@ -202,6 +213,10 @@ int AbsoluteEncoderSensor::requestData(){
  	return socketcan_write(absolute_encoder_sockets_->abs_cfg_fd, 128, 1, data);
 }
 
+void AbsoluteEncoderSensor::data_request() {
+    requestData();
+}
+
 int AbsoluteEncoderSensor::encoder_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
 
     SDO_data d;
@@ -258,7 +273,6 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
     int err;
     my_can_frame f;
     uint32_t enc;
-    int position_count;
     err = PDO_read(absolute_encoder_sockets_->abs_pdo_fd, &f, 1);
 
     if(err != 0){
@@ -270,16 +284,30 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
         enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
                             ((uint32_t) f.data[3] << 24);
         
-        logger_->debug(" Absolute Encoder Init Counts Value: {}", enc);
+        logger_->debug(" Absolute Encoder Counts Value: {}", enc);
 
-        position_count = static_cast<int>(enc) - absolute_encoder_init_pos;
-        logger_->debug(" Absolute Encoder Counts Value: {}", position_count);
-
-        *angle = convertToAngle(position_count);
-
-        if(abs(*angle) > 180){
-            *angle = 360 + *angle;
+        curr_counts = enc;
+        counts_diff = curr_counts - prev_counts;
+        if(std::abs(counts_diff) > 2000 && prev_counts != abs_motor_ppr){
+            if(counts_diff < 0){
+                num_rotations++;
+            }
+            else {
+                num_rotations--;
+            }
+            {
+                std::lock_guard lk(count_file_update_mutex_);
+                update_file_ = true;
+            }
+            count_file_update_cv_.notify_one();
         }
+        prev_counts = curr_counts;
+        multi_turn_counts = curr_counts + (num_rotations * abs_motor_ppr) - absolute_encoder_init_pos;
+
+        logger_->debug(" Absolute Encoder multi-turn Counts Value: {}", multi_turn_counts);
+
+        *angle = convertToAngle(multi_turn_counts);
+
         logger_->debug(" Absolute Encoder Angle Value: {} degree", *angle);
 
         *angle = (*angle) * (3.14/180); //radian
@@ -293,9 +321,26 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
 
 float AbsoluteEncoderSensor::convertToAngle(int counts){
     float angle;
-    angle = (-1.0 * static_cast<float>(counts)*360)/static_cast<float>(abs_motor_ppr);
+    angle = (static_cast<float>(counts)*360)/static_cast<float>(abs_motor_ppr);
     return angle;
 
+}
+
+void AbsoluteEncoderSensor::updateCountsFile(){
+    while(true) {
+        std::unique_lock lk(count_file_update_mutex_);
+        count_file_update_cv_.wait(lk, [this] { return update_file_; });
+        std::ofstream counts_file("/data/" + counts_file_name_);
+        if(counts_file.is_open()){
+            logger_->info("[{}] Writing num rotations to file: {}", sensor_name_, num_rotations);
+            counts_file << std::to_string(num_rotations) << "\n";
+            counts_file.close();
+        }
+        else {
+            std::cerr << "[" << sensor_name_ << "] Unable to open counts file!" << std::endl;
+        }
+        update_file_ = false;
+    }
 }
 
 void AbsoluteEncoderSensor::readData(){

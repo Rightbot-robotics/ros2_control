@@ -445,7 +445,8 @@ private:
 
   std::vector<std::string> low_freq_components_{
     "right_armbase_actuator",
-    "left_armbase_actuator"
+    "left_armbase_actuator",
+    "absolute_encoder_sensor"
   };
   std::vector<std::string> node_guarding_components_{
     "right_armbase_actuator",
