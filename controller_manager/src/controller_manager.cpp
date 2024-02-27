@@ -288,11 +288,6 @@ void ControllerManager::init_services()
         &ControllerManager::handle_service,
         this,
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  gripper_server =
-    create_service<rightbot_interfaces::srv::Gripper>("gripper_pump_control", std::bind(
-        &ControllerManager::handle_gripper_pump_service,
-        this,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   dummy_conveyor_server =
     create_service<rightbot_interfaces::srv::DummyConveyorCommand>("dummy_conveyor_control", std::bind(
@@ -2115,21 +2110,6 @@ void ControllerManager::handle_service(
 
 
   response->status = true;
-
-}
-
-void ControllerManager::handle_gripper_pump_service(
-    const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Request> request,
-    const std::shared_ptr<rightbot_interfaces::srv::Gripper::Response> response
-)
-{
-  //
-  RCLCPP_INFO(get_logger(), "GRIPPER/PUMP service.");
-
-  resource_manager_->driver_one_gpio_control(request->pump_one, request->gripper_one);
-
-  resource_manager_->driver_two_gpio_control(request->pump_two, request->gripper_two);
 
 }
 
