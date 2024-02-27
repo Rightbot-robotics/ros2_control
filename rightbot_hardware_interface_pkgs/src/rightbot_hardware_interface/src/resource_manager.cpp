@@ -1721,7 +1721,7 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         break;
       }
     }
-    error_type = get_ur_arm_robot_state_message(robot_mode) + "; " + get_ur_arm_safety_message(safety_mode);
+    error_type = "Robot mode: " + get_ur_arm_robot_state_message(robot_mode) + "; Safety mode: " + get_ur_arm_safety_message(safety_mode);
     if(safety_mode == 1) {
       safety_mode = 0;
     }
