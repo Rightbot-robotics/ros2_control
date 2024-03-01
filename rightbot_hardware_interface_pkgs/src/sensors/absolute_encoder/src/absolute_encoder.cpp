@@ -314,15 +314,15 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
         prev_counts = curr_counts;
         multi_turn_counts = curr_counts + (num_rotations * abs_motor_ppr) - absolute_encoder_init_pos;
 
-        logger_->debug(" Absolute Encoder multi-turn Counts Value: {}", multi_turn_counts);
+        logger_->debug("[{}] Absolute Encoder multi-turn Counts Value: {}", sensor_name_, multi_turn_counts);
 
         *angle = convertToAngle(multi_turn_counts);
 
-        logger_->debug(" Absolute Encoder Angle Value: {} degree", *angle);
+        logger_->debug("[{}] Absolute Encoder Angle Value: {} degree", sensor_name_, *angle);
 
         *angle = (*angle) * (3.14/180); //radian
 
-        logger_->debug(" Absolute Encoder Angle Value: {} radian", *angle);
+        logger_->debug("[{}] Absolute Encoder Angle Value: {} radian", sensor_name_, *angle);
 
     }
 
