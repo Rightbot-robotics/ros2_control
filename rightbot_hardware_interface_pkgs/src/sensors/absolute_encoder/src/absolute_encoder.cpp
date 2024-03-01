@@ -45,6 +45,16 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
 
     std::string current_count_value;
     std::ifstream counts_file("/data/" + counts_file_name_);
+    if(!counts_file.good()) {
+        counts_file.close();
+        std::ofstream new_file("/data/" + counts_file_name_);
+        if(new_file.is_open()){
+            logger_->info("[{}] Counts file does not exists creating new file...", sensor_name_);
+            new_file << std::to_string(0) << "\n";
+            new_file.close();
+        }
+        counts_file = std::ifstream("/data/" + counts_file_name_);
+    }
     while(getline(counts_file, current_count_value)){
         num_rotations = stoi(current_count_value);
     }
