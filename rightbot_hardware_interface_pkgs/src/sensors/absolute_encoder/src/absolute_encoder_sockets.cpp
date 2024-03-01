@@ -16,7 +16,7 @@ AbsoluteEncoderSockets::~AbsoluteEncoderSockets() {
 
 bool AbsoluteEncoderSockets::createSockets(int sensor_id) {
 
-    std::string can_interface_id = "can0";
+    std::string can_interface_id = "can2";
 
     uint32_t pdo_masks_one[1] = {COB_MASK};
     uint32_t pdo_filters_one[1] = {
