@@ -294,7 +294,7 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
         enc = ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8) | ((uint32_t) f.data[2] << 16) |
                             ((uint32_t) f.data[3] << 24);
         
-        logger_->debug(" Absolute Encoder Counts Value: {}", enc);
+        logger_->debug("[{}] Absolute Encoder Counts Value: {}", sensor_name_, enc);
 
         curr_counts = enc;
         counts_diff = curr_counts - prev_counts;
