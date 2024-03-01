@@ -46,6 +46,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     } else {
         logger_->info("[{}] Motor is set to velocity control mode", motor_name_);
     }
+    travel_per_revolution = stod(info.joints[0].parameters.at("travel_per_revolution"));
 
     // init_json(config_path);
 
@@ -340,8 +341,9 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
-        position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));
+        // position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
+        position_state_ = axis_*((sensor_data["counts"].asInt() - initial_counts_rotation)*(travel_per_revolution)/(motor_ppr_*motor_gear_ratio));
         logger_->debug("[{}] Read pos debug: [{}], counts: [{}]", motor_name_, position_state_, sensor_data["counts"].asInt() );
     }
 
@@ -481,9 +483,9 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
             } else {
 
-                logger_->debug("[{}] Position command: [{}] radian", motor_name_, position_command_);
-                double angle_in_degree = (position_command_*(180/3.14));
-                int counts = -initial_counts_rotation + initial_counts_offset + static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_*motor_gear_ratio);
+                logger_->debug("[{}] Position command: [{}]", motor_name_, position_command_);
+                double required_count_d = ((axis_ * position_command_ * motor_ppr_ * motor_gear_ratio)/travel_per_revolution) + initial_counts_rotation;
+                int counts = (int)required_count_d;
                 logger_->debug("[{}] Position command in counts: [{}]", motor_name_, counts);
                 motor_controls_->set_absolute_position(motor_id_, axis_, counts); // send absolute position internally
             }
