@@ -167,6 +167,7 @@ private:
     int motor_ppr_ = 4096;
 
     bool velocity_mode = true;
+    bool is_position_control_ = false;
 
     bool check_homing_execution_status = false;
     int homing_counter = 0;

@@ -37,6 +37,16 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     std::string config_path = info.joints[0].parameters.at("path");
 
+    is_position_control_ = (
+        std::string(info.joints[0].parameters.at("position_control")) == "true"
+    );
+
+    if(is_position_control_) {
+        logger_->info("[{}] Motor is set to position control mode", motor_name_);
+    } else {
+        logger_->info("[{}] Motor is set to velocity control mode", motor_name_);
+    }
+
     // init_json(config_path);
 
     int homing_status = stoi(info.joints[0].parameters.at("homing"));
@@ -214,7 +224,7 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
     motor_controls_->set_profile_acc(motor_id_, default_acceleration_);
     motor_controls_->set_profile_deacc(motor_id_, default_acceleration_);
 
-    if(motor_name_ == "camera_rotation_joint"){
+    if(is_position_control_){
         velocity_mode = false;
         motor_controls_->motorSetmode("position");
     }
@@ -322,15 +332,15 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
     if(homing_active){
         if(homing_at_zero){
-            // position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+            position_state_ = (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
             position_state_ = total_travel_distance - (sensor_data["counts"].asInt() - initial_counts)*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
         } else {
-            // position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
+            position_state_ = total_travel_distance - (initial_counts - sensor_data["counts"].asInt())*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
             position_state_ = (initial_counts - sensor_data["counts"].asInt() )*(travel_per_revolution/(motor_ppr * motor_gear_ratio));
         }
         velocity_state_ = axis_* ((sensor_data["velocity"].asDouble()*travel_per_revolution)/(motor_gear_ratio*60));
     } else {
-        // position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));
+        position_state_ = axis_*((((sensor_data["counts"].asInt() - initial_counts_rotation) + initial_counts_offset)*3.14*2)/(motor_ppr_*motor_gear_ratio));
         velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
         logger_->debug("[{}] Read pos debug: [{}], counts: [{}]", motor_name_, position_state_, sensor_data["counts"].asInt() );
     }
