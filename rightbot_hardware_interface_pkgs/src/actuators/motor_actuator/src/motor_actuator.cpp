@@ -588,7 +588,7 @@ bool MotorActuator::Homing(){
     motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
     motor_controls_->set_relative_position(motor_id_, axis_, homing_distance_to_travel);
 
-    while((time_passed_response_received_lift_down.count()<30000) && (homing_achieved == false)){
+    while((time_passed_response_received_lift_down.count()<60000) && (homing_achieved == false)){
 
         requestData();
 
