@@ -1046,7 +1046,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     {
       auto component_name = component.get_name();
 
-      if(component_name == "right_armbase_actuator") {
+      if(is_sync_request_component(component_name)) {
         component.data_request(); 
       }
     }
@@ -1055,7 +1055,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
     {
       auto component_name = component.get_name();
 
-      if(component_name == "absolute_encoder_sensor") {
+      if(is_sync_request_component(component_name)) {
         component.data_request();
       }
     }
@@ -2013,6 +2013,10 @@ bool ResourceManager::is_low_frequency_component(const std::string & name) {
 
 bool ResourceManager::is_node_guarding_component(const std::string & name) {
   return std::find(node_guarding_components_.begin(), node_guarding_components_.end(), name) != node_guarding_components_.end();
+}
+
+bool ResourceManager::is_sync_request_component(const std::string & name) {
+  return std::find(sync_request_components_.begin(), sync_request_components_.end(), name) != sync_request_components_.end();
 }
 
 }  // namespace hardware_interface

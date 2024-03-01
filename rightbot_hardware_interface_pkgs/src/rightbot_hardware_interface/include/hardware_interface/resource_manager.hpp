@@ -434,6 +434,7 @@ public:
   void refresh_low_frequency_trigger(const rclcpp::Time & time);
   bool is_low_frequency_component(const std::string & name);
   bool is_node_guarding_component(const std::string & name);
+  bool is_sync_request_component(const std::string & name);
 
 private:
   void validate_storage(const std::vector<hardware_interface::HardwareInfo> & hardware_info) const;
@@ -450,12 +451,18 @@ private:
   std::vector<std::string> low_freq_components_{
     "right_armbase_actuator",
     "left_armbase_actuator",
-    "absolute_encoder_sensor"
+    "conveyor_left_encoder",
+    "conveyor_right_encoder"
   };
   std::vector<std::string> node_guarding_components_{
     "right_armbase_actuator",
-    "left_armbase_actuator"
+    "left_armbase_actuator",
   };
+  std::vector<std::string> sync_request_components_{
+    "left_armbase_actuator",
+    "conveyor_left_encoder"
+  };
+  
   struct LowFrequencyLoop {
     rclcpp::Time next_sync_trigger_time_ = rclcpp::Time(0, 0);
     rclcpp::Time next_read_trigger_time_ = rclcpp::Time(0, 0);
