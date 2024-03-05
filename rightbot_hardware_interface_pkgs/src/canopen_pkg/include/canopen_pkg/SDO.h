@@ -28,6 +28,7 @@ typedef struct {
  * \return  0 on success, -1 on error, -2 on timeout
  **/
 int SDO_write(int fd, const SDO_data *d);
+int SDO_write_no_wait(int fd, const SDO_data *d);
 
 int SDO_read(int fd, SDO_data *d, SDO_data *resp);
 

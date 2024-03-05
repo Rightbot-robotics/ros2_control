@@ -140,6 +140,40 @@ int SDO_write(int fd, const SDO_data *d) {
     return SOCKETCAN_TIMEOUT;
 }
 
+
+int SDO_write_no_wait(int fd, const SDO_data *d) {
+    int err;
+    int fillerbytes;
+    const int timeout = 30;
+    const int buffer = 15;
+    uint16_t cob, cob_r;
+    uint8_t ccd, msb, lsb;
+    my_can_frame f;
+
+    // Define data
+    cob = SDO_RX + d->nodeid;
+    ccd = SDO_calculate_ccd('w', d->data.size);
+    fillerbytes = 8 - 4 - d->data.size;
+    Socketcan_t data[5] = {
+            {1, ccd},
+            {2, d->index},
+            {1, d->subindex},
+            d->data,
+            {fillerbytes, 0x00}
+    };
+
+
+
+    // Send write request
+    err = socketcan_write(fd, cob, 5, data);
+    if (err != 0) {
+        printd(LOG_ERROR, "socketcan SDO: Could not write to the CAN-bus fd=%d.\n", fd);
+        return err;
+    }
+    
+    return err;
+}
+
 int SDO_read(int fd, SDO_data *d, SDO_data *resp) {
     int err;
     int fillerbytes;
