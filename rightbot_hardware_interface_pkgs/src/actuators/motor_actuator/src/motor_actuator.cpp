@@ -63,7 +63,6 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
         logger_->info("Actuator: [{}]-> HOMING velocity:[{}], accleration:[{}], position: [{}]", motor_name_, homing_velocity, homing_acceleration, homing_position);
     
         total_travel_distance = stod(info.joints[0].parameters.at("total_travel_distance"));
-        travel_per_revolution = stod(info.joints[0].parameters.at("travel_per_revolution"));
         
         logger_->info("Actuator: [{}]-> Total travel distance:[{}], Travel per revolution: [{}]", motor_name_, total_travel_distance, travel_per_revolution);
     
@@ -416,9 +415,8 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
             } else {
 
-                logger_->debug("[{}] Velocity command in degree/s: [{}]", motor_name_, max_velocity_command_);
-                double degree_per_sec = (max_velocity_command_*(180/3.14));
-                double revolution_per_min = (degree_per_sec*60)/360.0;
+                logger_->debug("[{}] Velocity command is: [{}]", motor_name_, max_velocity_command_);
+                double revolution_per_min = (max_velocity_command_/travel_per_revolution)*motor_gear_ratio*60;
                 float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
                 float scaled_max_vel = 1.0f * max_velocity_command_final_;
                 logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
