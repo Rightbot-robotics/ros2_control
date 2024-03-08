@@ -121,7 +121,7 @@ int MotorControls::set_absolute_position(uint16_t node_id, int axis, uint32_t po
     d.subindex = 0x00;
     d.data.size = 4;
     d.data.data = axis * position;//in milliseconds
-    err |= SDO_write_no_wait(motor_sockets->motor_cfg_fd, &d);
+    err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
 
     md_control_register.control_s.switch_on = 1;
     md_control_register.control_s.enable_voltage = 1;
@@ -135,7 +135,7 @@ int MotorControls::set_absolute_position(uint16_t node_id, int axis, uint32_t po
     d.subindex = 0x00;
     d.data.size = 2;
     d.data.data = md_control_register.control_word;
-    err |= SDO_write_no_wait(motor_sockets->motor_cfg_fd, &d);
+    err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
 
     md_control_register.control_s.absolute_or_relative = 0;
     md_control_register.control_s.new_setpoint = 1;
@@ -143,7 +143,7 @@ int MotorControls::set_absolute_position(uint16_t node_id, int axis, uint32_t po
     d.subindex = 0x00;
     d.data.size = 2;
     d.data.data = md_control_register.control_word;
-    err |= SDO_write_no_wait(motor_sockets->motor_cfg_fd, &d);
+    err |= SDO_write(motor_sockets->motor_cfg_fd, &d);
     return err;
 }
 
