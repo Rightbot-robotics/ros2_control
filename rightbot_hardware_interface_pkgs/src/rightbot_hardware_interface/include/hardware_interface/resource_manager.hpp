@@ -455,7 +455,8 @@ private:
     "conveyor_right_encoder",
     "conveyor_lift_left_actuator",
     "conveyor_lift_right_actuator",
-    "conveyor_belt_actuator"
+    "conveyor_belt_actuator",
+    "DC_hinge_encoder"
   };
   std::vector<std::string> node_guarding_components_{
     "right_armbase_actuator",
