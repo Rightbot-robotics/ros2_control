@@ -113,6 +113,7 @@ private:
     int multi_turn_counts;
 
     bool reading_loop_started = false;
+    bool run_software_multi_turn = false;
 
     double position_state_ = std::numeric_limits<double>::quiet_NaN();
     

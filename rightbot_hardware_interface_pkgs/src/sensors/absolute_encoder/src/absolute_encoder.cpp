@@ -42,28 +42,39 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
     abs_motor_ppr = stoi(info.sensors[0].parameters.at("pulses_per_revolution"));
     counts_file_name_ = sensor_name_ + "_counts.txt";
     prev_counts = abs_motor_ppr;
+    std::string run_multi_turn_param = info.sensors[0].parameters.at("run_software_multi_turn")
+    run_software_multi_turn = (run_multi_turn_param == std::string("True") || run_multi_turn_param == std::string("true"));
 
-    std::string current_count_value;
-    std::ifstream counts_file("/data/" + counts_file_name_);
-    if(!counts_file.good()) {
-        counts_file.close();
-        std::ofstream new_file("/data/" + counts_file_name_);
-        if(new_file.is_open()){
-            logger_->info("[{}] Counts file does not exists creating new file...", sensor_name_);
-            new_file << std::to_string(0) << "\n";
-            new_file.close();
+    num_rotations = 0;
+    if(run_software_multi_turn) {
+        std::string current_count_value;
+        std::ifstream counts_file("/data/" + counts_file_name_);
+        if(!counts_file.good()) {
+            counts_file.close();
+            std::ofstream new_file("/data/" + counts_file_name_);
+            if(new_file.is_open()){
+                logger_->info("[{}] Counts file does not exists creating new file...", sensor_name_);
+                new_file << std::to_string(0) << "\n";
+                new_file.close();
+            }
+            counts_file = std::ifstream("/data/" + counts_file_name_);
         }
-        counts_file = std::ifstream("/data/" + counts_file_name_);
+        while(getline(counts_file, current_count_value)){
+            num_rotations = stoi(current_count_value);
+        }
+        counts_file.close();
     }
-    while(getline(counts_file, current_count_value)){
-        num_rotations = stoi(current_count_value);
-    }
-    counts_file.close();
 
     logger_->info("Absolute Encoder Sensor Init sensor: [{}], can_id: [{}]", sensor_name_, sensor_id_);
     logger_->info("[{}] Absolute Encoder Sensor zero point: {}", sensor_name_, absolute_encoder_init_pos);
     logger_->info("[{}] Absolute Encoder Sensor ppr: {}", sensor_name_, abs_motor_ppr);
     logger_->info("[{}] Absolute Encoder Sensor num rotations: {}", sensor_name_, num_rotations);
+    if(run_software_multi_turn) {
+        logger_->info("[{}] Running software multi turn mechanism", sensor_name_);
+    }
+    else {
+        logger_->info("[{}] Not running software multi turn mechanism", sensor_name_);
+    }
 
     const auto & state_interfaces = info_.sensors[0].state_interfaces;
     if (state_interfaces.size() != 1)
@@ -297,26 +308,31 @@ int AbsoluteEncoderSensor::readEncCounts(float* angle){
         logger_->debug("[{}] Absolute Encoder Counts Value: {}", sensor_name_, enc);
 
         curr_counts = enc;
-        counts_diff = curr_counts - prev_counts;
-        if(std::abs(counts_diff) > 2000 && prev_counts != abs_motor_ppr){
-            if(counts_diff < 0){
-                num_rotations++;
+        if(run_software_multi_turn) {
+            counts_diff = curr_counts - prev_counts;
+            if(std::abs(counts_diff) > 2000 && prev_counts != abs_motor_ppr){
+                if(counts_diff < 0){
+                    num_rotations++;
+                }
+                else {
+                    num_rotations--;
+                }
+                {
+                    std::lock_guard lk(count_file_update_mutex_);
+                    update_file_ = true;
+                }
+                count_file_update_cv_.notify_one();
             }
-            else {
-                num_rotations--;
-            }
-            {
-                std::lock_guard lk(count_file_update_mutex_);
-                update_file_ = true;
-            }
-            count_file_update_cv_.notify_one();
+            prev_counts = curr_counts;
+            multi_turn_counts = curr_counts + (num_rotations * abs_motor_ppr) - absolute_encoder_init_pos;
+
+            logger_->debug("[{}] Absolute Encoder multi-turn Counts Value: {}", sensor_name_, multi_turn_counts);
+
+            *angle = convertToAngle(multi_turn_counts);
         }
-        prev_counts = curr_counts;
-        multi_turn_counts = curr_counts + (num_rotations * abs_motor_ppr) - absolute_encoder_init_pos;
-
-        logger_->debug("[{}] Absolute Encoder multi-turn Counts Value: {}", sensor_name_, multi_turn_counts);
-
-        *angle = convertToAngle(multi_turn_counts);
+        else {
+            *angle = convertToAngle(curr_counts - absolute_encoder_init_pos);
+        }
 
         logger_->debug("[{}] Absolute Encoder Angle Value: {} degree", sensor_name_, *angle);
 
@@ -337,7 +353,7 @@ float AbsoluteEncoderSensor::convertToAngle(int counts){
 }
 
 void AbsoluteEncoderSensor::updateCountsFile(){
-    while(true) {
+    while(run_software_multi_turn) {
         std::unique_lock lk(count_file_update_mutex_);
         count_file_update_cv_.wait(lk, [this] { return update_file_; });
         std::ofstream counts_file("/data/" + counts_file_name_);
