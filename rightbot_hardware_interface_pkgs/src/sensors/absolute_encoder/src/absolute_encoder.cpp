@@ -42,7 +42,7 @@ CallbackReturn AbsoluteEncoderSensor::on_init(const hardware_interface::Hardware
     abs_motor_ppr = stoi(info.sensors[0].parameters.at("pulses_per_revolution"));
     counts_file_name_ = sensor_name_ + "_counts.txt";
     prev_counts = abs_motor_ppr;
-    std::string run_multi_turn_param = info.sensors[0].parameters.at("run_software_multi_turn")
+    std::string run_multi_turn_param = info.sensors[0].parameters.at("run_software_multi_turn");
     run_software_multi_turn = (run_multi_turn_param == std::string("True") || run_multi_turn_param == std::string("true"));
 
     num_rotations = 0;
