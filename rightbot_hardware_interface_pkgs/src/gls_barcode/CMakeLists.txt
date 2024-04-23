@@ -6,10 +6,10 @@ if (UNIX)
     list(APPEND serial_SRCS RightbotDrivers/serial/impl/list_ports/list_ports_linux.cc)
 endif ()
 
-#if (NOT TARGET spdlog)
-#    # Stand-alone build
-#    find_package(spdlog REQUIRED)
-#endif ()
+if (NOT TARGET spdlog)
+   # Stand-alone build
+   find_package(spdlog REQUIRED)
+endif ()
 
 
 ## Add serial library
@@ -17,7 +17,7 @@ endif ()
 include_directories(
         include
         ${CMAKE_CURRENT_SOURCE_DIR}/../json_reader/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../spdlog/include
+        # ${CMAKE_CURRENT_SOURCE_DIR}/../spdlog/include
 )
 
 install(DIRECTORY include/

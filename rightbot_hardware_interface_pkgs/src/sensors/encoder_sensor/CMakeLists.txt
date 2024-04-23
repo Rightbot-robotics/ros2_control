@@ -5,6 +5,11 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif ()
 
+if (NOT TARGET spdlog)
+   # Stand-alone build
+   find_package(spdlog REQUIRED)
+endif ()
+
 include_directories(
         include
         ${CMAKE_CURRENT_SOURCE_DIR}/../../json_reader/include
