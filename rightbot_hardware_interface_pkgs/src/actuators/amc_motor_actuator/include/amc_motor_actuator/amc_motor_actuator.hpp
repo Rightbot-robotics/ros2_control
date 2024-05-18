@@ -76,6 +76,8 @@ private:
     int motor_id_;
     int axis_;
     int zero_point_count_;
+    uint16_t ki_;
+    uint32_t ks_;
 
     int initMotor();
     int motorConfigNode(int motor_id);

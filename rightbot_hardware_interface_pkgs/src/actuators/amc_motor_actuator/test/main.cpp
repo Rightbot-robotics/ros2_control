@@ -36,9 +36,9 @@ int main() {
     amc_motor_actuator_sockets_ = std::make_shared<AmcMotorActuatorSockets>(1, "motor_actuator");
 
     actuator_data_["timeout"] = 10;
-    actuator_data_["mode"] = "position";
-    actuator_data_["velocity"] = 0;
-    actuator_data_["relative_pos"] = 145635;
+    actuator_data_["mode"] = "velocity";
+    actuator_data_["velocity"] = 500;
+    actuator_data_["relative_pos"] = 145;
     actuator_data_["max_vel"] = 15;
     actuator_data_["accel"] = 15;
     actuator_data_["decel"] = 15;

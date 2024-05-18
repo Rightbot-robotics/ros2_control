@@ -539,7 +539,7 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 1, PDO_TX1_ID + motor_id);
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 2, PDO_TX2_ID + motor_id);
     err |= motor_Transmit_PDO_n_Parameter(motor_id, 3, PDO_TX3_ID + motor_id);
-    // err |= motor_Transmit_PDO_n_Parameter(motor_id, 4, PDO_TX4_ID + motor_id);
+    err |= motor_Transmit_PDO_n_Parameter(motor_id, 4, PDO_TX4_ID + motor_id);
 
 	// PDO TX1 Statusword and High Voltage Reference
     num_PDOs = 3;
@@ -593,9 +593,12 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 	err |= setTPDO_cobid(motor_id, 3);
 	// err |= setTPDO_cobid(motor_id, 4);
 
-	//err |= motor_Transmit_PDO_n_Mapping(motor_id, 5, 0, NULL);
-	//err |= motor_Transmit_PDO_n_Mapping(motor_id, 6, 0, NULL);
-	//err |= motor_Transmit_PDO_n_Mapping(motor_id, 7, 0, NULL);
+	err |= motor_Transmit_PDO_n_Mapping(motor_id, 5, 0, NULL);
+	err |= motor_Transmit_PDO_n_Mapping(motor_id, 6, 0, NULL);
+	err |= motor_Transmit_PDO_n_Mapping(motor_id, 7, 0, NULL);
+
+	ki_ = read_ki_constant();
+	ks_ = read_ks_constant();
 
 	return err;
 
@@ -958,9 +961,7 @@ uint32_t AmcMotorActuator::read_ks_constant() {
 int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
     int err = 0;
     const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
-	float ki = read_ki_constant();
-	float ks = read_ks_constant();
-	int32_t drive_val =  countspersec * (pow(2, 17)/(ki * ks));
+	int32_t drive_val =  countspersec * (pow(2, 17)/(ki_ * ks_));
 	Socketcan_t target_vel[2] = {
             {2, Switch_On_And_Enable_Operation},
             {4, drive_val}};
