@@ -1,8 +1,8 @@
-<library path="harmonic_motor_actuator">
+<library path="amc_motor_actuator">
 
-  <class name="harmonic_motor_actuator" type="HarmonicMotorActuator" base_class_type="hardware_interface::ActuatorInterface">
+  <class name="amc_motor_actuator" type="AmcMotorActuator" base_class_type="hardware_interface::ActuatorInterface">
     <description>
-      harmonic motor actuator
+      amc motor actuator
     </description>
   </class>
 

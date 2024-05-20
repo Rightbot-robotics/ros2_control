@@ -545,8 +545,8 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
     num_PDOs = 3;
     Epos_pdo_mapping status_and_err[] = {
             {0x6041, 0x00, 16},	// Statusword
-			{0x603F, 0x00, 16},	// Error Code
-			{0x6078, 0x00, 16}	// Actual Motor Current
+			{0x2002, 0x02, 16},	// Error Code
+			{0x6077, 0x00, 16}	// Actual Motor Current
             // {0x6079, 0x00, 32}	// High Voltage Reference
     };
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_err);
@@ -573,7 +573,7 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
     num_PDOs = 2;
     Epos_pdo_mapping enc[] = {
             {0x6064, 0x00, 32}, // Position Actual value,
-			{0x6062, 0x00, 32}// Position demand value
+			{0x607A, 0x00, 32}// Position demand value
     };
     err |= motor_Transmit_PDO_n_Mapping(motor_id, 3, num_PDOs, enc);
     //err |= motor_Transmit_PDO_n_Mapping(motor_id, 3, 0, NULL);
