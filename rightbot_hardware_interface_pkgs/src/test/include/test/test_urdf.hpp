@@ -131,7 +131,7 @@ const auto hardware_resources =
   R"(
   <ros2_control name="TestActuatorHardwareOne" type="actuator">
     <hardware>
-      <plugin>motor_actuator</plugin>
+      <plugin>amc_motor_actuator</plugin>
     </hardware>
     <joint name="joint1">
       <command_interface name="position"/>
@@ -145,51 +145,11 @@ const auto hardware_resources =
       <state_interface name="manufacturer_register"/>
       <state_interface name="latched_fault"/>
       <state_interface name="node_guard_error"/>
-      <param name="can_id">12</param>
+      <param name="can_id">1</param>
       <param name="axis">1</param>
       <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
     </joint>
-  </ros2_control>
-  <ros2_control name="TestActuatorHardwareTwo" type="actuator">
-    <hardware>
-      <plugin>motor_actuator</plugin>
-    </hardware>
-    <joint name="joint2">
-      <command_interface name="position"/>
-      <command_interface name="max_velocity"/>
-      <command_interface name="acceleration"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-      <state_interface name="status"/>
-      <state_interface name="battery_voltage"/>
-      <state_interface name="input_states"/>
-      <state_interface name="manufacturer_register"/>
-      <state_interface name="latched_fault"/>
-      <state_interface name="node_guard_error"/>
-      <param name="can_id">13</param>
-      <param name="axis">1</param>
-      <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
-    </joint>
-  </ros2_control>
-  <ros2_control name="TestHarmonicActuatorHardwareOne" type="actuator">
-    <hardware>
-      <plugin>harmonic_motor_actuator</plugin>
-    </hardware>
-    <joint name="joint3">
-      <command_interface name="position"/>
-      <command_interface name="max_velocity"/>
-      <command_interface name="acceleration"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-      <state_interface name="status"/>
-      <state_interface name="error_code"/>
-      <state_interface name="node_guard_error"/>
-      <param name="can_id">14</param>
-      <param name="axis">1</param>
-      <param name="path">"/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json"</param>
-    </joint>
-  </ros2_control>
-  
+  </ros2_control>  
 )";
 
 const auto hardware_resources_missing_state_keys =
