@@ -311,7 +311,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
     if(!initialization_done){
         logger_->info("[{}] CAN buffer clear command", motor_name_);
-        encoder_sensor->enc_clear_can_buffer();
+        // encoder_sensor->enc_clear_can_buffer();
 
         if(sensor_data["read_status_encoder"].asBool()){
             initial_counts_rotation = sensor_data["counts"].asInt();
@@ -543,12 +543,12 @@ void MotorActuator::reinitialize_actuator(){
     logger_->warn("[{}] - Reinitialise motor is not implemented yet", motor_name_);
 }
 
-void MotorActuator::clear_can_buffer(){
+// void MotorActuator::clear_can_buffer(){
 
-    encoder_sensor->readToClearBuffer();
+//     encoder_sensor->readToClearBuffer();
 
-    //
-}
+//     //
+// }
 
 void MotorActuator::data_request(){
 

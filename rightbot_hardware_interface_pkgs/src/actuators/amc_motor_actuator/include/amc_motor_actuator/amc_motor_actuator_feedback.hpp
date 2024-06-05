@@ -25,12 +25,11 @@ public:
     float actual_motor_current_m;
     int32_t pos_m;
     double vel_m;
+    int drive_stat_m;
+    int system_stat_m;
+    int voltage_m;
+    int io_stat_m;
     int guard_err_m;
-    uint64_t time_sys;
-    bool read_status_err_code;
-    bool read_status_encoder;
-    bool read_status_velocity;
-
 };
 
 class AmcEncoderSensor : public Sensor {
@@ -50,9 +49,10 @@ public:
 
     int motor_request(void);
 
-    int motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, float *actual_motor_current, int timeout);
-    int motor_enc_read(int motor_id, int32_t *pos, int timeout);
+    int motor_status_n_pos_read(int motor_id, uint16_t *status, float *actual_position, int timeout);
     int motor_vel_read(int motor_id, double *vel, int timeout);
+    int motor_current_read(int motor_id, int16_t *actual_motor_current, int timeout);
+    int motor_stat_voltage_n_io_read(int motor_id, int16_t *drive_stat, int16_t *system_stat, int16_t *voltage, int16_t *io_stat, int timeout);
     int node_guarding_response_read(uint16_t *response, int timeout);
 
     double motor_cps_to_rpm(double counts_per_sec);
@@ -100,9 +100,15 @@ public:
 
     uint16_t status_register_fb_[1]= {0};
     uint16_t err_code_fb_[1] = {0};
-    float actual_motor_current_fb_[1] = {0};
+    int16_t actual_motor_current_fb_[1] = {0};
+    float actual_position_fb_[1] = {0};
     int32_t encoder_fb_[1]= {0};
     double vel_fb_[1]= {0};
+    int16_t drive_stat_fb_[1] = {0};
+    int16_t system_stat_fb_[1] = {0};
+    int16_t voltage_fb_[1] = {0};
+    int16_t io_stat_fb_[1] = {0};
+    
     int guard_err_fb_ = -1;
 
     float motor_rated_current_;

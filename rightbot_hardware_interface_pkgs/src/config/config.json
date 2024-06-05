@@ -13,6 +13,14 @@
         "using_default_acceleration": "yes",
         "default_max_velocity": 2.0,
         "default_acceleration": 1.0
+    },
+
+    "amc_motor_actuator": {
+        "motor_ppr" : 524288,
+        "using_default_max_velocity": "yes",
+        "using_default_acceleration": "yes",
+        "default_max_velocity": 2.0,
+        "default_acceleration": 1.0
     }
 
 }

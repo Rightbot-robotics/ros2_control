@@ -6,11 +6,6 @@ AmcEncoderData::AmcEncoderData() {
     pos_m = 0;
     vel_m = 0.0;
     guard_err_m = 0;
-    time_sys = 0;
-    read_status_err_code = false;
-    read_status_encoder = false;
-    read_status_velocity = false;
-
 }
 
 AmcEncoderSensor::AmcEncoderSensor() {
@@ -32,21 +27,21 @@ void AmcEncoderSensor::initialize(AmcMotorActuatorSockets::AmcMotorActuatorSocke
     read_err_ = 0;
     reading_loop_started = false;
 
-    int err;
-    SDO_data req, resp;
-	req.nodeid = motor_id_;
-	req.index = 0x6075;
-	req.subindex = 0x00;
-	req.data = {0, 0x00};
+    // int err;
+    // SDO_data req, resp;
+	// req.nodeid = motor_id_;
+	// req.index = 0x6075;
+	// req.subindex = 0x00;
+	// req.data = {0, 0x00};
 	
-	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
-    if(err != 0) {
-        logger_->info("[{}] Motor rated current was not read...", motor_name_);
-    }
+	// err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    // if(err != 0) {
+    //     logger_->info("[{}] Motor rated current was not read...", motor_name_);
+    // }
 
-    motor_rated_current_ = ((float)resp.data.data) / 1000;  // mA to A
+    // motor_rated_current_ = ((float)resp.data.data) / 1000;  // mA to A
 
-	logger_->info("[{}] Motor rated current: {} A", motor_name_, motor_rated_current_);
+	// logger_->info("[{}] Motor rated current: {} A", motor_name_, motor_rated_current_);
 
     read_motor_data_thread_ = std::thread(&AmcEncoderSensor::readMotorData, this);
 }
@@ -65,7 +60,7 @@ int AmcEncoderSensor::motor_request(void)
 	return socketcan_write(motor_sockets_->motor_sync_fd, 128, 1, data);
 }
 
-int AmcEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *status, uint16_t *err_code, float *actual_motor_current, int timeout) {
+int AmcEncoderSensor::motor_status_n_pos_read(int motor_id, uint16_t *status, float *actual_position, int timeout) {
     int err;
     my_can_frame f;
     err = PDO_read(motor_sockets_->motor_status_pdo_fd, &f, timeout);
@@ -77,58 +72,10 @@ int AmcEncoderSensor::motor_status_n_voltage_read(int motor_id, uint16_t *status
 
     if (f.id == (PDO_TX1_ID + motor_id)) {
         *status = (f.data[0] << 0) | (f.data[1] << 8);
-        *err_code = (f.data[2] << 0) | (f.data[3] << 8);
-        int16_t motor_current_int = ((f.data[4] << 0) | (f.data[5] << 8));
-        *actual_motor_current = (((float)motor_current_int) * motor_rated_current_)/1000;
-        logger_->debug("[{}] Motor current: [{}]", motor_name_, *actual_motor_current);
-
-        // *battery_vol = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
-        // logger_->debug("test battery vol: [{}]", *battery_vol);
-
+        int32_t actual_position_int = ((f.data[2] << 0) | (f.data[3] << 8) | (f.data[4] << 16) | (f.data[5] << 24));
+        *actual_position = ((float)actual_position_int);
+        logger_->debug("[{}] Motor position: [{}]", motor_name_, *actual_position);
     }
-
-    return err;
-
-}
-
-int AmcEncoderSensor::motor_enc_read(int motor_id, int32_t *pos, int timeout) {
-    int err;
-    my_can_frame f;
-    uint32_t enc;
-
-    err = PDO_read(motor_sockets_->motor_enc_pdo_fd, &f, timeout);
-
-    if (err != 0) {
-        // Read error, or no data
-        return err;
-    }
-
-    if (f.id == (PDO_TX3_ID + motor_id)) {
-        //ENCODER COUNT
-        enc = ( f.data[0] << 0) | ( f.data[1] << 8) | ( f.data[2] << 16) |
-              ( f.data[3] << 24);
-        //rpm = ((uint32_t)f.data[4]<<0) | ((uint32_t)f.data[5]<<8) | ((uint32_t)f.data[6]<<16) | ((uint32_t)f.data[7]<<24);
-        // logger_->debug("Amc motor counts init: [{}]", enc);
-        position_demand_value =  ((uint32_t) f.data[4] << 0) | ((uint32_t) f.data[5] << 8) | ((uint32_t) f.data[6] << 16) |
-              ((uint32_t) f.data[7] << 24);
-        
-        // if (init_enc) {
-        //     *pos = enc - err_enc;
-        // } else {
-        //     err_enc = enc;
-        //     init_enc = true;
-        // }
-
-        *pos = (int32_t)enc;
-
-        if(prev_position_demand_value != position_demand_value){
-            // logger_->info("[{}] new position demand value {}, current_count {}",motor_name_ , position_demand_value, *pos);
-            prev_position_demand_value = position_demand_value;
-        }
-
-        //*vel = rpm*0.1;//motor_rpm_to_mmsec(-rpm);
-    }
-
     return err;
 }
 
@@ -153,14 +100,58 @@ int AmcEncoderSensor::motor_vel_read(int motor_id, double *vel, int timeout) {
                        ((uint32_t) f.data[3] << 24);
         cps = register_cps;
 
-        if(motor_id_ != 21){
-            voltage =   ((uint32_t) f.data[4] << 0) | ((uint32_t) f.data[5] << 8) | ((uint32_t) f.data[6] << 16) |
-                    ((uint32_t) f.data[7] << 24);
-            voltage = voltage/1000.00 ; // mV to V
-            logger_->debug("[{}] battery_voltage: [{}]", motor_name_, voltage);
-        }
+        *vel = cps;
+    }
+
+    return err;
+}
+
+int AmcEncoderSensor::motor_current_read(int motor_id, int16_t *actual_motor_current, int timeout) {
+    int err;
+    my_can_frame f;
+    uint32_t enc;
+
+    err = PDO_read(motor_sockets_->motor_enc_pdo_fd, &f, timeout);
+
+    if (err != 0) {
+        // Read error, or no data
+        return err;
+    }
+
+    if (f.id == (PDO_TX3_ID + motor_id)) {
         
-        *vel = (double) motor_cps_to_rpm(cps);
+        int16_t actual_motor_current_int =  ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8);
+        *actual_motor_current = actual_motor_current_int;
+        
+    }
+
+    return err;
+}
+
+int AmcEncoderSensor::motor_stat_voltage_n_io_read(int motor_id, int16_t *drive_stat, int16_t *system_stat, int16_t *voltage, int16_t *io_stat, int timeout) {
+    int err;
+    my_can_frame f;
+    uint32_t enc;
+
+    err = PDO_read(motor_sockets_->motor_enc_pdo_fd, &f, timeout);
+
+    if (err != 0) {
+        // Read error, or no data
+        return err;
+    }
+
+    if (f.id == (PDO_TX4_ID + motor_id)) {
+        
+        int16_t drive_stat_int =  ((uint32_t) f.data[0] << 0) | ((uint32_t) f.data[1] << 8);
+        int16_t system_stat_int =  ((uint32_t) f.data[2] << 0) | ((uint32_t) f.data[3] << 8);
+        int16_t voltage_int =  ((uint32_t) f.data[4] << 0) | ((uint32_t) f.data[5] << 8);
+        int16_t io_stat_int =  ((uint32_t) f.data[6] << 0) | ((uint32_t) f.data[7] << 8);
+        
+        *drive_stat = drive_stat_int;
+        *system_stat = system_stat_int;
+        *voltage = voltage_int;
+        *io_stat = io_stat_int;
+        
     }
 
     return err;
@@ -196,60 +187,54 @@ int AmcEncoderSensor::node_guarding_response_read(uint16_t *response, int timeou
 
 int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
 
-    auto err_pdo_1_ = motor_status_n_voltage_read(motor_id_, status_register_fb_, err_code_fb_, actual_motor_current_fb_, 1);
-    auto err_pdo_2_ = motor_enc_read(motor_id_, encoder_fb_, 1);
-    auto err_pdo_3_ = motor_vel_read(motor_id_, vel_fb_, 1);
+    auto err_pdo_1_ = motor_status_n_pos_read(motor_id_, status_register_fb_, actual_position_fb_, 1);
+    auto err_pdo_2_ = motor_vel_read(motor_id_, vel_fb_, 1);
+    auto err_pdo_3_ = motor_current_read(motor_id_, actual_motor_current_fb_, 1);
+    auto err_pdo_4_ = motor_stat_voltage_n_io_read(motor_id_, drive_stat_fb_, system_stat_fb_, voltage_fb_, io_stat_fb_, 1);
     
-    guard_err_fb_ = err_pdo_2_;
-    logger_->debug("[{}] guard_err [{}]", motor_name_, guard_err_fb_);
-
     if (0 == err_pdo_1_) {
-
+        // status register
         encoder_data->status_m = status_register_fb_[0];
-        encoder_data->err_code_m = err_code_fb_[0];
-        encoder_data->actual_motor_current_m = actual_motor_current_fb_[0];
-        encoder_data->read_status_err_code = true;
+        // position register
+        encoder_data->pos_m = actual_position_fb_[0];
 
     }
     else{
-        encoder_data->read_status_err_code = false;
+        logger_->debug("[{}] status & pos read error", motor_name_);
     }
 
     if (0 == err_pdo_2_) {
-        encoder_data->pos_m = encoder_fb_[0];
-        // logger_->debug("TEST [{}] Encoder_position: [{}]",motor_name_, encoder_fb_[0]);
-        encoder_data->read_status_encoder = true;
-        // logger_->debug("[{}] - enc read success",motor_name_);
+        // velocity register
+        double vel = motor_cps_to_rpm(vel_fb_[0]);
+        vel = vel/(pow(2, 17)/(20000));
+        encoder_data->vel_m = vel;
     }
     else{
-        encoder_data->read_status_encoder = false;
+        logger_->debug("[{}] vel read error", motor_name_);
     }
 
     if (0 == err_pdo_3_) {
-        encoder_data->vel_m = vel_fb_[0];
-        // logger_->debug("TEST [{}] Encoder_Velocity: [{}]", motor_name_, vel_fb_[0]);
-        encoder_data->read_status_velocity = true;
-        // logger_->debug("[{}] - vel read success",motor_name_);
+        // motor current register
+        int16_t actual_motor_current = actual_motor_current_fb_[0] / (pow(2, 13)/20000);
+        encoder_data->actual_motor_current_m = actual_motor_current;
+        
     }else {
-        encoder_data->read_status_velocity = false;
-        // logger_->debug("[{}] - vel read false",motor_name_);
+        logger_->debug("[{}] drive stat, system stat, voltage, io read error", motor_name_);
     }
 
-    encoder_data->guard_err_m = guard_err_fb_;
-
-    auto now = std::chrono::high_resolution_clock::now();
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-    auto epoch = now_ms.time_since_epoch();
-    auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-    long duration = value.count();
-    encoder_data->time_sys = duration;
-
-    bool status = encoder_data->read_status_encoder;
-    int rt_value = -1;
-    if(true == status) {
-        rt_value = 0;
-	// logger_->debug("{} pos read successful",motor_sockets_->motor_name_);
+    if (0 == err_pdo_4_) {
+        // drive stat register
+        encoder_data->drive_stat_m = drive_stat_fb_[0];
+        // system stat register
+        encoder_data->system_stat_m = system_stat_fb_[0];
+        // voltage register
+        encoder_data->voltage_m = voltage_fb_[0];
+        // io stat register
+        encoder_data->io_stat_m = io_stat_fb_[0];
+    }else {
+        logger_->debug("[{}] drive stat, system stat, voltage, io read error", motor_name_);
     }
+
     return 0;
 
 }
@@ -258,39 +243,6 @@ void AmcEncoderSensor::stop_read_thread() {
     stop_read_thread_flag = true;
     
 }
-
-void AmcEncoderSensor::readToClearBuffer(){
-    
-    bool exit = false;
-    bool exit_check = false;
-    int counter = 0;
-
-    reading_loop_started = false;
-    logger_->info("[{}] readToClearBuffer", motor_name_);
-
-    while(!exit){
-
-        int err = readData( &encoder_data_);
-
-        exit_check= !encoder_data_.read_status_encoder;
-        if(exit_check == true){
-            counter++;
-        }
-        logger_->debug("[{}] [clear buffer] read_status_encoder: [{}]", motor_name_, encoder_data_.read_status_encoder);
-
-        if(counter>2){
-            exit = true;
-        }
-
-        std::this_thread::sleep_for(std::chrono::microseconds(5000));
-
-
-    }
-    logger_->info("[{}] CAN buffer cleared", motor_name_);
-    sending_motor_request_internally = true;
-
-}
-
 
 void AmcEncoderSensor::readMotorData() {
 
@@ -302,15 +254,7 @@ void AmcEncoderSensor::readMotorData() {
         {
             
             if(reading_loop_started) {
-
-                // if((motor_name_ == "base_rotation_joint") && (sending_motor_request_internally)){
-                //     motor_request();
-                    
-                // }
-                // if((motor_name_ == "elbow_rotation_joint") && (sending_motor_request_internally)){
-                //     motor_request();
-                    
-                // }
+                
                 std::this_thread::sleep_for(std::chrono::microseconds(2000));
                 
                 int err = readData( &encoder_data_);
@@ -364,16 +308,12 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["actual_motor_current"] = encoder_data_q_element.actual_motor_current_m;
         sensor_data["counts"] = encoder_data_q_element.pos_m;
         sensor_data["velocity"] = encoder_data_q_element.vel_m;
-        sensor_data["timestamp"] = to_string(encoder_data_q_element.time_sys);
         sensor_data["guard_err"] = encoder_data_q_element.guard_err_m;
         sensor_data["read_status"] = true;
-        sensor_data["read_status_err_code"] = encoder_data_q_element.read_status_err_code;
-        sensor_data["read_status_encoder"] = encoder_data_q_element.read_status_encoder;
-        sensor_data["read_status_velocity"] = encoder_data_q_element.read_status_velocity;
         
-        logger_->debug("[{}] Status: [{}], Error Code: [{}]", motor_sockets_->motor_name_, encoder_data_q_element.status_m, encoder_data_q_element.err_code_m);
-        logger_->debug("[{}] Position: {} counts, Velocity: {} rpm", motor_sockets_->motor_name_, encoder_data_q_element.pos_m, encoder_data_q_element.vel_m);
-        logger_->debug("[{}] Guard Err: {}", motor_sockets_->motor_name_, encoder_data_q_element.guard_err_m);
+        // logger_->info("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
+        // logger_->info("motor velocity [{}]", encoder_data_q_element.vel_m);
+        // logger_->info("motor current [{}]", encoder_data_q_element.actual_motor_current_m);
 
     } else {
         sensor_data["read_status"] = false;

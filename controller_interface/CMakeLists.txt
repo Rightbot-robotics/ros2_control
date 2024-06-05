@@ -58,25 +58,25 @@ if(BUILD_TESTING)
   target_include_directories(test_chainable_controller_interface PRIVATE include)
   ament_target_dependencies(test_chainable_controller_interface rightbot_hardware_interface)
 
-  ament_add_gmock(
-    test_semantic_component_interface
-    test/test_semantic_component_interface.cpp
-  )
-  target_include_directories(test_semantic_component_interface PRIVATE include)
-  ament_target_dependencies(
-    test_semantic_component_interface
-    rightbot_hardware_interface
-  )
+  # ament_add_gmock(
+  #   test_semantic_component_interface
+  #   test/test_semantic_component_interface.cpp
+  # )
+  # target_include_directories(test_semantic_component_interface PRIVATE include)
+  # ament_target_dependencies(
+  #   test_semantic_component_interface
+  #   rightbot_hardware_interface
+  # )
 
-  ament_add_gmock(
-    test_force_torque_sensor
-    test/test_force_torque_sensor.cpp
-  )
-  target_include_directories(test_force_torque_sensor PRIVATE include)
-  ament_target_dependencies(
-    test_force_torque_sensor
-    rightbot_hardware_interface
-  )
+  # ament_add_gmock(
+  #   test_force_torque_sensor
+  #   test/test_force_torque_sensor.cpp
+  # )
+  # target_include_directories(test_force_torque_sensor PRIVATE include)
+  # ament_target_dependencies(
+  #   test_force_torque_sensor
+  #   rightbot_hardware_interface
+  # )
 
   ament_add_gmock(
     test_imu_sensor

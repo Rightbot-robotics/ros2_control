@@ -259,7 +259,7 @@ void Actuator::reinitialize_actuator(){
 }
 
 void Actuator::clear_can_buffer(){
-  impl_->clear_can_buffer();
+  // impl_->clear_can_buffer();
 
 }
 

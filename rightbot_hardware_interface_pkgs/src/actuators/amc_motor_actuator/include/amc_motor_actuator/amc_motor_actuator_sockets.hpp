@@ -36,6 +36,7 @@ public:
     int motor_vel_pdo_fd;
     int motor_enc_pdo_fd;
     int motor_system_status_pdo_fd;
+    int motor_vel_read_pdo_fd;
 
     int nmt_motor_cfg_fd;
 

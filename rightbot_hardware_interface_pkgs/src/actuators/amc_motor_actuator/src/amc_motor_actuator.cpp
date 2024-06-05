@@ -17,7 +17,9 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     // We hardcode the info
     logger_ = spdlog::get("hardware_interface")->clone("amc_motor_actuator");
    
-    // logger_->info(" Harmonic Motor Actuator Init");
+    logger_->info(" Amc Motor Actuator Initializing...");
+  	logger_->flush();
+
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
       
@@ -43,8 +45,8 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
-    
-    if (command_interfaces.size() != 4)
+    logger_->info("Number of command interfaces: {}", command_interfaces.size());
+    if (command_interfaces.size() != 3)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -52,11 +54,11 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 
     for (const auto & command_interface : command_interfaces)
     {
+		// (command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) &&
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-            (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
-			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE)
+			(command_interface.name != hardware_interface::HW_IF_ACCELERATION)
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -68,20 +70,21 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
-    if (state_interfaces.size() != 6)
+	logger_->info("Number of state interfaces: {}", state_interfaces.size());
+    if (state_interfaces.size() != 2)
     {
         logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
     {
+		// (state_interface.name != hardware_interface::HW_IF_ERROR_CODE) &&
+            // (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
+			// (state_interface.name != hardware_interface::HW_IF_EFFORT)
         if (
             (state_interface.name != hardware_interface::HW_IF_POSITION) &&
-            (state_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-            (state_interface.name != hardware_interface::HW_IF_STATUS) && 
-            (state_interface.name != hardware_interface::HW_IF_ERROR_CODE) &&
-            (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
-			(state_interface.name != hardware_interface::HW_IF_EFFORT)
+            (state_interface.name != hardware_interface::HW_IF_VELOCITY) 
+            // (state_interface.name != hardware_interface::HW_IF_STATUS) 
 			)
        {
             logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
@@ -144,8 +147,10 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 
 	if(velocity_mode){
 		set_target_velocity(0.0);
+		// set_vel_speed(motor_id_, axis_, 0.0);
         motorSetmode(Motor_mode_Velocity); 
 		set_target_velocity(0.0);
+		// set_vel_speed(motor_id_, axis_, 0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
 
@@ -259,6 +264,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             set_target_velocity(0.0);
+			// set_vel_speed(motor_id_, axis_, 0.0);
 
             logger_->info("[{}] Control state command: Actuator enable", motor_name_);
             enableMotor();
@@ -267,6 +273,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
             
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             set_target_velocity(0.0);
+			// set_vel_speed(motor_id_, axis_, 0.0);
 
 			logger_->info("[{}] Control state command: Actuator disable", motor_name_);
             disableMotor();
@@ -275,6 +282,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
             
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
             set_target_velocity(0.0);
+			// set_vel_speed(motor_id_, axis_, 0.0);
+
 
 			logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
             quickStopMotor();
@@ -305,6 +314,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
             logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
 			set_target_velocity(scaled_max_vel);
+			// set_vel_speed(motor_id_, axis_, scaled_max_vel);
+
 
 		}
 	}
@@ -331,7 +342,12 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 			double angle_in_degree = (position_command_*(180/3.14));
 			int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
 			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-			set_relative_position( counts);
+			motorSetmode(Motor_mode_Position);
+        	set_profile_velocity(300);
+    		set_profile_acc(1);
+    		set_profile_deacc(1);
+        	set_relative_position(static_cast<int32_t>(counts));
+			// set_relative_position(counts);
 		}	
     }
     
@@ -368,11 +384,11 @@ void AmcMotorActuator::reinitialize_actuator(){
 	reinitializeMotor();
 }
 
-void AmcMotorActuator::clear_can_buffer(){
+// void AmcMotorActuator::clear_can_buffer(){
 
-	encoder_sensor_->readToClearBuffer();
+// 	encoder_sensor_->readToClearBuffer();
 
-}
+// }
 
 void AmcMotorActuator::homing_execution(double &homing_pos){
 
@@ -403,7 +419,7 @@ bool AmcMotorActuator::Homing(){
     // motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
     // motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
 
-	encoder_sensor_->readToClearBuffer();
+	// encoder_sensor_->readToClearBuffer();
 
     set_relative_position(0);
 
@@ -416,7 +432,8 @@ bool AmcMotorActuator::Homing(){
         
 		encoder_sensor_->getData(sensor_data_homing);
 
-        if(sensor_data_homing["read_status_encoder"].asBool()){
+        // if(sensor_data_homing["read_status_encoder"].asBool()){
+        if(true){
 
 			double position_in_rad = position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/motor_ppr_);
 			if(radianToDegree(position_in_rad) < 3){
@@ -536,66 +553,34 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 	err |= motorControlword(motor_id, Reset_Fault);
 
     //set the communication parameter for TPDO - transmission on 1 SYNC
-	err |= motor_Transmit_PDO_n_Parameter(motor_id, 1, PDO_TX1_ID + motor_id);
-	err |= motor_Transmit_PDO_n_Parameter(motor_id, 2, PDO_TX2_ID + motor_id);
-    err |= motor_Transmit_PDO_n_Parameter(motor_id, 3, PDO_TX3_ID + motor_id);
-    err |= motor_Transmit_PDO_n_Parameter(motor_id, 4, PDO_TX4_ID + motor_id);
+	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1802);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1815);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1816);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1819);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	err |= amc_motor_Receive_PDO_n_Parameter(motor_id, 0x1414);
 
-	// PDO TX1 Statusword and High Voltage Reference
-    num_PDOs = 3;
-    Epos_pdo_mapping status_and_err[] = {
-            {0x6041, 0x00, 16},	// Statusword
-			{0x2002, 0x02, 16},	// Error Code
-			{0x6077, 0x00, 16}	// Actual Motor Current
-            // {0x6079, 0x00, 32}	// High Voltage Reference
-    };
-    err |= motor_Transmit_PDO_n_Mapping(motor_id, 1, num_PDOs, status_and_err);
+	err |= setTPDO_cobid(motor_id, 0x1802, 1);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	err |= setTPDO_cobid(motor_id, 0x1815, 2);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	err |= setTPDO_cobid(motor_id, 0x1816, 3);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	err |= setTPDO_cobid(motor_id, 0x1819, 4);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	err |= set_vel_RPDO_cobid(motor_id, 0x1414);
 
-    // PDO TX2 velocity
-	if(motor_id_ ==21  || motor_id_ == 17){
-		num_PDOs = 1;
-		Epos_pdo_mapping vel[] = {
-				{0x606C, 0x00, 32} // Speed feedback
-		};
-		err |= motor_Transmit_PDO_n_Mapping(motor_id, 2, num_PDOs, vel);
-
-	} else {
-		num_PDOs = 2;
-		Epos_pdo_mapping vel[] = {
-				{0x606C, 0x00, 32}, // Speed feedback
-				{0x6079, 0x00, 32}	// High Voltage Reference
-		};
-		err |= motor_Transmit_PDO_n_Mapping(motor_id, 2, num_PDOs, vel);
-
-	}
-	
-    // PDO TX3 Encoder Counts
-    num_PDOs = 2;
-    Epos_pdo_mapping enc[] = {
-            {0x6064, 0x00, 32}, // Position Actual value,
-			{0x607A, 0x00, 32}// Position demand value
-    };
-    err |= motor_Transmit_PDO_n_Mapping(motor_id, 3, num_PDOs, enc);
-    //err |= motor_Transmit_PDO_n_Mapping(motor_id, 3, 0, NULL);
-
-    // PDO TX4 Manufacturer Status and Latched Fault
-    num_PDOs = 2;
-    Epos_pdo_mapping manufacturer_status[] = {
-            {0x1002, 0x00, 32},   // Manfa Statusword
-            {0x2183, 0x00, 32}    // Latching Fault Status Register
-    };
-    //err |= motor_Transmit_PDO_n_Mapping(motor_id, 4, num_PDOs, manufacturer_status);
-
-	// err |= set_tpdo1_cobid(motor_id);
-
-	err |= setTPDO_cobid(motor_id, 1);
-	err |= setTPDO_cobid(motor_id, 2);
-	err |= setTPDO_cobid(motor_id, 3);
-	// err |= setTPDO_cobid(motor_id, 4);
-
-	err |= motor_Transmit_PDO_n_Mapping(motor_id, 5, 0, NULL);
-	err |= motor_Transmit_PDO_n_Mapping(motor_id, 6, 0, NULL);
-	err |= motor_Transmit_PDO_n_Mapping(motor_id, 7, 0, NULL);
+	num_PDOs = 4;
+    Epos_pdo_mapping status_and_vol[] = {
+            {0x2002, 0x02, 16},   // drive protection status
+            {0x2002, 0x03, 16},   // system protection status
+		    {0x200F, 0x01, 16},   // drive voltage
+            {0x2023, 0x01, 16}    // i/o status
+	};
+    err |= amc_motor_Transmit_PDO_n_Mapping(motor_id, num_PDOs, status_and_vol);
 
 	ki_ = read_ki_constant();
 	ks_ = read_ks_constant();
@@ -616,11 +601,11 @@ int AmcMotorActuator::motorControlword(uint16_t motor_id, enum Epos_ctrl ctrl) {
 	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int AmcMotorActuator::motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob) {
+int AmcMotorActuator::motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint16_t index) {
 
 	SDO_data d;
 	d.nodeid = node_id;
-	d.index = 0x1800 + n-1;
+	d.index = index;
 	d.subindex = 0x02;
 	d.data.size = 1;
 	d.data.data = 0x01;
@@ -628,7 +613,19 @@ int AmcMotorActuator::motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n
 	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int AmcMotorActuator::motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, uint8_t num_objects, Epos_pdo_mapping* objects) {
+int AmcMotorActuator::amc_motor_Receive_PDO_n_Parameter(uint16_t node_id, uint16_t index) {
+
+	SDO_data d;
+	d.nodeid = node_id;
+	d.index = index;
+	d.subindex = 0x02;
+	d.data.size = 1;
+	d.data.data = 0x01;
+	
+	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+}
+
+int AmcMotorActuator::amc_motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t num_objects, Epos_pdo_mapping* objects) {
 
 	
 	int err = 0;
@@ -636,21 +633,21 @@ int AmcMotorActuator::motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, 
 	// Set number of mapped objects to zero
 	SDO_data d;
 	d.nodeid = node_id;
-	d.index = 0x1A00 + n-1;
+	d.index = 0x1A19;
 	d.subindex = 0x00;
 	d.data.size = 1;
 	d.data.data = 0;
-	err = SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
-	if (err != 0) {
-		return err;
-	}
+	// err = SDO_write_no_wait(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	// if (err != 0) {
+		// return err;
+	// }
 
 	// Write objects
 	d.data.size = 4;
 	for(int i=0; i<num_objects; i++) {
 		Epos_pdo_mapping obj = objects[i];
 
-		d.subindex = i+1;
+		d.subindex = i + 1;
 		d.data.data = ((uint32_t)obj.index << 16) | ((uint32_t)obj.subindex<<8) | ((uint32_t)obj.length);
 		err = SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 		if (err != 0) {
@@ -666,26 +663,9 @@ int AmcMotorActuator::motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, 
 	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
-int AmcMotorActuator::set_tpdo1_cobid(uint16_t node) {
-	SDO_data d;
-	d.nodeid = node;
-	d.index = 0x1800;
-	d.subindex = 0x01;
-	d.data.size = 4;
-	d.data.data = 0x00000180 + node;
-
-	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
-}
-
-int AmcMotorActuator::setTPDO_cobid(uint16_t node_id, uint8_t n){
+int AmcMotorActuator::setTPDO_cobid(uint16_t node_id, uint16_t index, uint8_t n){
 
 	auto tpdo_id = 0x00000180;
-
-	SDO_data d;
-	d.nodeid = node_id;
-	d.index = 0x1800 + n-1;
-	d.subindex = 0x01;
-	d.data.size = 4;
 
 	if(n==1){
 		tpdo_id = 0x00000180;
@@ -698,8 +678,28 @@ int AmcMotorActuator::setTPDO_cobid(uint16_t node_id, uint8_t n){
 	} else {
 		logger_->error("TPDO setting: PDO number not recognized for {}", motor_name_);
 	}
-
+	
+	SDO_data d;
+	d.nodeid = node_id;
+	d.index = index;
+	d.subindex = 0x01;
+	d.data.size = 4;
 	d.data.data = tpdo_id + node_id;
+	
+	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+
+}
+
+int AmcMotorActuator::set_vel_RPDO_cobid(uint16_t node_id, uint16_t index){
+
+	auto rpdo_id = 0x00000500;
+	
+	SDO_data d;
+	d.nodeid = node_id;
+	d.index = index;
+	d.subindex = 0x01;
+	d.data.size = 4;
+	d.data.data = rpdo_id + node_id;
 	
 	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
@@ -802,8 +802,12 @@ int AmcMotorActuator::reinitializeMotor(void) {
 
 	if(velocity_mode){
 		set_target_velocity(0.0);
+		// set_vel_speed(motor_id_, axis_, 0.0);
+
         motorSetmode(Motor_mode_Velocity); 
 		set_target_velocity(0.0);
+		// set_vel_speed(motor_id_, axis_, 0.0);
+
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
 
@@ -825,14 +829,15 @@ int AmcMotorActuator::quickStopMotor(void) {
 
 int AmcMotorActuator::set_target_velocity(float vel) {
 	int err = 0;
-
+	// DS1
+	int32_t drive_val =  ((int32_t)rpm_to_countspersec(vel*axis_)) * (pow(2, 17)/(ki_ * ks_));
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x60FF;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)rpm_to_countspersec(vel*axis_);
-	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	d.data.data = drive_val;
+	err |= SDO_write_no_wait(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
 }
@@ -840,13 +845,16 @@ int AmcMotorActuator::set_target_velocity(float vel) {
 int AmcMotorActuator::set_profile_velocity(float vel) {
 	int err = 0;
 
+	// 2^33/KS
+	int cps = rpm_to_countspersec(vel);
+	int64_t drive_val = cps * (pow(2, 33)/(ks_));
 	SDO_data d;
 	d.nodeid = motor_id_;
-	d.index = 0x6081;
-	d.subindex = 0x00;
+	d.index = 0x203C;
+	d.subindex = 0x09;
 	d.data.size = 4;
-	d.data.data = (int32_t)rpm_to_countspersec(vel);
-	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	d.data.data = drive_val; //Convert to DS3
+	err |= SDO_write_no_wait(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
 }
@@ -856,10 +864,10 @@ int AmcMotorActuator::set_profile_acc(float acc) {
 
 	SDO_data d;
 	d.nodeid = motor_id_;
-	d.index = 0x6083;
-	d.subindex = 0x00;
+	d.index = 0x203C;
+	d.subindex = 0x0A;
 	d.data.size = 4;
-	d.data.data = (int32_t)motor_rps2_to_cps2(acc);
+	d.data.data = (int32_t)motor_rps2_to_cps2(acc); //Convert to DA3
 	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
@@ -870,10 +878,10 @@ int AmcMotorActuator::set_profile_deacc(float deacc) {
 
 	SDO_data d;
 	d.nodeid = motor_id_;
-	d.index = 0x6084;
-	d.subindex = 0x00;
+	d.index = 0x203C;
+	d.subindex = 0x0B;
 	d.data.size = 4;
-	d.data.data = (int32_t)motor_rps2_to_cps2(deacc);
+	d.data.data = (int32_t)motor_rps2_to_cps2(deacc); //Convert to DA3
 	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
@@ -890,6 +898,7 @@ int AmcMotorActuator::motor_rps2_to_cps2(float rpss) {
 }
 
 int AmcMotorActuator::set_relative_position(int32_t pos) {
+	logger_->info("[{}] Motor mode [position]. Setting position",motor_name_);
 	
 	int err = 0;
 
@@ -920,6 +929,27 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 	return err;
 }
 
+uint16_t AmcMotorActuator::read_kds_constant() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x20CA;
+	req.subindex = 0x07;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(amc_motor_actuator_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] Kds constant was not read...", motor_name_);
+		return 1;
+	}
+
+	uint16_t kds = (static_cast<uint16_t>(resp.data.data));
+    
+	logger_->info("[{}] Kds constant was read...", kds);
+
+	return kds;
+}
+
 uint16_t AmcMotorActuator::read_ki_constant() {
 	int err;
     SDO_data req, resp;
@@ -934,7 +964,13 @@ uint16_t AmcMotorActuator::read_ki_constant() {
 		return 1;
 	}
 
-	uint16_t ki = ((uint16_t)resp.data.data);
+	uint16_t ki = (static_cast<double>(resp.data.data));
+
+	if(ki == 0) {
+		return 1;
+	}
+
+	logger_->info("[{}] Ki constant was read...", ki);
 
 	return ki;
 }
@@ -953,69 +989,28 @@ uint32_t AmcMotorActuator::read_ks_constant() {
 		return 1;
 	}
 	
-	uint32_t ks = ((uint32_t)resp.data.data);
+	uint32_t ks = (static_cast<double>(resp.data.data))/65.536;
 	
 	return ks;
 }
 
 int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
+	logger_->info("[{}] Motor mode [velocity]. Setting velocity",motor_name_);
+
     int err = 0;
     const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
 	int32_t drive_val =  countspersec * (pow(2, 17)/(ki_ * ks_));
 	Socketcan_t target_vel[2] = {
             {2, Switch_On_And_Enable_Operation},
-            {4, drive_val}};
-    err = PDO_send(amc_motor_actuator_sockets_->motor_vel_pdo_fd, PDO_RX4_ID + nodeid, 2, target_vel);
+            {4, countspersec}};
+    err = PDO_send(amc_motor_actuator_sockets_->motor_system_status_pdo_fd, PDO_RX4_ID + nodeid, 2, target_vel);
+	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", ki_, ks_, target_vel[1].data);		
     return err;
-}
-
-void AmcMotorActuator::writeData(Json::Value &actuator_data){
-
-    actuator_data_["timeout"] = actuator_data["timeout"];
-    actuator_data_["mode"] = actuator_data["mode"];
-    actuator_data_["velocity"] = actuator_data["velocity"];
-    actuator_data_["relative_pos"] = actuator_data["relative_pos"];
-    actuator_data_["max_vel"] = actuator_data["max_vel"];
-    actuator_data_["accel"] = actuator_data["accel"];
-    actuator_data_["decel"] = actuator_data["decel"];
-
-	auto command_type = actuator_data_["mode"].asString();
-	auto max_vel = actuator_data_["max_vel"].asDouble();;
-	auto accel = actuator_data_["accel"].asDouble();
-	auto decel = actuator_data_["decel"].asDouble();
-	auto pos = actuator_data_["relative_pos"].asDouble();
-	auto velocity = actuator_data_["velocity"].asDouble();
-
-	if (command_type == "velocity") {
-		logger_->info("'Write Data in velocity mode for motor [{}]",amc_motor_actuator_sockets_->motor_name_);
-		set_vel_speed(motor_id_, axis_, velocity);
-	}
-	else if ((previous_mode == "position") && (command_type == "position")) {
-
-		logger_->info("'Write Data in position mode for motor [{}]",amc_motor_actuator_sockets_->motor_name_);
-		set_relative_position(static_cast<int32_t>(pos));
-	}
-	else if((previous_mode != "position") && (command_type == "position")){
-
-		logger_->info("'Write Data in position mode for motor [{}]",amc_motor_actuator_sockets_->motor_name_);
-		motorSetmode(Motor_mode_Position);
-        set_profile_velocity(max_vel);
-    	set_profile_acc(accel);
-    	set_profile_deacc(decel);
-        set_relative_position(static_cast<int32_t>(pos));
-    
-	}
-	else{
-		logger_->info("'Write Data mode [{}] not recognized for motor [{}]",command_type, amc_motor_actuator_sockets_->motor_name_);
-	}
-
-	previous_mode = command_type;
-
 }
 
 void AmcMotorActuator::goToInitPos(){
 
-	set_profile_velocity(8);
+	set_profile_velocity(100);
 	set_profile_acc(8);
 	set_profile_deacc(8);
 

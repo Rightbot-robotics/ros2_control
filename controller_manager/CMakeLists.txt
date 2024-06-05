@@ -19,7 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     rclcpp
     rightbot_interfaces
     diagnostic_updater
-    hardware_interface
+    # hardware_interface
     pluginlib
     rclcpp
     realtime_tools

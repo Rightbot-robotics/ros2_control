@@ -169,9 +169,6 @@ int main() {
     auto state_three = actuator_hw_three.initialize(hardware_info_three);
     state_three = actuator_hw_three.configure();
 
-  
-
-
     return 0;
 
 }

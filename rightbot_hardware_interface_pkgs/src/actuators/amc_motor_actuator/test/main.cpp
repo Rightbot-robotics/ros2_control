@@ -43,7 +43,7 @@ int main() {
     actuator_data_["accel"] = 15;
     actuator_data_["decel"] = 15;
 
-    amc_motor_->writeData(actuator_data_);
+    // amc_motor_->writeData(actuator_data_);
     return 0;
 
 }

@@ -14,6 +14,11 @@
 #include "amc_motor_actuator/amc_motor_actuator_sockets.hpp"
 #include <amc_motor_actuator/amc_motor_actuator_feedback.hpp>
 
+#include "spdlog/spdlog.h"
+#include "spdlog/async.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+
 #include <hardware_interface/actuator_interface.hpp>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -35,7 +40,7 @@ public:
 
     ~AmcMotorActuator();
 
-    void writeData(Json::Value &actuator_data);
+    // void writeData(Json::Value &actuator_data);
 
     void sendNodeGuardingRequest();
 
@@ -56,7 +61,10 @@ public:
     CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
     void fault_reset() override;
     void reinitialize_actuator() override;
-    void clear_can_buffer() override;
+    // void clear_can_buffer() override;
+
+    AmcEncoderSensor::AmcEncoderSensorSPtr encoder_sensor_;
+
 
     void homing_execution(double &homing_pos) override;
 
@@ -68,24 +76,21 @@ public:
 
     int set_vel_speed(uint16_t nodeid, int axis, float vel);
 
-
-
 private:
 
     std::string motor_name_;
     int motor_id_;
     int axis_;
     int zero_point_count_;
-    uint16_t ki_;
-    uint32_t ks_;
 
     int initMotor();
     int motorConfigNode(int motor_id);
     int motorControlword(uint16_t motor_id, enum Epos_ctrl ctrl);
-    int motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint8_t n, uint32_t cob);
-    int motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t n, uint8_t num_objects, Epos_pdo_mapping* objects);
-    int set_tpdo1_cobid(uint16_t node);
-    int setTPDO_cobid(uint16_t node_id, uint8_t n);
+    int motor_Transmit_PDO_n_Parameter(uint16_t node_id, uint16_t index);
+    int amc_motor_Transmit_PDO_n_Mapping(uint16_t node_id, uint8_t num_objects, Epos_pdo_mapping* objects);
+    int amc_motor_Receive_PDO_n_Parameter(uint16_t node_id, uint16_t index);
+    int setTPDO_cobid(uint16_t node_id, uint16_t index, uint8_t n);
+    int set_vel_RPDO_cobid(uint16_t node_id, uint16_t index);
     int motorSetmode(enum Motor_mode mode);
 
     int enableMotor();
@@ -108,10 +113,10 @@ private:
 
     uint16_t read_ki_constant();
     uint32_t read_ks_constant();
-
+    uint16_t read_kds_constant();
     std::shared_ptr<spdlog::logger> logger_;
     AmcMotorActuatorSockets::AmcMotorActuatorSocketsSPtr amc_motor_actuator_sockets_;
-    AmcEncoderSensor::AmcEncoderSensorSPtr encoder_sensor_;
+    // AmcEncoderSensor::AmcEncoderSensorSPtr encoder_sensor_;
 
     Json::Value actuator_data_;
     std::string previous_mode;
@@ -159,6 +164,9 @@ private:
 
     double radianToDegree(double rad);
     double degreeToRadian(double deg);
+
+    uint16_t ki_ = 0;
+    uint32_t ks_ = 0;
 
 };
 
