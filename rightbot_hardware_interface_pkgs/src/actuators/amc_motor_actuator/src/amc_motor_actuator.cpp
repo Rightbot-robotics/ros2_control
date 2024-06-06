@@ -146,11 +146,11 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
     }		
 
 	if(velocity_mode){
-		set_target_velocity(0.0);
-		// set_vel_speed(motor_id_, axis_, 0.0);
+		// set_target_velocity(0.0);
+		set_vel_speed(motor_id_, axis_, 0.0);
         motorSetmode(Motor_mode_Velocity); 
-		set_target_velocity(0.0);
-		// set_vel_speed(motor_id_, axis_, 0.0);
+		// set_target_velocity(0.0);
+		set_vel_speed(motor_id_, axis_, 0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
 
@@ -263,8 +263,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
 
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-            set_target_velocity(0.0);
-			// set_vel_speed(motor_id_, axis_, 0.0);
+            // set_target_velocity(0.0);
+			set_vel_speed(motor_id_, axis_, 0.0);
 
             logger_->info("[{}] Control state command: Actuator enable", motor_name_);
             enableMotor();
@@ -272,8 +272,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
             
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-            set_target_velocity(0.0);
-			// set_vel_speed(motor_id_, axis_, 0.0);
+            // set_target_velocity(0.0);
+			set_vel_speed(motor_id_, axis_, 0.0);
 
 			logger_->info("[{}] Control state command: Actuator disable", motor_name_);
             disableMotor();
@@ -281,8 +281,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
             
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-            set_target_velocity(0.0);
-			// set_vel_speed(motor_id_, axis_, 0.0);
+            // set_target_velocity(0.0);
+			set_vel_speed(motor_id_, axis_, 0.0);
 
 
 			logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
@@ -313,8 +313,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 			float scaled_max_vel = 1.0f * max_velocity_command_final_;
             logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
-			set_target_velocity(scaled_max_vel);
-			// set_vel_speed(motor_id_, axis_, scaled_max_vel);
+			// set_target_velocity(scaled_max_vel);
+			set_vel_speed(motor_id_, axis_, scaled_max_vel);
 
 
 		}
@@ -557,7 +557,7 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1815);
     err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1816);
     err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1819);
-	err |= amc_motor_Receive_PDO_n_Parameter(motor_id, 0x1414);
+	err |= amc_motor_Receive_PDO_n_Parameter(motor_id, 0x1415);
 
 	err |= setTPDO_cobid(motor_id, 0x1802, 1);
 	err |= setTPDO_cobid(motor_id, 0x1815, 2);
@@ -565,7 +565,7 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 	err |= setTPDO_cobid(motor_id, 0x1819, 4);
 
 	// set the communication parameter for RPDO - transmission on 1 SYNC
-	err |= set_vel_RPDO_cobid(motor_id, 0x1414);
+	err |= set_vel_RPDO_cobid(motor_id, 0x1415);
 
 	num_PDOs = 4;
     Epos_pdo_mapping status_and_vol[] = {
@@ -792,12 +792,12 @@ int AmcMotorActuator::reinitializeMotor(void) {
 	set_profile_deacc(default_acceleration_);
 
 	if(velocity_mode){
-		set_target_velocity(0.0);
-		// set_vel_speed(motor_id_, axis_, 0.0);
+		// set_target_velocity(0.0);
+		set_vel_speed(motor_id_, axis_, 0.0);
 
         motorSetmode(Motor_mode_Velocity); 
-		set_target_velocity(0.0);
-		// set_vel_speed(motor_id_, axis_, 0.0);
+		// set_target_velocity(0.0);
+		set_vel_speed(motor_id_, axis_, 0.0);
 
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
     }
