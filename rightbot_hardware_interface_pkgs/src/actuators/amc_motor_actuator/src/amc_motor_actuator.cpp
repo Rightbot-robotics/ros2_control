@@ -554,23 +554,17 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 
     //set the communication parameter for TPDO - transmission on 1 SYNC
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1802);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1815);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
     err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1816);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
     err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1819);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	err |= amc_motor_Receive_PDO_n_Parameter(motor_id, 0x1414);
 
 	err |= setTPDO_cobid(motor_id, 0x1802, 1);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	err |= setTPDO_cobid(motor_id, 0x1815, 2);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	err |= setTPDO_cobid(motor_id, 0x1816, 3);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	err |= setTPDO_cobid(motor_id, 0x1819, 4);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	// set the communication parameter for RPDO - transmission on 1 SYNC
 	err |= set_vel_RPDO_cobid(motor_id, 0x1414);
 
 	num_PDOs = 4;
@@ -581,9 +575,6 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
             {0x2023, 0x01, 16}    // i/o status
 	};
     err |= amc_motor_Transmit_PDO_n_Mapping(motor_id, num_PDOs, status_and_vol);
-
-	ki_ = read_ki_constant();
-	ks_ = read_ks_constant();
 
 	return err;
 
@@ -830,7 +821,7 @@ int AmcMotorActuator::quickStopMotor(void) {
 int AmcMotorActuator::set_target_velocity(float vel) {
 	int err = 0;
 	// DS1
-	int32_t drive_val =  ((int32_t)rpm_to_countspersec(vel*axis_)) * (pow(2, 17)/(ki_ * ks_));
+	int32_t drive_val =  ((int32_t)rpm_to_countspersec(vel*axis_)) * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x60FF;
@@ -847,7 +838,7 @@ int AmcMotorActuator::set_profile_velocity(float vel) {
 
 	// 2^33/KS
 	int cps = rpm_to_countspersec(vel);
-	int64_t drive_val = cps * (pow(2, 33)/(ks_));
+	int64_t drive_val = cps * (pow(2, 33)/(encoder_sensor_->ks));
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x203C;
@@ -929,82 +920,17 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 	return err;
 }
 
-uint16_t AmcMotorActuator::read_kds_constant() {
-	int err;
-    SDO_data req, resp;
-	req.nodeid = motor_id_;
-	req.index = 0x20CA;
-	req.subindex = 0x07;
-	req.data = {0, 0x00};
-	
-	err = SDO_read(amc_motor_actuator_sockets_->motor_cfg_fd, &req, &resp);
-    if(err != 0) {
-        logger_->info("[{}] Kds constant was not read...", motor_name_);
-		return 1;
-	}
-
-	uint16_t kds = (static_cast<uint16_t>(resp.data.data));
-    
-	logger_->info("[{}] Kds constant was read...", kds);
-
-	return kds;
-}
-
-uint16_t AmcMotorActuator::read_ki_constant() {
-	int err;
-    SDO_data req, resp;
-	req.nodeid = motor_id_;
-	req.index = 0x2032;
-	req.subindex = 0x08;
-	req.data = {0, 0x00};
-	
-	err = SDO_read(amc_motor_actuator_sockets_->motor_cfg_fd, &req, &resp);
-    if(err != 0) {
-        logger_->info("[{}] Ki constant was not read...", motor_name_);
-		return 1;
-	}
-
-	uint16_t ki = (static_cast<double>(resp.data.data));
-
-	if(ki == 0) {
-		return 1;
-	}
-
-	logger_->info("[{}] Ki constant was read...", ki);
-
-	return ki;
-}
-
-uint32_t AmcMotorActuator::read_ks_constant() {
-	int err;
-    SDO_data req, resp;
-	req.nodeid = motor_id_;
-	req.index = 0x20D8;
-	req.subindex = 0x24;
-	req.data = {0, 0x00};
-	
-	err = SDO_read(amc_motor_actuator_sockets_->motor_cfg_fd, &req, &resp);
-    if(err != 0) {
-        logger_->info("[{}] Ks constant was not read...", motor_name_);
-		return 1;
-	}
-	
-	uint32_t ks = (static_cast<double>(resp.data.data))/65.536;
-	
-	return ks;
-}
-
 int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
 	logger_->info("[{}] Motor mode [velocity]. Setting velocity",motor_name_);
 
     int err = 0;
     const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
-	int32_t drive_val =  countspersec * (pow(2, 17)/(ki_ * ks_));
+	int32_t drive_val =  countspersec * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
 	Socketcan_t target_vel[2] = {
             {2, Switch_On_And_Enable_Operation},
             {4, countspersec}};
     err = PDO_send(amc_motor_actuator_sockets_->motor_system_status_pdo_fd, PDO_RX4_ID + nodeid, 2, target_vel);
-	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", ki_, ks_, target_vel[1].data);		
+	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", encoder_sensor_->ki, encoder_sensor_->ks, target_vel[1].data);		
     return err;
 }
 

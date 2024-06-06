@@ -57,6 +57,12 @@ public:
 
     double motor_cps_to_rpm(double counts_per_sec);
 
+    uint16_t read_ki_constant();
+    uint32_t read_ks_constant();
+    uint16_t read_kds_constant();
+    uint16_t read_kp_constant();
+    uint16_t read_kov_constant();
+    
     std::shared_ptr<spdlog::logger> logger_;
     AmcMotorActuatorSockets::AmcMotorActuatorSocketsSPtr motor_sockets_;
 
@@ -113,6 +119,10 @@ public:
 
     float motor_rated_current_;
 
+    uint16_t ki = 0;
+    uint32_t ks = 0;
+    uint16_t kp = 0;
+    uint16_t kov = 0;
 };
 
 #endif // AMC_MOTOR_ACTUATOR_FEEDBACK_H_

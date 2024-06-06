@@ -63,9 +63,6 @@ public:
     void reinitialize_actuator() override;
     // void clear_can_buffer() override;
 
-    AmcEncoderSensor::AmcEncoderSensorSPtr encoder_sensor_;
-
-
     void homing_execution(double &homing_pos) override;
 
     void data_request() override;
@@ -110,13 +107,10 @@ private:
 
     int set_relative_position(int32_t pos);
     void goToInitPos();
-
-    uint16_t read_ki_constant();
-    uint32_t read_ks_constant();
-    uint16_t read_kds_constant();
+    
     std::shared_ptr<spdlog::logger> logger_;
     AmcMotorActuatorSockets::AmcMotorActuatorSocketsSPtr amc_motor_actuator_sockets_;
-    // AmcEncoderSensor::AmcEncoderSensorSPtr encoder_sensor_;
+    AmcEncoderSensor::AmcEncoderSensorSPtr encoder_sensor_;
 
     Json::Value actuator_data_;
     std::string previous_mode;
@@ -164,9 +158,6 @@ private:
 
     double radianToDegree(double rad);
     double degreeToRadian(double deg);
-
-    uint16_t ki_ = 0;
-    uint32_t ks_ = 0;
 
 };
 
