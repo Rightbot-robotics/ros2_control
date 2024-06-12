@@ -9,8 +9,9 @@ AmcMotorActuatorSockets::AmcMotorActuatorSockets(int motor_id, std::string motor
     motor_status_pdo_fd = -1;
     motor_vel_pdo_fd = -1;
     motor_enc_pdo_fd = -1;
+    motor_vel_read_pdo_fd = -1;
     motor_system_status_pdo_fd = -1;
-
+    
     nmt_motor_cfg_fd = -1;
 
 	motor_name_ = motor_name;
@@ -55,6 +56,12 @@ bool AmcMotorActuatorSockets::createSockets(int motor_id) {
             PDO_TX4_ID + motor_id,
     };
     motor_system_status_pdo_fd = socketcan_open(can_interface,motor_system_status_pdo_filters, motor_system_status_pdo_masks, 1);
+    
+    uint32_t motor_vel_read_pdo_masks[1] = {COB_MASK};
+    uint32_t motor_vel_read_pdo_filters[1] = {
+            PDO_RX4_ID + motor_id,
+    };
+    motor_vel_read_pdo_fd = socketcan_open(can_interface,motor_vel_read_pdo_filters, motor_vel_read_pdo_masks, 1);
 
     uint32_t cfg_masks[2] = {COB_MASK,COB_MASK};
 	uint32_t cfg_filters[2] = {
@@ -76,7 +83,7 @@ bool AmcMotorActuatorSockets::createSockets(int motor_id) {
 
 	// Check that we connected OK
 	if (motor_status_pdo_fd == -1 || motor_vel_pdo_fd == -1 || motor_enc_pdo_fd == -1 ||
-        motor_system_status_pdo_fd == -1
+        motor_system_status_pdo_fd == -1 || motor_vel_read_pdo_fd == -1
 		|| motor_cfg_fd == -1|| motor_sync_fd == -1 || nmt_motor_cfg_fd == -1) {
 		return MOTOR_SOCKETS_ERROR;
 	}

@@ -299,7 +299,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 				set_vel_speed(motor_id_, axis_, max_velocity_command_);
 		}
 	}
-	
+
 	if (mode_of_operation_ == "position") {
     	if(previous_position_command_ != position_command_){
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
@@ -924,7 +924,7 @@ int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
 	int32_t drive_val =  countspersec * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
 	Socketcan_t target_vel[1] = {
             {4, drive_val}};
-    err = PDO_send(amc_motor_actuator_sockets_->motor_system_status_pdo_fd, PDO_RX4_ID + nodeid, 1, target_vel);
+    err = PDO_send(amc_motor_actuator_sockets_->motor_vel_read_pdo_fd, PDO_RX4_ID + nodeid, 1, target_vel);
 	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", encoder_sensor_->ki, encoder_sensor_->ks, drive_val);		
     return err;
 }

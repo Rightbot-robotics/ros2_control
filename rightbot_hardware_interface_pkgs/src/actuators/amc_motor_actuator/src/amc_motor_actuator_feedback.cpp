@@ -242,7 +242,7 @@ int AmcEncoderSensor::motor_stat_voltage_n_io_read(int motor_id, int16_t *drive_
     my_can_frame f;
     uint32_t enc;
 
-    err = PDO_read(motor_sockets_->motor_enc_pdo_fd, &f, timeout);
+    err = PDO_read(motor_sockets_->motor_system_status_pdo_fd, &f, timeout);
 
     if (err != 0) {
         // Read error, or no data
