@@ -145,8 +145,7 @@ private:
     double previous_control_state_command_ = 0.0;
 
     double motor_ppr_ = 524288;
-
-    bool using_default_max_velocity_ = false;
+    
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;

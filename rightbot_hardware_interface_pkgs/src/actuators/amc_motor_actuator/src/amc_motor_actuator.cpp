@@ -280,29 +280,26 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         }
 	}
 
-	if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
-        || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
-        
-        if(abs(max_velocity_command_) < (10e-3)){
-            max_velocity_command_ = 0.0;
-        }
-		
-		if(!using_default_max_velocity_){
+	if (mode_of_operation_ == "velocity"){
+		if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
+    	    || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
 			
-            logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
-           	// double degree_per_sec = (max_velocity_command_*(180/3.14));
-			// double revolution_per_min = (degree_per_sec*60)/360.0;
-            // float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
-			// float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            // logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+    	    if(abs(max_velocity_command_) < (10e-3)){
+    	        max_velocity_command_ = 0.0;
+    	    }
 
-			// set_target_velocity(scaled_max_vel);
-			set_vel_speed(motor_id_, axis_, max_velocity_command_);
+    	        logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
+    	       	// double degree_per_sec = (max_velocity_command_*(180/3.14));
+				// double revolution_per_min = (degree_per_sec*60)/360.0;
+    	        // float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
+				// float scaled_max_vel = 1.0f * max_velocity_command_final_;
+    	        // logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
-
+				// set_target_velocity(scaled_max_vel);
+				set_vel_speed(motor_id_, axis_, max_velocity_command_);
 		}
 	}
-
+	
 	if (mode_of_operation_ == "position") {
     	if(previous_position_command_ != position_command_){
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
@@ -458,15 +455,6 @@ void AmcMotorActuator::init_json(std::string path){
     throw std::invalid_argument("Parsing error in config of Controller Manager");
 
     config_parser.getValue(config_data);
-
-    if(config_data["amc_motor_actuator"]["using_default_max_velocity"].asString() == "yes"){
-        using_default_max_velocity_ = true;
-        default_max_velocity_ = config_data["amc_motor_actuator"]["default_max_velocity"].asDouble();
-        std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
-    }
-    else{
-        using_default_max_velocity_ = false;
-    }
 
     if(config_data["amc_motor_actuator"]["using_default_acceleration"].asString() == "yes"){
         using_default_acceleration_ = true;
