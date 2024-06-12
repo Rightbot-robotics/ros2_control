@@ -37,6 +37,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
+    mode_of_operation_ = std::string(info.joints[0].parameters.at("mode_of_operation"));
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
@@ -148,7 +149,7 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
         return CallbackReturn::ERROR;
     }		
 
-	if(velocity_mode){
+	if(mode_of_operation_ == "velocity"){
 		// set_target_velocity(0.0);
 		set_vel_speed(motor_id_, axis_, 0.0);
         motorSetmode(Motor_mode_Velocity); 
@@ -321,37 +322,20 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		}
 	}
 
-    // if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
-	// 	if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
-			
-	// 		if(!using_default_acceleration_){
-	// 			logger_->info("[{}] Acceleration command in radian per second square: [{}]", motor_name_, acceleration_command_);
-	// 			double degree_per_sec = (acceleration_command_*(180/3.14));
-	// 			double revolution_per_sec = abs(degree_per_sec/360.0);
-	// 			float scaled_acceleration = revolution_per_sec * 1.0f;
-	// 			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
-	// 			set_profile_acc(scaled_acceleration);
-	// 			set_profile_deacc(scaled_acceleration);
-	// 		}
-	// 	}
-	// }
-
-    // if(previous_position_command_ != position_command_){
-
-	// 	if(!velocity_mode){
-			// logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+	if (mode_of_operation_ == "position") {
+    	if(previous_position_command_ != position_command_){
+			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
 			// double angle_in_degree = (position_command_*(180/3.14));
 			// int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
 			// logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-			// motorSetmode(Motor_mode_Position);
-        	// set_profile_velocity(300);
-    		// set_profile_acc(1);
-    		// set_profile_deacc(1);
-        	// set_relative_position(static_cast<int32_t>(position_command_));
-			// set_relative_position(counts);
-		// }	
-    // }
-    
+			motorSetmode(Motor_mode_Position);
+			// set_profile_velocity(1500);
+			// set_profile_acc(1);
+			// set_profile_deacc(1);
+			set_relative_position(static_cast<int32_t>(position_command_));
+			// set_relative_position(counts);	
+    	}
+    }
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
@@ -792,7 +776,7 @@ int AmcMotorActuator::reinitializeMotor(void) {
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
 
-	if(velocity_mode){
+	if(mode_of_operation_ == "velocity"){
 		// set_target_velocity(0.0);
 		set_vel_speed(motor_id_, axis_, 0.0);
 

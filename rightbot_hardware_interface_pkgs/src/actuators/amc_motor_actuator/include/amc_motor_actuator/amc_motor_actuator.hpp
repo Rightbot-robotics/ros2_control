@@ -150,6 +150,7 @@ private:
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
+    std::string mode_of_operation_;
 
     double acceleration_epsilon = 10e-4;
     double velocity_epsilon = 10e-5;
@@ -159,8 +160,6 @@ private:
 	ACTUATOR_DISABLE = 1, //Contour position mode=1 - mode selection
 	ACTUATOR_QUICK_STOP = 2
     };
-
-    bool velocity_mode = true;
 
     bool Homing();
 
