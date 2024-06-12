@@ -130,20 +130,10 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
-	set_PTPC(1);
-	set_PTNC(1);
-	set_NTNC(1);
-	set_NTPC(1);
-
-	// if(motor_name_ == "elbow_rotation_joint"){
-	// 	set_relative_position(0);
-	// } else {
-	// 	set_relative_position(0);
-
-	// }
-
-	// std::this_thread::sleep_for(std::chrono::seconds(5));
-	// logger_->info("[{}] Homing wait time passed",motor_name_);
+	set_PTPC(0.2);
+	set_PTNC(0.2);
+	set_NTNC(0.2);
+	set_NTPC(0.2);
 
 	if(!Homing()){
         return CallbackReturn::ERROR;
@@ -213,15 +203,6 @@ std::vector<hardware_interface::CommandInterface> AmcMotorActuator::export_comma
 }
 
 hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
-
-	// std::cout << "Motor Amc Actuator read: " << motor_name_ <<std::endl;
-
-	// if(motor_name_ == "base_rotation_joint"){
-    //     requestData();
-    //     std::this_thread::sleep_for(std::chrono::microseconds(2000));
-	// 	// std::cout << "read request" << std::endl;
-
-	// }
 	
     encoder_sensor_->getData(sensor_data);
 
@@ -234,7 +215,7 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 	
     position_state_ = axis_*sensor_data["counts"].asInt();
-    velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
+    velocity_state_ = axis_*(sensor_data["velocity"].asDouble()); //*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
 
@@ -309,14 +290,14 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		if(!using_default_max_velocity_){
 			
             logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
-           	double degree_per_sec = (max_velocity_command_*(180/3.14));
-			double revolution_per_min = (degree_per_sec*60)/360.0;
-            float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
-			float scaled_max_vel = 1.0f * max_velocity_command_final_;
-            logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
+           	// double degree_per_sec = (max_velocity_command_*(180/3.14));
+			// double revolution_per_min = (degree_per_sec*60)/360.0;
+            // float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
+			// float scaled_max_vel = 1.0f * max_velocity_command_final_;
+            // logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
 
 			// set_target_velocity(scaled_max_vel);
-			set_vel_speed(motor_id_, axis_, scaled_max_vel);
+			set_vel_speed(motor_id_, axis_, max_velocity_command_);
 
 
 		}
@@ -770,11 +751,11 @@ int AmcMotorActuator::reinitializeMotor(void) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
-	set_profile_velocity(default_max_velocity_);
+	// set_profile_velocity(default_max_velocity_);
     
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
-	set_profile_acc(default_acceleration_);
-	set_profile_deacc(default_acceleration_);
+	// set_profile_acc(default_acceleration_);
+	// set_profile_deacc(default_acceleration_);
 
 	if(mode_of_operation_ == "velocity"){
 		// set_target_velocity(0.0);
@@ -952,12 +933,11 @@ int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
 
     int err = 0;
     const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
-	int32_t drive_val =  countspersec; //* (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
-	Socketcan_t target_vel[2] = {
-            {2, Switch_On_And_Enable_Operation},
-            {4, countspersec}};
-    err = PDO_send(amc_motor_actuator_sockets_->motor_system_status_pdo_fd, PDO_RX4_ID + nodeid, 2, target_vel);
-	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", encoder_sensor_->ki, encoder_sensor_->ks, target_vel[1].data);		
+	int32_t drive_val =  countspersec * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
+	Socketcan_t target_vel[1] = {
+            {4, drive_val}};
+    err = PDO_send(amc_motor_actuator_sockets_->motor_system_status_pdo_fd, PDO_RX4_ID + nodeid, 1, target_vel);
+	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", encoder_sensor_->ki, encoder_sensor_->ks, drive_val);		
     return err;
 }
 

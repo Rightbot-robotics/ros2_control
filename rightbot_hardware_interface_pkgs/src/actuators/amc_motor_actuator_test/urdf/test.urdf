@@ -87,7 +87,7 @@
       <param name="homing">0</param>
       <param name="travel_per_revolution">1</param>
       <param name="motor_gear_ratio">1.0</param>
-      <param name="default_max_velocity">1500.0</param>
+      <param name="default_max_velocity">2000.0</param>
       <param name="default_max_accleration">1.0</param>
       <param name="default_max_deceleration">1.0</param>
       <param name="mode_of_operation">velocity</param>
