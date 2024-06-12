@@ -37,7 +37,6 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
-    zero_point_count_ = stoi(info.joints[0].parameters.at("zero_point_count"));
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
@@ -130,6 +129,10 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
+	set_PTPC(1);
+	set_PTNC(1);
+	set_NTNC(1);
+	set_NTPC(1);
 
 	// if(motor_name_ == "elbow_rotation_joint"){
 	// 	set_relative_position(0);
@@ -228,9 +231,8 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
     status_state_ = sensor_data["status"].asInt();
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
-
-	int offset_count = sensor_data["counts"].asInt() - zero_point_count_;
-    position_state_ = axis_*((offset_count*3.14*2)/motor_ppr_);// axis multiplication for read
+	
+    position_state_ = axis_*sensor_data["counts"].asInt();
     velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
@@ -294,7 +296,6 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
             logger_->info("[{}] Control state command not recognized", motor_name_);
 
         }
-		trigger_once = false;
 	}
 
 	if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
@@ -320,36 +321,36 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		}
 	}
 
-    if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
-		if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
+    // if((acceleration_command_ > (previous_acceleration_command_ + acceleration_epsilon)) || (acceleration_command_ < (previous_acceleration_command_ - acceleration_epsilon))){
+	// 	if((acceleration_command_ > (0 + acceleration_epsilon)) || (acceleration_command_ < (0 - acceleration_epsilon))){
 			
-			if(!using_default_acceleration_){
-				logger_->info("[{}] Acceleration command in radian per second square: [{}]", motor_name_, acceleration_command_);
-				double degree_per_sec = (acceleration_command_*(180/3.14));
-				double revolution_per_sec = abs(degree_per_sec/360.0);
-				float scaled_acceleration = revolution_per_sec * 1.0f;
-				logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
-				set_profile_acc(scaled_acceleration);
-				set_profile_deacc(scaled_acceleration);
-			}
-		}
-	}
+	// 		if(!using_default_acceleration_){
+	// 			logger_->info("[{}] Acceleration command in radian per second square: [{}]", motor_name_, acceleration_command_);
+	// 			double degree_per_sec = (acceleration_command_*(180/3.14));
+	// 			double revolution_per_sec = abs(degree_per_sec/360.0);
+	// 			float scaled_acceleration = revolution_per_sec * 1.0f;
+	// 			logger_->info("[{}] Acceleration command in rps2: [{}]", motor_name_, scaled_acceleration);
+	// 			set_profile_acc(scaled_acceleration);
+	// 			set_profile_deacc(scaled_acceleration);
+	// 		}
+	// 	}
+	// }
 
-    if(previous_position_command_ != position_command_){
+    // if(previous_position_command_ != position_command_){
 
-		if(!velocity_mode){
-			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
-			double angle_in_degree = (position_command_*(180/3.14));
-			int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
-			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-			motorSetmode(Motor_mode_Position);
-        	set_profile_velocity(300);
-    		set_profile_acc(1);
-    		set_profile_deacc(1);
-        	set_relative_position(static_cast<int32_t>(counts));
+	// 	if(!velocity_mode){
+			// logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+			// double angle_in_degree = (position_command_*(180/3.14));
+			// int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
+			// logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
+			// motorSetmode(Motor_mode_Position);
+        	// set_profile_velocity(300);
+    		// set_profile_acc(1);
+    		// set_profile_deacc(1);
+        	// set_relative_position(static_cast<int32_t>(position_command_));
 			// set_relative_position(counts);
-		}	
-    }
+		// }	
+    // }
     
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
@@ -825,7 +826,7 @@ int AmcMotorActuator::set_target_velocity(float vel) {
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x60FF;
-	d.subindex = 0x00;
+	// d.subindex = 0x00;
 	d.data.size = 4;
 	d.data.data = drive_val;
 	err |= SDO_write_no_wait(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
@@ -836,17 +837,17 @@ int AmcMotorActuator::set_target_velocity(float vel) {
 int AmcMotorActuator::set_profile_velocity(float vel) {
 	int err = 0;
 
-	// 2^33/KS
-	int cps = rpm_to_countspersec(vel);
-	int64_t drive_val = cps * (pow(2, 33)/(encoder_sensor_->ks));
+	int64_t drive_val = (int64_t)((rpm_to_countspersec(vel*axis_)) * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks))); //Convert to DS3
+	int64_to_bytes.int_val = drive_val;
+
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x203C;
 	d.subindex = 0x09;
 	d.data.size = 4;
-	d.data.data = drive_val; //Convert to DS3
-	err |= SDO_write_no_wait(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
-
+	d.data.data = 8;
+	// init data transfer
+	err |= SDO_write_multi_byte(amc_motor_actuator_sockets_->motor_cfg_fd, &d, int64_to_bytes.byte_val);	
 	return err;
 }
 
@@ -858,7 +859,7 @@ int AmcMotorActuator::set_profile_acc(float acc) {
 	d.index = 0x203C;
 	d.subindex = 0x0A;
 	d.data.size = 4;
-	d.data.data = (int32_t)motor_rps2_to_cps2(acc); //Convert to DA3
+	d.data.data = (int32_t)motor_rps2_to_cps2(acc) * (pow(2,28)/encoder_sensor_->kms * encoder_sensor_->ks); //Convert to DA3
 	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
@@ -872,12 +873,71 @@ int AmcMotorActuator::set_profile_deacc(float deacc) {
 	d.index = 0x203C;
 	d.subindex = 0x0B;
 	d.data.size = 4;
-	d.data.data = (int32_t)motor_rps2_to_cps2(deacc); //Convert to DA3
+	d.data.data = (int32_t)motor_rps2_to_cps2(deacc) *(pow(2,28)/encoder_sensor_->kms * encoder_sensor_->ks); //Convert to DA3
 	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 	return err;
 }
 
+int AmcMotorActuator::set_PTPC(float acc) {
+	int err = 0;
+
+	int64_to_bytes.int_val = (int32_t)motor_rps2_to_cps2(acc) * (pow(2,34)/pow((encoder_sensor_->ki * encoder_sensor_->ks), 2)); //Convert to DA2
+
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x203C;
+	d.subindex = 0x01;
+	d.data.size = 4;
+	d.data.data = 6;
+	err |= SDO_write_multi_byte(amc_motor_actuator_sockets_->motor_cfg_fd, &d, int64_to_bytes.byte_val);
+
+	return err;
+}
+
+int AmcMotorActuator::set_PTNC(float deacc) {
+	int err = 0;
+	int64_to_bytes.int_val = (int32_t)motor_rps2_to_cps2(deacc) * (pow(2,34)/pow((encoder_sensor_->ki * encoder_sensor_->ks), 2)); //Convert to DA2
+
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x203C;
+	d.subindex = 0x02;
+	d.data.size = 4;
+	d.data.data = 6;
+	err |= SDO_write_multi_byte(amc_motor_actuator_sockets_->motor_cfg_fd, &d, int64_to_bytes.byte_val);
+
+	return err;
+}
+int AmcMotorActuator::set_NTNC(float acc) {
+	int err = 0;
+	int64_to_bytes.int_val = (int32_t)motor_rps2_to_cps2(acc) * (pow(2,34)/pow((encoder_sensor_->ki * encoder_sensor_->ks), 2)); //Convert to DA2
+
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x203C;
+	d.subindex = 0x03;
+	d.data.size = 4;
+	d.data.data = 6;
+	err |= SDO_write_multi_byte(amc_motor_actuator_sockets_->motor_cfg_fd, &d, int64_to_bytes.byte_val);
+
+	return err;
+}
+
+int AmcMotorActuator::set_NTPC(float deacc) {
+	int err = 0;
+	int64_to_bytes.int_val = (int32_t)motor_rps2_to_cps2(deacc) * (pow(2,34)/pow((encoder_sensor_->ki * encoder_sensor_->ks), 2)); //Convert to DA2
+
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x203C;
+	d.subindex = 0x04;
+	d.data.size = 4;
+	d.data.data = 6;
+	err |= SDO_write_multi_byte(amc_motor_actuator_sockets_->motor_cfg_fd, &d, int64_to_bytes.byte_val);
+
+	return err;
+}
 int AmcMotorActuator::rpm_to_countspersec(float rpm) {
 	int counts_per_sec = static_cast<int>((rpm*AMC_CPR)/60.0);
 	return counts_per_sec;
@@ -889,7 +949,7 @@ int AmcMotorActuator::motor_rps2_to_cps2(float rpss) {
 }
 
 int AmcMotorActuator::set_relative_position(int32_t pos) {
-	logger_->info("[{}] Motor mode [position]. Setting position",motor_name_);
+	// logger_->info("[{}] Motor mode [position]. Setting position",motor_name_);
 	
 	int err = 0;
 
@@ -898,25 +958,8 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)(pos*axis_ + zero_point_count_);
+	d.data.data = (int32_t)(pos*axis_);
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
-
-	if((motor_name_ != "rotation2_joint") || (motor_id_ != 17)){
-
-		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
-		std::this_thread::sleep_for(std::chrono::microseconds(500));
-		// err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
-
-	}
-	else if (((motor_name_ == "rotation2_joint") || (motor_id_ == 17)) && (trigger_once == false)){
-
-		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation);
-		// std::this_thread::sleep_for(std::chrono::microseconds(500));
-		// err |= motorControlword(motor_id_, Start_Excercise);// for trigger
-
-		trigger_once = true;
-	}
-
 	return err;
 }
 
@@ -925,7 +968,7 @@ int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
 
     int err = 0;
     const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
-	int32_t drive_val =  countspersec * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
+	int32_t drive_val =  countspersec; //* (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
 	Socketcan_t target_vel[2] = {
             {2, Switch_On_And_Enable_Operation},
             {4, countspersec}};

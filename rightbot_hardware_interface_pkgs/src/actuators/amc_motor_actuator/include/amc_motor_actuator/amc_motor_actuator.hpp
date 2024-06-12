@@ -73,6 +73,12 @@ public:
 
     int set_vel_speed(uint16_t nodeid, int axis, float vel);
 
+    union 
+    {
+        int64_t int_val;
+        uint8_t byte_val[8];
+    } int64_to_bytes;
+
 private:
 
     std::string motor_name_;
@@ -104,6 +110,10 @@ private:
     int set_profile_deacc(float deacc);
     int rpm_to_countspersec(float rpm);
     int motor_rps2_to_cps2(float rpss);
+    int set_PTPC(float acc);        
+    int set_PTNC(float deacc);    
+    int set_NTNC(float acc);    
+    int set_NTPC(float deacc);    
 
     int set_relative_position(int32_t pos);
     void goToInitPos();
@@ -143,8 +153,6 @@ private:
 
     double acceleration_epsilon = 10e-4;
     double velocity_epsilon = 10e-5;
-
-    bool trigger_once = false;
 
     enum Control_mode {
 	ACTUATOR_ENABLE = 0, //Contour speed mode=3 - mode selection

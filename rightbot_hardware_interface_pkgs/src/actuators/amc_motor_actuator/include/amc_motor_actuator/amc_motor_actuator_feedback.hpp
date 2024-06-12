@@ -59,7 +59,7 @@ public:
 
     uint16_t read_ki_constant();
     uint32_t read_ks_constant();
-    uint16_t read_kds_constant();
+    int64_t read_kms_constant();
     uint16_t read_kp_constant();
     uint16_t read_kov_constant();
     
@@ -123,6 +123,7 @@ public:
     uint32_t ks = 0;
     uint16_t kp = 0;
     uint16_t kov = 0;
+    int64_t kms = 0;
 };
 
 #endif // AMC_MOTOR_ACTUATOR_FEEDBACK_H_

@@ -31,6 +31,7 @@ void AmcEncoderSensor::initialize(AmcMotorActuatorSockets::AmcMotorActuatorSocke
 	ks = read_ks_constant();
     kp = read_kp_constant();
     kov = read_kov_constant();
+    kms = read_kms_constant();
 
     // int err;
     // SDO_data req, resp;
@@ -51,25 +52,25 @@ void AmcEncoderSensor::initialize(AmcMotorActuatorSockets::AmcMotorActuatorSocke
     read_motor_data_thread_ = std::thread(&AmcEncoderSensor::readMotorData, this);
 }
 
-uint16_t AmcEncoderSensor::read_kds_constant() {
+int64_t AmcEncoderSensor::read_kms_constant() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
-	req.index = 0x20CA;
-	req.subindex = 0x07;
+	req.index = 0x203C;
+	req.subindex = 0x09;
 	req.data = {0, 0x00};
 	
 	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
     if(err != 0) {
-        logger_->info("[{}] Kds constant was not read...", motor_name_);
+        logger_->info("[{}] Kms constant was not read...", motor_name_);
 		return 1;
 	}
 
-	uint16_t kds = (static_cast<uint16_t>(resp.data.data));
+	int64_t kms = (static_cast<int64_t>(resp.data.data));
     
-	logger_->info("[{}] Kds constant was read...", kds);
+	logger_->info("[{}] Kms constant was read...", kms);
 
-	return kds;
+	return kms;
 }
 
 uint16_t AmcEncoderSensor::read_ki_constant() {
@@ -424,13 +425,13 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["voltage"] = encoder_data_q_element.voltage_m;
         sensor_data["io_stat"] = encoder_data_q_element.io_stat_m;
 
-        logger_->info("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
-        logger_->info("motor velocity [{}]", encoder_data_q_element.vel_m);
-        logger_->info("motor current [{}]", encoder_data_q_element.actual_motor_current_m);
-        logger_->info("motor drive stat [{}]", encoder_data_q_element.drive_stat_m);
-        logger_->info("motor system stat [{}]", encoder_data_q_element.system_stat_m);
-        logger_->info("motor voltage [{}]", encoder_data_q_element.voltage_m);
-        logger_->info("motor io stat [{}]", encoder_data_q_element.io_stat_m);
+        logger_->debug("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
+        logger_->debug("motor velocity [{}]", encoder_data_q_element.vel_m);
+        logger_->debug("motor current [{}]", encoder_data_q_element.actual_motor_current_m);
+        logger_->debug("motor drive stat [{}]", encoder_data_q_element.drive_stat_m);
+        logger_->debug("motor system stat [{}]", encoder_data_q_element.system_stat_m);
+        logger_->debug("motor voltage [{}]", encoder_data_q_element.voltage_m);
+        logger_->debug("motor io stat [{}]", encoder_data_q_element.io_stat_m);
 
     } else {
         sensor_data["read_status"] = false;

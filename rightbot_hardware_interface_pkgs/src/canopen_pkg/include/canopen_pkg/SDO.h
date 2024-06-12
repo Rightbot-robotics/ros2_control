@@ -29,9 +29,9 @@ typedef struct {
  **/
 int SDO_write(int fd, const SDO_data *d);
 int SDO_write_no_wait(int fd, const SDO_data *d);
-
+int SDO_write_multi_byte(int fd, const SDO_data *d, uint8_t *value);
 int SDO_read(int fd, SDO_data *d, SDO_data *resp);
-
+int SDO_sub_write(int fd, const SDO_data *d, uint8_t *value, uint8_t ccd);
 
 /**
  * Sends an SDO acknowledgement package in return to frame f

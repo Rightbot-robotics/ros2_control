@@ -85,12 +85,11 @@
       <param name="can_id">1</param>
       <param name="axis">1</param>
       <param name="homing">0</param>
-      <param name="position_control">false</param>
       <param name="travel_per_revolution">1</param>
       <param name="motor_gear_ratio">1.0</param>
-      <param name="default_max_velocity">800.0</param>
-      <param name="default_max_accleration">8.0</param>
-      <param name="zero_point_count">100</param>
+      <param name="default_max_velocity">100.0</param>
+      <param name="default_max_accleration">1.0</param>
+      <param name="default_max_deceleration">1.0</param>
     </joint>
   </ros2_control>
 </robot>
