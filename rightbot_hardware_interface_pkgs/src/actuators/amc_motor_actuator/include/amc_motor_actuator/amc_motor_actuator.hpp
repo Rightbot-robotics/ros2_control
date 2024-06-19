@@ -10,6 +10,7 @@
 #include <string>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+#include <sstream>
 
 #include "amc_motor_actuator/amc_motor_actuator_sockets.hpp"
 #include <amc_motor_actuator/amc_motor_actuator_feedback.hpp>
@@ -72,6 +73,8 @@ public:
     void init_json(std::string path);
 
     int set_vel_speed(uint16_t nodeid, int axis, float vel);
+
+    int enable_motion_profile();
 
     union 
     {

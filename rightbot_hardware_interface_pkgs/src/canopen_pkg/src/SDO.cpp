@@ -164,6 +164,8 @@ int SDO_write_multi_byte(int fd, const SDO_data *d, uint8_t *value) {
     
     // Send write request
     err = socketcan_write(fd, cob, 5,  data);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
     if (err != 0) {
         printd(LOG_ERROR, "socketcan SDO: Could not write to the CAN-bus fd=%d.\n", fd);
         return err;
@@ -182,26 +184,65 @@ int SDO_write_multi_byte(int fd, const SDO_data *d, uint8_t *value) {
             f.data[3] == d->subindex) {
             // Response recived
             if (f.data[0] == SDO_RESPONSE_WRITE_OK) {
-                Socketcan_t data[8] = {
-                    {1, 0x00},
-                    {1, value[0]},
-                    {1, value[1]},
-                    {1, value[2]},
-                    {1, value[3]},
-                    {1, value[4]},
-                    {1, value[5]},
-                    {1, value[6]},
-                    };
-                err = socketcan_write(fd, cob, 8, data);
-                if (d->data.size == 8)
+                if (d->data.data == 8)
                 {
-                    Socketcan_t data2[3] = {
-                    {1, 0x11},
-                    {1, value[7]},
-                    {6, 0x00},
+                    Socketcan_t data[8] = {
+                        {1, 0x00},
+                        {1, value[0]},
+                        {1, value[1]},
+                        {1, value[2]},
+                        {1, value[3]},
+                        {1, value[4]},
+                        {1, value[5]},
+                        {1, value[6]},
                     };
-                    err = socketcan_write(fd, cob, 3, data2);
-                    return err;
+                    err = socketcan_write(fd, cob, 8, data);    
+                }
+                if (d->data.data == 6){
+                    Socketcan_t data[8] = {
+                        {1, 0x01},
+                        {1, value[0]},
+                        {1, value[1]},
+                        {1, value[2]},
+                        {1, value[3]},
+                        {1, value[4]},
+                        {1, value[5]},
+                        {1, 0x00},
+                    };
+                    err = socketcan_write(fd, cob, 8, data);
+                }
+                
+                // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+                for (int i = 0; i < buffer; i++) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    err = socketcan_read(fd, &f, timeout / buffer);
+                    if (err == 0) {
+                        // Response recived
+                        if (f.data[0] == 0x20) {
+                            ccd = 0x11;
+                        }else if (f.data[0] == 0x30) {
+                            ccd = 0x01;    
+                        }
+                        
+                        if (d->data.data == 8)
+                            {
+                                Socketcan_t data2[3] = {
+                                {1, ccd},
+                                {1, value[7]},
+                                {6, 0x00},
+                                };
+                                err = socketcan_write(fd, cob, 3, data2);
+                                return err;
+                        }  else
+                        {
+                            return err;
+                        }
+                    } 
+                        // else {
+                            // printd(LOG_ERROR, "socketcan SDO: response error node=%d index=0x%x subindex=0x%x\n", d->nodeid,
+                                //    d->index, d->subindex);
+                            // return SOCKETCAN_ERROR;
+                        // }
                 }
             } else {
                 printd(LOG_ERROR, "socketcan SDO: response error node=%d index=0x%x subindex=0x%x\n", d->nodeid,
@@ -211,7 +252,7 @@ int SDO_write_multi_byte(int fd, const SDO_data *d, uint8_t *value) {
         }
     }
 
-    printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x EXIT \n", d->nodeid, d->index);
+    printd(LOG_WARN, "socketcan SDO: timeout node=%d index=0x%x data size = %d EXIT \n", d->nodeid, d->index, d->data.data);
     
     return SOCKETCAN_TIMEOUT;
 }

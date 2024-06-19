@@ -3,6 +3,8 @@
 
 #include <socketcan_pkg/socketcan.h>
 #include <inttypes.h>
+#include <thread>
+#include <chrono>
 
 // Used internally in SDO.c
 #define SDO_RESPONSE_ERROR     0x80
