@@ -249,7 +249,7 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
 
 hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
 
-	if(previous_control_state_command_ != control_state_command_){
+	if(previous_control_state_command_ != control_state_command_ && !std::isnan(control_state_command_)){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
 		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
 
@@ -287,7 +287,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         }
 	}
 
-	if (mode_of_operation_ == "velocity"){
+	if (mode_of_operation_ == "velocity" && !std::isnan(max_velocity_command_)){
 		if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
     	    || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
 			
@@ -308,7 +308,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		}
 	}
 
-	if (mode_of_operation_ == "position") {
+	if (mode_of_operation_ == "position" && !std::isnan(position_command_)) {
     	if(previous_position_command_ != position_command_){
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
 			// double angle_in_degree = (position_command_*(180/3.14));
