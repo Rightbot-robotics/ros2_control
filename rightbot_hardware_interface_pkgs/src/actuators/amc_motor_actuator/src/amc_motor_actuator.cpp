@@ -31,9 +31,6 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     axis_ = stoi(info.joints[0].parameters.at("axis"));
 
 	logger_->info("Amc Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
-
-	std::string config_path;
-	// init_json(config_path);
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
@@ -391,10 +388,14 @@ bool AmcMotorActuator::Homing(){
     	auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
 		
 		logger_->info("[{}] Homing distance: [{}]", motor_name_, homing_distance_counts);
-		
+
 		set_relative_position(homing_distance_counts);
 		
-		while(!homing_achieved){
+		std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
+          
+    	auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+		
+		while((time_passed_response_received_lift_down.count()<60000) && (homing_achieved == false)){
 
 			requestData();
 
@@ -415,7 +416,7 @@ bool AmcMotorActuator::Homing(){
 			}
         	
 
-        	// time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+        	time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
         	std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     	}
@@ -433,36 +434,12 @@ bool AmcMotorActuator::Homing(){
     	    }
     	    return true;
 		} 
-		// HOMING AT MIN/MAX
-		// while encoder count is lesser that the commanded value and the limit switch not trigerred
-		// once limit switch hits, save the current encoder value as offset.
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		
 		return true;
 	}
 	return true;
-}
-
-void AmcMotorActuator::init_json(std::string path){
-
-    Json::Value config_data;
-    JsonRead config_parser("/home/rightbot/amc_driver_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json");
-
-    if (!config_parser.parse())
-    throw std::invalid_argument("Parsing error in config of Controller Manager");
-
-    config_parser.getValue(config_data);
-
-    if(config_data["amc_motor_actuator"]["using_default_acceleration"].asString() == "yes"){
-        using_default_acceleration_ = true;
-        default_acceleration_ = config_data["amc_motor_actuator"]["default_acceleration"].asDouble();
-        std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
-    }
-    else{
-        using_default_acceleration_ = false;
-    }
-
 }
 
 int AmcMotorActuator::initMotor(){

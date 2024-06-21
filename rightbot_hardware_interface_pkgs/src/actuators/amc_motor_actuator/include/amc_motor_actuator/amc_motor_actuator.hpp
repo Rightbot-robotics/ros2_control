@@ -70,8 +70,6 @@ public:
 
     void node_guarding_request() override;
 
-    void init_json(std::string path);
-
     int set_vel_speed(uint16_t nodeid, int axis, float vel);
 
     int enable_motion_profile();
