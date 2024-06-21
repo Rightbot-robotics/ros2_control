@@ -146,13 +146,22 @@ private:
     double previous_max_velocity_command_ = std::numeric_limits<double>::quiet_NaN();
     double previous_acceleration_command_ = std::numeric_limits<double>::quiet_NaN();
     double previous_control_state_command_ = std::numeric_limits<double>::quiet_NaN();
-
-    double motor_ppr_ = 524288;
     
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;
+    double default_deceleration_ = 1.0;
     std::string mode_of_operation_;
+    
+    int is_homing_ = 0;
+    double homing_max_velocity_ = 2.0;
+    double homing_acceleration_ = 1.0;
+    double homing_deceleration_ = 1.0;
+
+    double travel_per_revolution_ = 1.0;
+    double homing_position_ = 1.0;
+    double motor_gear_ratio_ = 1.0;
+    double motor_ppr_ = 1.0;
 
     double acceleration_epsilon = 10e-4;
     double velocity_epsilon = 10e-5;

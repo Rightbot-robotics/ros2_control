@@ -37,7 +37,20 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
     default_acceleration_ = stod(info.joints[0].parameters.at("default_max_accleration"));
-    mode_of_operation_ = std::string(info.joints[0].parameters.at("mode_of_operation"));
+    default_deceleration_ = stod(info.joints[0].parameters.at("default_max_deceleration"));
+	
+	homing_max_velocity_ = stod(info.joints[0].parameters.at("homing_max_velocity"));
+    homing_acceleration_ = stod(info.joints[0].parameters.at("homing_max_accleration"));
+    homing_deceleration_ = stod(info.joints[0].parameters.at("homing_max_deceleration"));
+
+	is_homing_ = stoi(info.joints[0].parameters.at("is_homing"));
+	travel_per_revolution_ = stod(info.joints[0].parameters.at("travel_per_revolution"));
+	homing_position_ = stod(info.joints[0].parameters.at("homing_position"));
+
+	motor_gear_ratio_ = stod(info.joints[0].parameters.at("motor_gear_ratio"));
+	motor_ppr_ = stod(info.joints[0].parameters.at("motor_ppr"));
+    
+	mode_of_operation_ = std::string(info.joints[0].parameters.at("mode_of_operation"));
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
@@ -135,11 +148,11 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		set_profile_acc(default_acceleration_);
-		set_profile_deacc(default_acceleration_);
+		set_profile_deacc(default_deceleration_);
 		set_PTPC(default_acceleration_);
-		set_PTNC(default_acceleration_);
+		set_PTNC(default_deceleration_);
 		set_NTNC(default_acceleration_);
-		set_NTPC(default_acceleration_);
+		set_NTPC(default_deceleration_);
 		set_vel_speed(motor_id_, axis_, 0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity done!",motor_name_);
     }
@@ -149,7 +162,7 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		set_profile_acc(default_acceleration_);
-		set_profile_deacc(default_acceleration_);
+		set_profile_deacc(default_deceleration_);
 		motorSetmode(Motor_mode_Position);
 		logger_->info("[{}] Motor mode [position]",motor_name_);
 	}
@@ -296,12 +309,6 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
     	    }
 			if (default_max_velocity_ >= abs(max_velocity_command_)){	
     	        logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
-    	       	// double degree_per_sec = (max_velocity_command_*(180/3.14));
-				// double revolution_per_min = (degree_per_sec*60)/360.0;
-    	        // float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
-				// float scaled_max_vel = 1.0f * max_velocity_command_final_;
-    	        // logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
-
 				// set_target_velocity(scaled_max_vel);
 				set_vel_speed(motor_id_, axis_, max_velocity_command_);
 				}
@@ -311,14 +318,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 	if (mode_of_operation_ == "position" && !std::isnan(position_command_)) {
     	if(previous_position_command_ != position_command_){
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
-			// double angle_in_degree = (position_command_*(180/3.14));
-			// int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
-			// logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-			// set_profile_velocity(1500);
-			// set_profile_acc(1);
-			// set_profile_deacc(1);
 			set_relative_position(static_cast<int32_t>(position_command_));
-			// set_relative_position(counts);	
     	}
     }
     previous_position_command_ = position_command_;
@@ -376,81 +376,72 @@ void AmcMotorActuator::node_guarding_request(){
 
 bool AmcMotorActuator::Homing(){
 
-    Json::Value sensor_data_homing;
-	bool homing_achieved = false;
-	int counter = 0;
-	bool pos_reached = false;
+	if (is_homing_)
+	{	
+		set_profile_velocity(homing_max_velocity_);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		set_profile_acc(homing_acceleration_);
+		set_profile_deacc(homing_deceleration_);
+		motorSetmode(Motor_mode_Position);
 
-    std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
-    auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-    
-	// TO DO : homing execution by homing params. currently using default params
-    // motor_controls_->set_profile_velocity(motor_id_, homing_velocity);
-    // motor_controls_->set_profile_acc(motor_id_, homing_acceleration);
-    // motor_controls_->set_profile_deacc(motor_id_, homing_acceleration);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	// encoder_sensor_->readToClearBuffer();
+		Json::Value sensor_data_homing;
+		bool homing_achieved = false;
+    	auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
+		
+		logger_->info("[{}] Homing distance: [{}]", motor_name_, homing_distance_counts);
+		
+		set_relative_position(homing_distance_counts);
+		
+		while(!homing_achieved){
 
-    set_relative_position(0);
+			requestData();
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
-    while((time_passed_response_received_lift_down.count()<15000) && (homing_achieved == false)){
-
-        requestData();
-        std::this_thread::sleep_for(std::chrono::microseconds(2000));
+			std::this_thread::sleep_for(std::chrono::microseconds(2000));
         
-		encoder_sensor_->getData(sensor_data_homing);
+        	encoder_sensor_->getData(sensor_data_homing);
 
-        // if(sensor_data_homing["read_status_encoder"].asBool()){
-        if(true){
+        	    
+			// auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
+			// auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
 
-			double position_in_rad = position_state_ = axis_*((sensor_data["counts"].asInt()*3.14*2)/motor_ppr_);
-			if(radianToDegree(position_in_rad) < 3){
-				logger_->debug("[{}] - Homing in process. Pos Reached. Current pos [{}] degree", motor_name_, radianToDegree(position_in_rad));
-				pos_reached = true;
+			if((homing_distance_counts < sensor_data_homing["counts"].asInt())){  //&& (limit_switch_pos == 1)
+				homing_achieved = true;
 			}
-            
-			if(pos_reached) {
-				logger_->debug("[{}] - Homing in process. Pos Reached. Settling.. Current vel [{}] radian/sec", motor_name_, sensor_data_homing["velocity"].asDouble());
+
+			if((homing_distance_counts > sensor_data_homing["counts"].asInt())){  //&& (limit_switch_neg == 1)
+				homing_achieved = true;
 			}
-			
-            // vel reading in rpm
-			if((abs(sensor_data_homing["velocity"].asDouble())) < 0.001 && pos_reached){
-				counter++;
+        	
 
-			}
-			else {
-				counter = 0;
-			}
-        }
+        	// time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
+        	std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
-		if(counter >3){
-			homing_achieved = true;
-		}
+    	}
 
-        time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-        std::this_thread::sleep_for(std::chrono::microseconds(20000));
+    	if(!homing_achieved){
+    	    logger_->error("[{}] Homing timeout", motor_name_);
+    	    return false;
+    	}
 
-    }
+    	else{
+    	    logger_->info("[{}] Homing achieved", motor_name_);
+    	    if(motor_name_ != "camera_rotation_joint"){
+    	        // set_guard_time(motor_id_,50);
+    	        // set_life_time_factor(motor_id_,6);
+    	    }
+    	    return true;
+		} 
+		// HOMING AT MIN/MAX
+		// while encoder count is lesser that the commanded value and the limit switch not trigerred
+		// once limit switch hits, save the current encoder value as offset.
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	encoder_sensor_->init_enc = false;
-
-    if(!homing_achieved){
-        logger_->error("[{}] Homing timeout", motor_name_);
-		if(!pos_reached){
-			logger_->error("[{}] Homing position not achieved", motor_name_);
-		}{
-			logger_->error("[{}] Homing position achieved. Velocity not settled", motor_name_);
-		}
-        return false;
-    }
-    else{
-        logger_->info("[{}] Homing achieved", motor_name_);
-        return true;
-    }
-
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		
+		return true;
+	}
+	return true;
 }
 
 void AmcMotorActuator::init_json(std::string path){
