@@ -141,6 +141,7 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 
 	if(mode_of_operation_ == "velocity")
 	{
+		enable_brake(true);
         motorSetmode(Motor_mode_Velocity);
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -156,6 +157,7 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 
 	if (mode_of_operation_ == "position")
 	{
+		enable_brake(true);	
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		set_profile_acc(default_acceleration_);
@@ -174,6 +176,7 @@ CallbackReturn AmcMotorActuator::on_deactivate(const rclcpp_lifecycle::State & p
 	//
     logger_->info("Motor Disable action for: [{}]",motor_name_);
     disableMotor();
+	enable_brake(false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     return CallbackReturn::SUCCESS;
@@ -895,6 +898,26 @@ int AmcMotorActuator::enable_motion_profile() {
 	d.subindex = 0x00;
 	d.data.size = 2;
 	d.data.data = 2;
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::enable_brake(bool is_enabled) {
+	int err = 0;
+	int trigger = 0;
+	if (is_enabled) {
+		trigger = 1;
+	}
+	else {
+		trigger = 0;
+	}
+
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x205A;
+	d.subindex = 0x01;
+	d.data.size = 2;
+	d.data.data = trigger;
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }

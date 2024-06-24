@@ -115,6 +115,7 @@ private:
     int set_PTNC(float deacc);    
     int set_NTNC(float acc);    
     int set_NTPC(float deacc);    
+    int enable_brake(bool is_enabled);
 
     int set_relative_position(int32_t pos);
     void goToInitPos();
