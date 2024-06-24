@@ -156,6 +156,7 @@ private:
     double homing_max_velocity_ = 2.0;
     double homing_acceleration_ = 1.0;
     double homing_deceleration_ = 1.0;
+    double counts_offset_ = 0.0;
 
     double travel_per_revolution_ = 1.0;
     double homing_position_ = 1.0;

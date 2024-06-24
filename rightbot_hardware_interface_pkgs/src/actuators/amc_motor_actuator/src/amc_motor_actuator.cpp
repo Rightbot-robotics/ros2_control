@@ -126,13 +126,11 @@ CallbackReturn AmcMotorActuator::on_configure(const rclcpp_lifecycle::State & pr
 }
 
 CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
-
-
-	//
 	
-	//
     logger_->info("Motor Enable action for: [{}]",motor_name_);
+	enable_brake(true);	
     enableMotor();
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	
 	if(!Homing()){
@@ -141,7 +139,6 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 
 	if(mode_of_operation_ == "velocity")
 	{
-		enable_brake(true);
         motorSetmode(Motor_mode_Velocity);
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -157,7 +154,6 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 
 	if (mode_of_operation_ == "position")
 	{
-		enable_brake(true);	
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		set_profile_acc(default_acceleration_);
@@ -234,7 +230,7 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 	
-    position_state_ = axis_*sensor_data["counts"].asInt();
+    position_state_ = (axis_*sensor_data["counts"].asInt()) - counts_offset_;
     velocity_state_ = axis_*(sensor_data["velocity"].asDouble()); //*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
@@ -406,15 +402,19 @@ bool AmcMotorActuator::Homing(){
         
         	encoder_sensor_->getData(sensor_data_homing);
 
+			std::this_thread::sleep_for(std::chrono::microseconds(2000));
         	    
-			// auto limit_switch_pos = !(( sensor_data_homing["input_states"].asInt() & (1 << 3)) >> 3);
-			// auto limit_switch_neg = !(( sensor_data_homing["input_states"].asInt() & (1 << 10)) >> 10);
-
-			if((homing_distance_counts < sensor_data_homing["counts"].asInt())){  //&& (limit_switch_pos == 1)
+			auto limit_switch_pos = (( sensor_data_homing["io_stat"].asInt() & (1 << 0)) >> 0);
+			auto limit_switch_neg = (( sensor_data_homing["io_stat"].asInt() & (1 << 1)) >> 1);
+			
+			if((homing_distance_counts <= sensor_data_homing["counts"].asInt()) && (limit_switch_pos == 1)){  
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
 				homing_achieved = true;
 			}
 
-			if((homing_distance_counts > sensor_data_homing["counts"].asInt())){  //&& (limit_switch_neg == 1)
+			if((homing_distance_counts >= sensor_data_homing["counts"].asInt()) && (limit_switch_neg == 1) ){  
+				counts_offset_ = sensor_data_homing["counts"].asInt();
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
 				homing_achieved = true;
 			}
         	
@@ -423,6 +423,9 @@ bool AmcMotorActuator::Homing(){
         	std::this_thread::sleep_for(std::chrono::microseconds(20000));
 
     	}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		set_relative_position(counts_offset_);
 
     	if(!homing_achieved){
     	    logger_->error("[{}] Homing timeout", motor_name_);
@@ -932,7 +935,7 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)(pos*axis_);
+	d.data.data = (int32_t)((pos*axis_) + counts_offset_);
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
