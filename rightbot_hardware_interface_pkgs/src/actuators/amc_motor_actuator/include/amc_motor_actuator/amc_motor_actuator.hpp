@@ -157,7 +157,9 @@ private:
     double homing_acceleration_ = 1.0;
     double homing_deceleration_ = 1.0;
     double counts_offset_ = 0.0;
-
+    double min_position_ = 0.0;
+    double max_position_ = 0.0;
+    int is_homing_at_min_ = 0; 
     double travel_per_revolution_ = 1.0;
     double homing_position_ = 1.0;
     double motor_gear_ratio_ = 1.0;

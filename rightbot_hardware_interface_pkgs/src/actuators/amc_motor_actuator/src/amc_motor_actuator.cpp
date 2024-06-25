@@ -42,7 +42,10 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 
 	is_homing_ = stoi(info.joints[0].parameters.at("is_homing"));
 	travel_per_revolution_ = stod(info.joints[0].parameters.at("travel_per_revolution"));
-	homing_position_ = stod(info.joints[0].parameters.at("homing_position"));
+	is_homing_at_min_ = stoi(info.joints[0].parameters.at("homing_at_min"));
+	min_position_ = stod(info.joints[0].parameters.at("min_position"));
+	max_position_ = stod(info.joints[0].parameters.at("max_position"));
+	homing_position_ = max_position_ - min_position_;
 
 	motor_gear_ratio_ = stod(info.joints[0].parameters.at("motor_gear_ratio"));
 	motor_ppr_ = stod(info.joints[0].parameters.at("motor_ppr"));
@@ -385,10 +388,19 @@ bool AmcMotorActuator::Homing(){
 		Json::Value sensor_data_homing;
 		bool homing_achieved = false;
     	auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
+		auto commanded_count = 0;
+		if (is_homing_at_min_)
+		{
+			commanded_count = homing_distance_counts * 1;				
+		}
+		else
+		{
+			commanded_count = homing_distance_counts * -1;
+		}
 		
-		logger_->info("[{}] Homing distance: [{}]", motor_name_, homing_distance_counts);
+		logger_->info("[{}] Homing distance: [{}]", motor_name_, commanded_count);
 
-		set_relative_position(homing_distance_counts);
+		set_relative_position(commanded_count);
 		
 		std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
           
@@ -397,36 +409,36 @@ bool AmcMotorActuator::Homing(){
 		while((time_passed_response_received_lift_down.count()<60000) && (homing_achieved == false)){
 
 			requestData();
-
-			std::this_thread::sleep_for(std::chrono::microseconds(2000));
         
         	encoder_sensor_->getData(sensor_data_homing);
-
-			std::this_thread::sleep_for(std::chrono::microseconds(2000));
         	    
 			auto limit_switch_pos = (( sensor_data_homing["io_stat"].asInt() & (1 << 0)) >> 0);
 			auto limit_switch_neg = (( sensor_data_homing["io_stat"].asInt() & (1 << 1)) >> 1);
 			
-			if((homing_distance_counts <= sensor_data_homing["counts"].asInt()) && (limit_switch_pos == 1)){  
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			if((limit_switch_pos == 1)){  
+				counts_offset_ = sensor_data_homing["counts"].asInt();
+				set_profile_velocity(0.0);
 				homing_achieved = true;
+				return true;
 			}
 
-			if((homing_distance_counts >= sensor_data_homing["counts"].asInt()) && (limit_switch_neg == 1) ){  
+			if((limit_switch_neg == 1) ){  
 				counts_offset_ = sensor_data_homing["counts"].asInt();
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				set_profile_velocity(0.0);
 				homing_achieved = true;
+				return true;
 			}
         	
 
         	time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-        	std::this_thread::sleep_for(std::chrono::microseconds(20000));
+        	std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
     	}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		set_relative_position(counts_offset_);
-
+		logger_->info(" current count [{}], count_offset [{}]", sensor_data_homing["counts"].asInt(), counts_offset_);
+		// set_relative_position(counts_offset_);
+		
     	if(!homing_achieved){
     	    logger_->error("[{}] Homing timeout", motor_name_);
     	    return false;
@@ -434,10 +446,8 @@ bool AmcMotorActuator::Homing(){
 
     	else{
     	    logger_->info("[{}] Homing achieved", motor_name_);
-    	    if(motor_name_ != "camera_rotation_joint"){
     	        // set_guard_time(motor_id_,50);
     	        // set_life_time_factor(motor_id_,6);
-    	    }
     	    return true;
 		} 
 
@@ -774,9 +784,6 @@ int AmcMotorActuator::set_profile_velocity(float vel) {
 	int64_t drive_val = (int64_t)((rpm_to_countspersec(vel)) * (pow(2, 33)/(encoder_sensor_->ks))); //Convert to DS3
 	int64_to_bytes.int_val = drive_val;
 
-	logger_->error("cps_val: {}", rpm_to_countspersec(vel));
-	logger_->error("drive_val: {}", drive_val);
-
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x203C;
@@ -800,12 +807,7 @@ int AmcMotorActuator::set_profile_acc(float acc) {
 	auto acc_scaled = (motor_rps2_to_cps2(acc) * (pow(2,28) / (max_speed * encoder_sensor_->ks)));
 	auto acc_val = int32_t(acc_scaled);
 	d.data.data = acc_val; //Convert to DA3 //encoder_sensor_->kms
-	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
-
-	logger_->error("##### max speed: {} #####", max_speed);
-	logger_->error("##### acc: {} #####", acc_scaled);
-	logger_->error("##### acc after typecasted: {} #####", acc_val);
-	
+	err |= SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);	
 	return err;
 }
 
