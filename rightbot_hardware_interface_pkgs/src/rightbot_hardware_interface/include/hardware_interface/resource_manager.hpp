@@ -398,6 +398,14 @@ public:
   std::string get_zlac_driver_error(int error);
 
   std::string get_harmonic_driver_error(int error);
+    
+  std::string get_amc_drive_system_status_1_error(int error);
+
+  std::string get_amc_drive_system_status_2_error(int error);
+  
+  std::string get_amc_drive_protection_status_error(int error);
+  
+  std::string get_amc_system_protection_status_error(int error);
 
   std::string get_ur_arm_safety_message(int error);
 

@@ -67,11 +67,10 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 
     for (const auto & command_interface : command_interfaces)
     {
-		// (command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) &&
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-			(command_interface.name != hardware_interface::HW_IF_ACCELERATION)
+			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE)
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -84,20 +83,22 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
 	logger_->info("Number of state interfaces: {}", state_interfaces.size());
-    if (state_interfaces.size() != 2)
+    if (state_interfaces.size() != 8)
     {
         logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
     }
     for (const auto & state_interface : state_interfaces)
     {
-		// (state_interface.name != hardware_interface::HW_IF_ERROR_CODE) &&
-            // (state_interface.name != hardware_interface::HW_IF_NODE_GUARD_ERROR) &&
-			// (state_interface.name != hardware_interface::HW_IF_EFFORT)
         if (
             (state_interface.name != hardware_interface::HW_IF_POSITION) &&
-            (state_interface.name != hardware_interface::HW_IF_VELOCITY) 
-            // (state_interface.name != hardware_interface::HW_IF_STATUS) 
+            (state_interface.name != hardware_interface::HW_IF_VELOCITY) &&
+            (state_interface.name != hardware_interface::HW_IF_STATUS) &&
+			(state_interface.name != hardware_interface::HW_IF_EFFORT) &&
+			(state_interface.name != hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_1) &&
+			(state_interface.name != hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_2) &&
+			(state_interface.name != hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS) &&
+			(state_interface.name != hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS)
 			)
        {
             logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
@@ -188,16 +189,20 @@ std::vector<hardware_interface::StateInterface> AmcMotorActuator::export_state_i
     std::vector<hardware_interface::StateInterface> state_interfaces;
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_STATUS, &status_state_));
-      state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_ERROR_CODE, &error_code_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_POSITION, &position_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_VELOCITY, &velocity_state_));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_EFFORT, &actual_motor_current_state_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_1, &amc_drive_system_status_1_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_2, &amc_drive_system_status_2_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS, &amc_drive_protection_status_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS, &amc_system_protection_status_));        
 
     return state_interfaces;
 
@@ -211,8 +216,6 @@ std::vector<hardware_interface::CommandInterface> AmcMotorActuator::export_comma
       motor_name_, hardware_interface::HW_IF_POSITION, &position_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
 	command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
 
@@ -233,10 +236,18 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 	
-    position_state_ = (axis_*sensor_data["counts"].asInt()) - counts_offset_;
-    velocity_state_ = axis_*(sensor_data["velocity"].asDouble()); //*3.14)/30);
+    position_state_ = (((sensor_data["counts"].asInt() - counts_offset_) * axis_) / motor_ppr_) * travel_per_revolution_;
+    velocity_state_ = ((axis_ * (sensor_data["velocity"].asDouble())) / (motor_ppr_)) * travel_per_revolution_; 
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
+
+	amc_drive_system_status_1_ = sensor_data["amc_drive_stat"].asInt();
+
+	amc_drive_system_status_2_ = sensor_data["amc_system_stat"].asInt();
+	
+	amc_drive_protection_status_ = sensor_data["amc_drive_stat_1"].asInt();
+	
+	amc_system_protection_status_ = sensor_data["amc_drive_stat_2"].asInt();
 
 	// std::cout << "status_state_: " << status_state_ <<std::endl;
 	// std::cout << "actual_motor_current_state_: " << actual_motor_current_state_ <<std::endl;
@@ -308,8 +319,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
     	    }
 			if (default_max_velocity_ >= abs(max_velocity_command_)){	
     	        logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
-				// set_target_velocity(scaled_max_vel);
-				set_vel_speed(motor_id_, axis_, max_velocity_command_);
+				auto velocity = (((max_velocity_command_ / travel_per_revolution_) * motor_ppr_) * (axis_));
+				set_vel_speed(motor_id_, axis_, velocity);
 				}
 		}
 	}
@@ -317,7 +328,8 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 	if (mode_of_operation_ == "position" && !std::isnan(position_command_)) {
     	if(previous_position_command_ != position_command_){
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
-			set_relative_position(static_cast<int32_t>(position_command_));
+			auto position = (((position_command_ / travel_per_revolution_) * motor_ppr_) * (axis_)) + (counts_offset_);
+			set_relative_position(static_cast<int32_t>(position));
     	}
     }
     previous_position_command_ = position_command_;
@@ -950,7 +962,7 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)((pos*axis_) + counts_offset_);
+	d.data.data = (int32_t)(pos);
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
@@ -959,8 +971,8 @@ int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
 	logger_->info("[{}] Motor mode [velocity]. Setting velocity",motor_name_);
 
     int err = 0;
-    const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
-	int32_t drive_val =  countspersec * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
+    // const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
+	int32_t drive_val =  vel * (pow(2, 17)/(encoder_sensor_->ki * encoder_sensor_->ks));
 	Socketcan_t target_vel[1] = {
             {4, drive_val}};
     err = PDO_send(amc_motor_actuator_sockets_->motor_vel_read_pdo_fd, PDO_RX4_ID + nodeid, 1, target_vel);

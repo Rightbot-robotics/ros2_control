@@ -352,7 +352,7 @@ int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
 
     if (0 == err_pdo_2_) {
         // velocity register
-        double vel = motor_cps_to_rpm(vel_fb_[0]);
+        double vel = vel_fb_[0];
         vel = vel/(pow(2, 17)/(ki * ks));
         encoder_data->vel_m = vel;
     }
@@ -461,15 +461,15 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["velocity"] = encoder_data_q_element.vel_m;
         sensor_data["guard_err"] = encoder_data_q_element.guard_err_m;
         sensor_data["read_status"] = true;
-        sensor_data["drive_stat"] = encoder_data_q_element.drive_stat_m;
-        sensor_data["system_stat"] = encoder_data_q_element.system_stat_m;
+        sensor_data["amc_drive_stat"] = encoder_data_q_element.drive_stat_m;
+        sensor_data["amc_system_stat"] = encoder_data_q_element.system_stat_m;
         sensor_data["voltage"] = encoder_data_q_element.voltage_m;
         sensor_data["io_stat"] = encoder_data_q_element.io_stat_m;
-        sensor_data["drive_stat_1"] = status_1;
-        sensor_data["drive_stat_2"] = status_2;
+        sensor_data["amc_drive_stat_1"] = status_1;
+        sensor_data["amc_drive_stat_2"] = status_2;
 
         logger_->debug("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
-        logger_->debug("motor velocity [{}]", encoder_data_q_element.vel_m);
+        logger_->debug("motor velocity [{}] cps", encoder_data_q_element.vel_m);
         logger_->debug("motor current [{}]", encoder_data_q_element.actual_motor_current_m);
         logger_->debug("motor drive stat [{}]", encoder_data_q_element.drive_stat_m);
         logger_->debug("motor system stat [{}]", encoder_data_q_element.system_stat_m);
@@ -482,8 +482,8 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
             logger_->debug("[{}] Fault detected. ", motor_sockets_->motor_name_);
             status_1 = read_drive_status_1();
             status_2 = read_drive_status_2();
-            sensor_data["drive_stat_1"] = status_1;
-            sensor_data["drive_stat_2"] = status_2;
+            sensor_data["amc_drive_stat_1"] = status_1;
+            sensor_data["amc_drive_stat_2"] = status_2;
             logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
         }
 

@@ -136,6 +136,11 @@ private:
     double position_state_ = std::numeric_limits<double>::quiet_NaN();
     double velocity_state_ = std::numeric_limits<double>::quiet_NaN();
     double node_guard_error_state_ = std::numeric_limits<double>::quiet_NaN();
+    double amc_drive_system_status_1_ = std::numeric_limits<double>::quiet_NaN();
+    double amc_drive_system_status_2_ = std::numeric_limits<double>::quiet_NaN();
+    double amc_drive_protection_status_ = std::numeric_limits<double>::quiet_NaN();
+    double amc_system_protection_status_ = std::numeric_limits<double>::quiet_NaN();
+
     
     double position_command_ = std::numeric_limits<double>::quiet_NaN();
     double max_velocity_command_ = std::numeric_limits<double>::quiet_NaN();

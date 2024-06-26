@@ -335,7 +335,7 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 			double angle_in_degree = (position_command_*(180/3.14));
 			int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
 			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-			set_relative_position( counts);
+			set_relative_position(counts);
 		}	
     }
     
