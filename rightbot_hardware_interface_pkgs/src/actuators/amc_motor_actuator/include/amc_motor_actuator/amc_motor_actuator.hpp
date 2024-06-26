@@ -103,6 +103,7 @@ private:
     int resetFault(void) ;
     int quickStopMotor(void); 
     int reinitializeMotor(void);
+    int amc_drive_reset(void);
 
     int set_target_velocity(float vel);
 

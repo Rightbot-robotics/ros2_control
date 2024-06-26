@@ -346,6 +346,7 @@ CallbackReturn AmcMotorActuator::on_error(const rclcpp_lifecycle::State & previo
 void AmcMotorActuator::fault_reset(){
     logger_->debug("[{}] - reset fault", motor_name_);
 	resetFault();
+	amc_drive_reset();
 }
 
 void AmcMotorActuator::reinitialize_actuator(){
@@ -497,6 +498,7 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
     //Clear error - required step for EROB motors
 	// err |= motorControlword(motor_id, Reset_Fault);
 	resetFault();
+	amc_drive_reset();
     //set the communication parameter for TPDO - transmission on 1 SYNC
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1802);
 	err |= motor_Transmit_PDO_n_Parameter(motor_id, 0x1815);
@@ -716,6 +718,17 @@ int AmcMotorActuator::resetFault(void) {
 	// err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 
 	return err;
+}
+
+int AmcMotorActuator::amc_drive_reset(void) {
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2001;
+	d.subindex = 0x01;
+	d.data.size = 2;
+	d.data.data = 4096;
+
+	return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 }
 
 int AmcMotorActuator::reinitializeMotor(void) {
@@ -999,6 +1012,7 @@ void AmcMotorActuator::changeActuatorControlMode(Json::Value &actuator_control_m
         if (actuator_control_mode["control_mode"].asString() == "motor_reset"){
             logger_->info("Fault reset for : [{}]",motor_name_);
             resetFault();
+			amc_drive_reset();
             
         }
         else if (actuator_control_mode["control_mode"].asString() == "motor_quick_stop"){
