@@ -62,6 +62,9 @@ public:
     int64_t read_kms_constant();
     uint16_t read_kp_constant();
     uint16_t read_kov_constant();
+    uint16_t read_drive_status_1();
+    uint16_t read_drive_status_2();
+
     
     std::shared_ptr<spdlog::logger> logger_;
     AmcMotorActuatorSockets::AmcMotorActuatorSocketsSPtr motor_sockets_;

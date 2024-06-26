@@ -155,6 +155,44 @@ uint16_t AmcEncoderSensor::read_kov_constant() {
 	return kov;
 }
 
+uint16_t AmcEncoderSensor::read_drive_status_1() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2002;
+	req.subindex = 0x05;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] drive status 1 was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint16_t drive_status_1 = (static_cast<double>(resp.data.data));
+	
+	return drive_status_1;
+}
+
+uint16_t AmcEncoderSensor::read_drive_status_2() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2002;
+	req.subindex = 0x04;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] drive status 2 was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint16_t drive_status_2 = (static_cast<double>(resp.data.data));
+	
+	return drive_status_2;
+}
+
 void AmcEncoderSensor::init_json() {
 
 }
@@ -397,6 +435,9 @@ void AmcEncoderSensor::readMotorData() {
 
 void AmcEncoderSensor::getData(Json::Value &sensor_data) {
 
+    int16_t status_1 = 0;
+    int16_t status_2 = 0;
+    
     read_mutex_.lock();
     reading_loop_started = true;
 
@@ -424,6 +465,8 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["system_stat"] = encoder_data_q_element.system_stat_m;
         sensor_data["voltage"] = encoder_data_q_element.voltage_m;
         sensor_data["io_stat"] = encoder_data_q_element.io_stat_m;
+        sensor_data["drive_stat_1"] = status_1;
+        sensor_data["drive_stat_2"] = status_2;
 
         logger_->debug("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
         logger_->debug("motor velocity [{}]", encoder_data_q_element.vel_m);
@@ -432,6 +475,17 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         logger_->debug("motor system stat [{}]", encoder_data_q_element.system_stat_m);
         logger_->debug("motor voltage [{}]", encoder_data_q_element.voltage_m);
         logger_->debug("motor io stat [{}]", encoder_data_q_element.io_stat_m);
+
+		auto is_fault = (( sensor_data["status"].asInt() & (1 << 3)) >> 3);
+
+        if(is_fault == 1) {
+            logger_->debug("[{}] Fault detected. ", motor_sockets_->motor_name_);
+            status_1 = read_drive_status_1();
+            status_2 = read_drive_status_2();
+            sensor_data["drive_stat_1"] = status_1;
+            sensor_data["drive_stat_2"] = status_2;
+            logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+        }
 
     } else {
         sensor_data["read_status"] = false;
