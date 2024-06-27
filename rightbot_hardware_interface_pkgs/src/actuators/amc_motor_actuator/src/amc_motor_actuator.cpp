@@ -945,10 +945,10 @@ int AmcMotorActuator::enable_brake(bool is_enabled) {
 	int err = 0;
 	int trigger = 0;
 	if (is_enabled) {
-		trigger = 1;
+		trigger = 0;
 	}
 	else {
-		trigger = 0;
+		trigger = 1;
 	}
 
 	SDO_data d;
@@ -998,7 +998,7 @@ int AmcMotorActuator::set_guard_time(uint16_t motor_id, uint16_t value) {
     d.data.size = 2;
     d.data.data = value;
 
-    return SDO_write(motor_sockets->motor_cfg_fd, &d);
+    return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 }
 
@@ -1010,7 +1010,7 @@ int AmcMotorActuator::set_life_time_factor(uint16_t motor_id, uint8_t value) {
     d.data.size = 1;
     d.data.data = value;
 
-    return SDO_write(motor_sockets->motor_cfg_fd, &d);
+    return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
 }
 
