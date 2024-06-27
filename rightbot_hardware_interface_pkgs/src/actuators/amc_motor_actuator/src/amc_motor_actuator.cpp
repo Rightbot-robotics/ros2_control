@@ -990,6 +990,30 @@ int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
     return err;
 }
 
+int AmcMotorActuator::set_guard_time(uint16_t motor_id, uint16_t value) {
+    SDO_data d;
+    d.nodeid = motor_id;
+    d.index = 0x100C;
+    d.subindex = 0x00;
+    d.data.size = 2;
+    d.data.data = value;
+
+    return SDO_write(motor_sockets->motor_cfg_fd, &d);
+
+}
+
+int AmcMotorActuator::set_life_time_factor(uint16_t motor_id, uint8_t value) {
+    SDO_data d;
+    d.nodeid = motor_id;
+    d.index = 0x100D;
+    d.subindex = 0x00;
+    d.data.size = 1;
+    d.data.data = value;
+
+    return SDO_write(motor_sockets->motor_cfg_fd, &d);
+
+}
+
 void AmcMotorActuator::goToInitPos(){
 
 	// set_profile_velocity(100);

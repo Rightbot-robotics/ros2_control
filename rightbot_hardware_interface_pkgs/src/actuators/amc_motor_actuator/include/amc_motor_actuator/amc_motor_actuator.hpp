@@ -117,6 +117,8 @@ private:
     int set_NTNC(float acc);    
     int set_NTPC(float deacc);    
     int enable_brake(bool is_enabled);
+    int set_guard_time(uint16_t motor_id, uint16_t value);
+    int set_life_time_factor(uint16_t motor_id, uint8_t value);
 
     int set_relative_position(int32_t pos);
     void goToInitPos();
