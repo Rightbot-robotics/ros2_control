@@ -391,16 +391,19 @@ bool AmcMotorActuator::Homing(){
 	if (is_homing_)
 	{	
 		set_profile_velocity(homing_max_velocity_);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		set_profile_acc(homing_acceleration_);
 		set_profile_deacc(homing_deceleration_);
 		motorSetmode(Motor_mode_Position);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
 		Json::Value sensor_data_homing;
 		bool homing_achieved = false;
-    	auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
+
+        encoder_sensor_->getData(sensor_data_homing);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+		
+		counts_offset_ = sensor_data_homing["counts"].asInt();
+		auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
 		auto commanded_count = 0;
 		if (is_homing_at_min_)
 		{
@@ -412,8 +415,9 @@ bool AmcMotorActuator::Homing(){
 		}
 		
 		logger_->info("[{}] Homing distance: [{}]", motor_name_, commanded_count);
+		logger_->info("[{}] Homing counts offset: [{}]", motor_name_, counts_offset_);
 
-		set_relative_position(commanded_count);
+		set_relative_position(commanded_count + counts_offset_);
 		
 		std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
           
@@ -432,6 +436,7 @@ bool AmcMotorActuator::Homing(){
 				counts_offset_ = sensor_data_homing["counts"].asInt();
 				set_profile_velocity(0.0);
 				homing_achieved = true;
+				is_homing_ = 0;
 				return true;
 			}
 
@@ -439,6 +444,7 @@ bool AmcMotorActuator::Homing(){
 				counts_offset_ = sensor_data_homing["counts"].asInt();
 				set_profile_velocity(0.0);
 				homing_achieved = true;
+				is_homing_ = 0;
 				return true;
 			}
         	
@@ -454,6 +460,7 @@ bool AmcMotorActuator::Homing(){
 		
     	if(!homing_achieved){
     	    logger_->error("[{}] Homing timeout", motor_name_);
+			is_homing_ = 0;
     	    return false;
     	}
 
@@ -461,13 +468,15 @@ bool AmcMotorActuator::Homing(){
     	    logger_->info("[{}] Homing achieved", motor_name_);
     	        // set_guard_time(motor_id_,50);
     	        // set_life_time_factor(motor_id_,6);
+			is_homing_ = 0;
     	    return true;
 		} 
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		
+		is_homing_ = 0;
 		return true;
 	}
+	is_homing_ = 0;
 	return true;
 }
 
@@ -963,6 +972,7 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 	d.subindex = 0x00;
 	d.data.size = 4;
 	d.data.data = (int32_t)(pos);
+	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
