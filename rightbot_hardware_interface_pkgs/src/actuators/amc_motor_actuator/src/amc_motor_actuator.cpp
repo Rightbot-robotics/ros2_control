@@ -397,12 +397,27 @@ bool AmcMotorActuator::Homing(){
 
 		Json::Value sensor_data_homing;
 		bool homing_achieved = false;
-
-        encoder_sensor_->getData(sensor_data_homing);
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 		
-		counts_offset_ = sensor_data_homing["counts"].asInt();
+		int max_tries = 4;
+		int current_tries = 0;
+		
+		while (!sensor_data_homing["read_status"].asBool() && current_tries < max_tries)
+		{
+			requestData();
+        	encoder_sensor_->getData(sensor_data_homing);
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+			current_tries++;
+			
+			logger_->info("[{}] - Homing loop count: [{}]", motor_name_, current_tries);
+		}
+
+		if (!sensor_data_homing["read_status"].asBool())
+		{
+			logger_->warn("[{}] - Unable to read initial counts, aborting homing", motor_name_);
+			return false;
+		}
+
+		counts_offset_ = sensor_data_homing["counts"].asInt();		
 		auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
 		auto commanded_count = 0;
 		if (is_homing_at_min_)
@@ -422,35 +437,37 @@ bool AmcMotorActuator::Homing(){
 		std::chrono::system_clock::time_point recovery_lift_down_time = std::chrono::system_clock::now();
           
     	auto time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-		
+
 		while((time_passed_response_received_lift_down.count()<60000) && (homing_achieved == false)){
 
 			requestData();
         
         	encoder_sensor_->getData(sensor_data_homing);
         	    
-			auto limit_switch_pos = (( sensor_data_homing["io_stat"].asInt() & (1 << 0)) >> 0);
-			auto limit_switch_neg = (( sensor_data_homing["io_stat"].asInt() & (1 << 1)) >> 1);
+			auto limit_switch_pos = ((sensor_data_homing["io_stat"].asInt() & (1 << 0)) >> 0);
+			auto limit_switch_neg = ((sensor_data_homing["io_stat"].asInt() & (1 << 1)) >> 1);
 			
 			if((limit_switch_pos == 1)){  
 				counts_offset_ = sensor_data_homing["counts"].asInt();
+				set_relative_position(counts_offset_);
 				set_profile_velocity(0.0);
 				homing_achieved = true;
-				is_homing_ = 0;
+				logger_->info("[{}] Positive limit switch detected. Homing done!",motor_name_);
 				return true;
 			}
 
 			if((limit_switch_neg == 1) ){  
 				counts_offset_ = sensor_data_homing["counts"].asInt();
+				set_relative_position(counts_offset_);
 				set_profile_velocity(0.0);
 				homing_achieved = true;
-				is_homing_ = 0;
+				logger_->info("[{}] Negative limit switch detected. Homing done!",motor_name_);
 				return true;
 			}
         	
 
         	time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
-        	std::this_thread::sleep_for(std::chrono::microseconds(1000));
+        	std::this_thread::sleep_for(std::chrono::microseconds(2000));
 
     	}
 
@@ -460,23 +477,19 @@ bool AmcMotorActuator::Homing(){
 		
     	if(!homing_achieved){
     	    logger_->error("[{}] Homing timeout", motor_name_);
-			is_homing_ = 0;
     	    return false;
     	}
 
     	else{
     	    logger_->info("[{}] Homing achieved", motor_name_);
-    	        // set_guard_time(motor_id_,50);
-    	        // set_life_time_factor(motor_id_,6);
-			is_homing_ = 0;
+    	    set_guard_time(motor_id_,50);
+    	    set_life_time_factor(motor_id_,6);
     	    return true;
 		} 
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		is_homing_ = 0;
 		return true;
 	}
-	is_homing_ = 0;
 	return true;
 }
 
@@ -945,10 +958,10 @@ int AmcMotorActuator::enable_brake(bool is_enabled) {
 	int err = 0;
 	int trigger = 0;
 	if (is_enabled) {
-		trigger = 0;
+		trigger = 1;
 	}
 	else {
-		trigger = 1;
+		trigger = 0;
 	}
 
 	SDO_data d;

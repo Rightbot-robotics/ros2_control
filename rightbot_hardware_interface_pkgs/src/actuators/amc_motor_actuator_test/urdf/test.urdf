@@ -80,11 +80,11 @@
       <param name="can_id">1</param>
       <param name="axis">1</param>
       
-      <param name="is_homing">0</param>
+      <param name="is_homing">1</param>
       <param name="homing_max_velocity">100.0</param>
       <param name="homing_max_accleration">10.0</param>
       <param name="homing_max_deceleration">10.0</param>
-      <param name="min_position">1.9</param>
+      <param name="min_position">20</param>
       <param name="max_position">0</param>
       <param name="homing_at_min">1</param>
       
@@ -96,7 +96,7 @@
       <param name="default_max_accleration">10.0</param>
       <param name="default_max_deceleration">10.0</param>
       
-      <param name="mode_of_operation">position</param>
+      <param name="mode_of_operation">velocity</param>
     </joint>
   </ros2_control>
 </robot>

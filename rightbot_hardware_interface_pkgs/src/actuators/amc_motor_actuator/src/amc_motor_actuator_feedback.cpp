@@ -344,10 +344,11 @@ int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
         encoder_data->status_m = status_register_fb_[0];
         // position register
         encoder_data->pos_m = actual_position_fb_[0];
-
+        encoder_data->read_status_encoder = true;
     }
     else{
-        logger_->debug("[{}] status & pos read error", motor_name_);
+        encoder_data->read_status_encoder = false;
+        logger_->debug("=== [{}] status & pos read error", motor_name_);
     }
 
     if (0 == err_pdo_2_) {
@@ -395,6 +396,8 @@ void AmcEncoderSensor::stop_read_thread() {
 void AmcEncoderSensor::readMotorData() {
 
 
+    AmcEncoderData prev_encoder_data;
+    int err, prev_err;
     while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
@@ -405,12 +408,18 @@ void AmcEncoderSensor::readMotorData() {
                 
                 std::this_thread::sleep_for(std::chrono::microseconds(2000));
                 
-                int err = readData( &encoder_data_);
-
-                if (err == 0) {
+                encoder_data_.read_status_encoder = true;
+                while (encoder_data_.read_status_encoder)
+                {
+                    prev_encoder_data = encoder_data_;
+                    prev_err = err;
+                    err = readData( &encoder_data_);
+                }
+                
+                if (prev_err == 0) {
 
                     read_mutex_.lock();
-                    q_encoder_data_.push_back(encoder_data_);
+                    q_encoder_data_.push_back(prev_encoder_data);
                     read_mutex_.unlock();
                 }
                 else {

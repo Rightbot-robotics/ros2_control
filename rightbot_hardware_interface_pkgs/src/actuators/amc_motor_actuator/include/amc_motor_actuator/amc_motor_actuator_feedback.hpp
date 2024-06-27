@@ -30,6 +30,7 @@ public:
     int voltage_m;
     int io_stat_m;
     int guard_err_m;
+    bool read_status_encoder;
 };
 
 class AmcEncoderSensor : public Sensor {
