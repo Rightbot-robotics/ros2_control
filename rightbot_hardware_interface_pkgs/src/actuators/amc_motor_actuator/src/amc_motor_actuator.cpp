@@ -132,14 +132,27 @@ CallbackReturn AmcMotorActuator::on_configure(const rclcpp_lifecycle::State & pr
 CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & previous_state){
 	
     logger_->info("Motor Enable action for: [{}]",motor_name_);
+	
 	enable_brake(true);	
     enableMotor();
+
+	set_guard_time(motor_id_,50);
+    set_life_time_factor(motor_id_,6);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	
 	if(!Homing()){
         return CallbackReturn::ERROR;
     }		
+
+	if (is_homing_){
+		initMotor();
+		amc_drive_reset();
+		enableMotor();
+	
+		set_guard_time(motor_id_,50);
+    	set_life_time_factor(motor_id_,6);
+	}
 
 	if(mode_of_operation_ == "velocity")
 	{
@@ -381,9 +394,7 @@ void AmcMotorActuator::data_request(){
 }
 
 void AmcMotorActuator::node_guarding_request(){
-	
-	//node guarding not available on current firmware
-
+    sendNodeGuardingRequest();
 }
 
 bool AmcMotorActuator::Homing(){
@@ -440,6 +451,8 @@ bool AmcMotorActuator::Homing(){
 
 		while((time_passed_response_received_lift_down.count()<60000) && (homing_achieved == false)){
 
+			node_guarding_request();
+			
 			requestData();
         
         	encoder_sensor_->getData(sensor_data_homing);
@@ -482,8 +495,6 @@ bool AmcMotorActuator::Homing(){
 
     	else{
     	    logger_->info("[{}] Homing achieved", motor_name_);
-    	    set_guard_time(motor_id_,50);
-    	    set_life_time_factor(motor_id_,6);
     	    return true;
 		} 
 
@@ -1055,7 +1066,7 @@ void AmcMotorActuator::sendNodeGuardingRequest(){
 
 	// logger_->info("[{}] Guard sending request", motor_name_);
 
-    // socketcan_write(amc_motor_actuator_sockets_->nmt_motor_cfg_fd, cob_id, 1, data);
+    socketcan_write(amc_motor_actuator_sockets_->nmt_motor_cfg_fd, cob_id, 1, data);
 
 }
 
