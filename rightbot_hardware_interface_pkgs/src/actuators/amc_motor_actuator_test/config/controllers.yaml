@@ -12,6 +12,9 @@ controller_manager:
     position_controller:
       type: position_controllers/JointGroupPositionController
 
+    dynamic_conveyor_lift_tuner_controller:
+      type: dynamic_conveyor_lift_tuner_controller/DynamicConveyorLiftTunerController
+
 velocity_controller:
   ros__parameters:
     joints:
