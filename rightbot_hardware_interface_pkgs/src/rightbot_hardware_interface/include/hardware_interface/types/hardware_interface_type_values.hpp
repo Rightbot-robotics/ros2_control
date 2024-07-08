@@ -56,6 +56,19 @@ constexpr char HW_IF_AMC_DRIVE_PROTECTION_STATUS [] = "amc_drive_protection_stat
 
 constexpr char HW_IF_AMC_SYSTEM_PROTECTION_STATUS [] = "amc_system_protection_status";
 
+constexpr char HW_IF_POSTITON_KP [] = "position_kp";
+
+constexpr char HW_IF_POSTITON_KI [] = "position_ki";
+
+constexpr char HW_IF_POSTITON_KD [] = "position_kd";
+
+constexpr char HW_IF_VELOCITY_KP [] = "velocity_kp";
+
+constexpr char HW_IF_VELOCITY_KI [] = "velocity_ki";
+
+constexpr char HW_IF_VELOCITY_KD [] = "velocity_kd";
+
+
 }  // namespace hardware_interface
 
 #endif  // HARDWARE_INTERFACE__TYPES__HARDWARE_INTERFACE_TYPE_VALUES_HPP_

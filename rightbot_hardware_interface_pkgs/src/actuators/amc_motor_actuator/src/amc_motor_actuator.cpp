@@ -59,7 +59,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     // can only control in position 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     logger_->info("Number of command interfaces: {}", command_interfaces.size());
-    if (command_interfaces.size() != 3)
+    if (command_interfaces.size() != 9)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -70,7 +70,13 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
         if (
             (command_interface.name != hardware_interface::HW_IF_POSITION) &&
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
-			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE)
+			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) &&
+			(command_interface.name != hardware_interface::HW_IF_POSTITON_KP) &&
+			(command_interface.name != hardware_interface::HW_IF_POSTITON_KI) &&
+			(command_interface.name != hardware_interface::HW_IF_POSTITON_KD) &&
+			(command_interface.name != hardware_interface::HW_IF_VELOCITY_KP) &&
+			(command_interface.name != hardware_interface::HW_IF_VELOCITY_KI) &&
+			(command_interface.name != hardware_interface::HW_IF_VELOCITY_KD)
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -231,6 +237,18 @@ std::vector<hardware_interface::CommandInterface> AmcMotorActuator::export_comma
       motor_name_, hardware_interface::HW_IF_VELOCITY, &max_velocity_command_));
 	command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSTITON_KP, &position_kp_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSTITON_KI, &position_ki_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_POSTITON_KD, &position_kd_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY_KP, &velocity_kp_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY_KI, &velocity_ki_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY_KD, &velocity_kd_command_));        
 
     return command_interfaces;
 
@@ -815,6 +833,9 @@ int AmcMotorActuator::quickStopMotor(void) {
 	// err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 	err |= motorControlword(motor_id_, Quickstop);
 	
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	enable_brake(false);
 	//Close PDO-communication
 	// err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node);
 
@@ -1036,6 +1057,84 @@ int AmcMotorActuator::set_life_time_factor(uint16_t motor_id, uint8_t value) {
 
     return SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 
+}
+
+int AmcMotorActuator::set_position_kp(int32_t kp) {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2038;
+	d.subindex = 0x01;
+	d.data.size = 4;
+	d.data.data = (int32_t)(kp); //(Position Loop Proportional Gain) x 2^32
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::set_position_ki(int32_t ki) {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2038;
+	d.subindex = 0x02;
+	d.data.size = 4;
+	d.data.data = (int32_t)(ki); //(Position Loop Integral Gain) x (2^41 / Vpos), Vpos = (Switching Frequency / 2)
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::set_position_kd(int32_t kd) {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2038;
+	d.subindex = 0x03;
+	d.data.size = 4;
+	d.data.data = (int32_t)(kd); //(Position Loop Derivative Gain) x (2^28 * Vpos), Vpos = (Switching Frequency / 2)
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::set_velocity_kp(int32_t kp) {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2036;
+	d.subindex = 0x03;
+	d.data.size = 4;
+	d.data.data = (int32_t)(kp); //(Velocity Loop Proportional Gain) x ((2^16 * Vvel * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::set_velocity_ki(int32_t ki) {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2036;
+	d.subindex = 0x04;
+	d.data.size = 4;
+	d.data.data = (int32_t)(ki); //(Velocity Loop Integral Gain) x (2^32 * Rppv) / (2 * Cpk), Rppv = Interpolation Value, Cpk = Peak Current
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::set_velocity_kd(int32_t kd) {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x2036;
+	d.subindex = 0x05;
+	d.data.size = 4;
+	d.data.data = (int32_t)(kd); //(Velocity Loop Derivative Gain) x ((2^16 * (Vvel)^2 * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
 }
 
 void AmcMotorActuator::goToInitPos(){

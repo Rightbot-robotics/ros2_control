@@ -68,6 +68,13 @@
       <command_interface name="position"/>
       <command_interface name="velocity"/>
       <command_interface name="control_state"/>
+      <command_interface name="position_kp"/>
+      <command_interface name="position_ki"/>
+      <command_interface name="position_kd"/>
+      <command_interface name="velocity_kp"/>
+      <command_interface name="velocity_ki"/>
+      <command_interface name="velocity_kd"/>
+      
       <state_interface name="position"/>
       <state_interface name="velocity"/>
       <state_interface name="status"/>
@@ -80,7 +87,7 @@
       <param name="can_id">1</param>
       <param name="axis">1</param>
       
-      <param name="is_homing">1</param>
+      <param name="is_homing">0</param>
       <param name="homing_max_velocity">100.0</param>
       <param name="homing_max_accleration">10.0</param>
       <param name="homing_max_deceleration">10.0</param>
@@ -96,7 +103,7 @@
       <param name="default_max_accleration">10.0</param>
       <param name="default_max_deceleration">10.0</param>
       
-      <param name="mode_of_operation">velocity</param>
+      <param name="mode_of_operation">position</param>
     </joint>
   </ros2_control>
 </robot>
