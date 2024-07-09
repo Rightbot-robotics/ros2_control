@@ -60,7 +60,7 @@
       </geometry>
     </collision>
   </link>
-  <ros2_control name="test_amc_motor_actuator" type="actuator">
+  <ros2_control name="conveyor_lift_left" type="actuator">
     <hardware>
       <plugin>amc_motor_actuator</plugin>
     </hardware>

@@ -33,22 +33,6 @@ void AmcEncoderSensor::initialize(AmcMotorActuatorSockets::AmcMotorActuatorSocke
     kov = read_kov_constant();
     kms = read_kms_constant();
 
-    // int err;
-    // SDO_data req, resp;
-	// req.nodeid = motor_id_;
-	// req.index = 0x6075;
-	// req.subindex = 0x00;
-	// req.data = {0, 0x00};
-	
-	// err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
-    // if(err != 0) {
-    //     logger_->info("[{}] Motor rated current was not read...", motor_name_);
-    // }
-
-    // motor_rated_current_ = ((float)resp.data.data) / 1000;  // mA to A
-
-	// logger_->info("[{}] Motor rated current: {} A", motor_name_, motor_rated_current_);
-
     read_motor_data_thread_ = std::thread(&AmcEncoderSensor::readMotorData, this);
 }
 
@@ -191,6 +175,120 @@ uint16_t AmcEncoderSensor::read_drive_status_2() {
 	uint16_t drive_status_2 = (static_cast<double>(resp.data.data));
 	
 	return drive_status_2;
+}
+
+uint32_t AmcEncoderSensor::read_position_kp() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2038;
+	req.subindex = 0x01;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] position Kp was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint32_t position_kp = (static_cast<double>(resp.data.data));
+	
+	return position_kp;
+}
+
+uint32_t AmcEncoderSensor::read_position_ki() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2038;
+	req.subindex = 0x02;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] position Ki was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint32_t position_kp = (static_cast<double>(resp.data.data));
+	
+	return position_kp;
+}
+
+uint32_t AmcEncoderSensor::read_position_kd() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2038;
+	req.subindex = 0x03;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] position Kd was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint32_t position_kp = (static_cast<double>(resp.data.data));
+	
+	return position_kp;
+}
+
+uint32_t AmcEncoderSensor::read_velocity_kp() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2038;
+	req.subindex = 0x01;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] velocity Kp was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint32_t velocity_kp = (static_cast<double>(resp.data.data));
+	
+	return velocity_kp;
+}
+
+uint32_t AmcEncoderSensor::read_velocity_ki() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2038;
+	req.subindex = 0x02;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] velocity Ki was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint32_t velocity_kp = (static_cast<double>(resp.data.data));
+	
+	return velocity_kp;
+}
+
+uint32_t AmcEncoderSensor::read_velocity_kd() {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id_;
+	req.index = 0x2038;
+	req.subindex = 0x03;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] velocity Kd was not read...", motor_name_);
+		return 1;
+	}
+	
+	uint32_t velocity_kp = (static_cast<double>(resp.data.data));
+	
+	return velocity_kp;
 }
 
 void AmcEncoderSensor::init_json() {

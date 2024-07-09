@@ -363,10 +363,38 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 			set_relative_position(static_cast<int32_t>(position));
     	}
     }
+
+	if (!std::isnan(position_kp_command_) && !std::isnan(position_ki_command_) && !std::isnan(position_kd_command_)) {
+		if(previous_position_kp_command_ != position_kp_command_ && previous_position_ki_command_ != position_ki_command_ && previous_position_kd_command_ != position_kd_command_){
+			logger_->info("[{}] Position Kp command: [{}], Position Ki command: [{}], Position Kd command: [{}]", motor_name_, position_kp_command_, position_ki_command_, position_kd_command_);
+			set_position_kp(position_kp_command_);
+			set_position_ki(position_ki_command_);
+			set_position_kd(position_kd_command_);
+			store_params_to_drive();
+		}
+	}
+
+	if (!std::isnan(velocity_kp_command_) && !std::isnan(velocity_ki_command_) && !std::isnan(velocity_kd_command_)) {
+		if(previous_velocity_kp_command_ != velocity_kp_command_ && previous_velocity_ki_command_ != velocity_ki_command_ && previous_velocity_kd_command_ != velocity_kd_command_){
+			logger_->info("[{}] Velocity Kp command: [{}], Velocity Ki command: [{}], Velocity Kd command: [{}]", motor_name_, velocity_kp_command_, velocity_ki_command_, velocity_kd_command_);
+			set_velocity_kp(velocity_kp_command_);
+			set_velocity_ki(velocity_ki_command_);
+			set_velocity_kd(velocity_kd_command_);
+			store_params_to_drive();
+		}
+	}
+	
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
 	previous_control_state_command_ = control_state_command_;
+
+	previous_position_kp_command_ = position_kp_command_;
+	previous_position_ki_command_ = position_ki_command_;
+	previous_position_kd_command_ = position_kd_command_;
+	previous_velocity_kp_command_ = velocity_kp_command_;
+	previous_velocity_ki_command_ = velocity_ki_command_;
+	previous_velocity_kd_command_ = velocity_kd_command_;
 
 
     return hardware_interface::return_type::OK;
@@ -1132,6 +1160,19 @@ int AmcMotorActuator::set_velocity_kd(int32_t kd) {
 	d.subindex = 0x05;
 	d.data.size = 4;
 	d.data.data = (int32_t)(kd); //(Velocity Loop Derivative Gain) x ((2^16 * (Vvel)^2 * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
+	
+	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
+	return err;
+}
+
+int AmcMotorActuator::store_params_to_drive() {
+	int err = 0;
+	SDO_data d;
+	d.nodeid = motor_id_;
+	d.index = 0x1010;
+	d.subindex = 0x01;
+	d.data.size = 4;
+	d.data.data = 65766173;
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;

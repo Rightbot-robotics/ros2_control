@@ -128,6 +128,7 @@ private:
     int set_velocity_ki(int32_t ki);
     int set_velocity_kd(int32_t kd);
 
+    int store_params_to_drive();
     int set_relative_position(int32_t pos);
     void goToInitPos();
     
@@ -166,6 +167,12 @@ private:
     double previous_max_velocity_command_ = std::numeric_limits<double>::quiet_NaN();
     double previous_acceleration_command_ = std::numeric_limits<double>::quiet_NaN();
     double previous_control_state_command_ = std::numeric_limits<double>::quiet_NaN();
+    double previous_position_kp_command_ = std::numeric_limits<double>::quiet_NaN();
+    double previous_position_ki_command_ = std::numeric_limits<double>::quiet_NaN();
+    double previous_position_kd_command_ = std::numeric_limits<double>::quiet_NaN();
+    double previous_velocity_kp_command_ = std::numeric_limits<double>::quiet_NaN();
+    double previous_velocity_ki_command_ = std::numeric_limits<double>::quiet_NaN();
+    double previous_velocity_kd_command_ = std::numeric_limits<double>::quiet_NaN();
     
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
