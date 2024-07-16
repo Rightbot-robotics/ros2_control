@@ -177,7 +177,7 @@ uint16_t AmcEncoderSensor::read_drive_status_2() {
 	return drive_status_2;
 }
 
-uint32_t AmcEncoderSensor::read_position_kp() {
+int32_t AmcEncoderSensor::read_position_kp() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
@@ -191,12 +191,12 @@ uint32_t AmcEncoderSensor::read_position_kp() {
 		return 1;
 	}
 	
-	uint32_t position_kp = (static_cast<double>(resp.data.data));
+	uint32_t position_kp = (static_cast<double>(resp.data.data)) / pow(2, 32);
 	
 	return position_kp;
 }
 
-uint32_t AmcEncoderSensor::read_position_ki() {
+int32_t AmcEncoderSensor::read_position_ki() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
@@ -210,12 +210,12 @@ uint32_t AmcEncoderSensor::read_position_ki() {
 		return 1;
 	}
 	
-	uint32_t position_kp = (static_cast<double>(resp.data.data));
+	uint32_t position_ki = (static_cast<double>(resp.data.data) / (pow(2, 41) / (ks / 2)));
 	
-	return position_kp;
+	return position_ki;
 }
 
-uint32_t AmcEncoderSensor::read_position_kd() {
+int32_t AmcEncoderSensor::read_position_kd() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
@@ -229,12 +229,12 @@ uint32_t AmcEncoderSensor::read_position_kd() {
 		return 1;
 	}
 	
-	uint32_t position_kp = (static_cast<double>(resp.data.data));
+	uint32_t position_kd = (static_cast<double>(resp.data.data) / (pow(2, 28) * (ks / 2)));
 	
-	return position_kp;
+	return position_kd;
 }
 
-uint32_t AmcEncoderSensor::read_velocity_kp() {
+int32_t AmcEncoderSensor::read_velocity_kp() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
@@ -248,12 +248,12 @@ uint32_t AmcEncoderSensor::read_velocity_kp() {
 		return 1;
 	}
 	
-	uint32_t velocity_kp = (static_cast<double>(resp.data.data));
+	uint32_t velocity_kp = (static_cast<double>(resp.data.data) / (((pow(2, 16) * (ks / 2) * 1) / (2 * kp))));
 	
 	return velocity_kp;
 }
 
-uint32_t AmcEncoderSensor::read_velocity_ki() {
+int32_t AmcEncoderSensor::read_velocity_ki() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
@@ -267,12 +267,12 @@ uint32_t AmcEncoderSensor::read_velocity_ki() {
 		return 1;
 	}
 	
-	uint32_t velocity_kp = (static_cast<double>(resp.data.data));
+	uint32_t velocity_ki = (static_cast<double>(resp.data.data) / ((pow(2, 32) * 1) / (2 * kp)));
 	
-	return velocity_kp;
+	return velocity_ki;
 }
 
-uint32_t AmcEncoderSensor::read_velocity_kd() {
+int32_t AmcEncoderSensor::read_velocity_kd() {
 	int err;
     SDO_data req, resp;
 	req.nodeid = motor_id_;
@@ -286,7 +286,7 @@ uint32_t AmcEncoderSensor::read_velocity_kd() {
 		return 1;
 	}
 	
-	uint32_t velocity_kp = (static_cast<double>(resp.data.data));
+	uint32_t velocity_kp = (static_cast<double>(resp.data.data) / ((pow(2, 16) * pow((ks / 2),2) * 1) / (2 * kp)));
 	
 	return velocity_kp;
 }
@@ -582,6 +582,43 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         logger_->debug("motor system stat [{}]", encoder_data_q_element.system_stat_m);
         logger_->debug("motor voltage [{}]", encoder_data_q_element.voltage_m);
         logger_->debug("motor io stat [{}]", encoder_data_q_element.io_stat_m);
+
+        if (read_position_pid_values)
+        {
+            sensor_data["position_kp"] = encoder_data_q_element.position_kp_m;
+            sensor_data["position_ki"] = encoder_data_q_element.position_ki_m;
+            sensor_data["position_kd"] = encoder_data_q_element.position_kd_m;
+
+            logger_->debug(" position kp [{}], ki [{}], kd [{}]", encoder_data_q_element.position_kp_m, encoder_data_q_element.position_ki_m, encoder_data_q_element.position_kd_m);
+
+            read_pid++;
+
+            if (read_pid == 1)
+            {
+                read_position_pid_values = false;
+                read_pid = 0;
+            }
+            
+        }
+
+        if (read_velocity_pid_values)
+        {
+            sensor_data["velocity_kp"] = encoder_data_q_element.velocity_kp_m;
+            sensor_data["velocity_ki"] = encoder_data_q_element.velocity_ki_m;
+            sensor_data["velocity_kd"] = encoder_data_q_element.velocity_kd_m;
+
+            logger_->debug(" velocity kp [{}], ki [{}], kd [{}]", encoder_data_q_element.velocity_kp_m, encoder_data_q_element.velocity_ki_m, encoder_data_q_element.velocity_kd_m);
+
+            read_pid++;
+
+            if (read_pid == 1)
+            {
+                read_velocity_pid_values = false;
+                read_pid = 0;
+            }
+            
+        }
+        
 
 		auto is_fault = (( sensor_data["status"].asInt() & (1 << 3)) >> 3);
 

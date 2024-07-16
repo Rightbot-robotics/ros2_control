@@ -31,6 +31,14 @@ public:
     int io_stat_m;
     int guard_err_m;
     bool read_status_encoder;
+
+    int32_t position_kp_m;
+    int32_t position_ki_m;
+    int32_t position_kd_m;
+
+    int32_t velocity_kp_m;
+    int32_t velocity_ki_m;
+    int32_t velocity_kd_m; 
 };
 
 class AmcEncoderSensor : public Sensor {
@@ -66,6 +74,13 @@ public:
     uint16_t read_drive_status_1();
     uint16_t read_drive_status_2();
 
+    int32_t read_position_kp();
+    int32_t read_position_ki();
+    int32_t read_position_kd();
+
+    int32_t read_velocity_kp();
+    int32_t read_velocity_ki();
+    int32_t read_velocity_kd();
     
     std::shared_ptr<spdlog::logger> logger_;
     AmcMotorActuatorSockets::AmcMotorActuatorSocketsSPtr motor_sockets_;
@@ -128,6 +143,11 @@ public:
     uint16_t kp = 0;
     uint16_t kov = 0;
     int64_t kms = 0;
+
+    bool read_position_pid_values = false;
+    bool read_velocity_pid_values = false;
+    
+    int read_pid = 0;
 };
 
 #endif // AMC_MOTOR_ACTUATOR_FEEDBACK_H_

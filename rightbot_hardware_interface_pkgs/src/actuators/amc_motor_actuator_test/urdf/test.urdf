@@ -83,6 +83,12 @@
       <state_interface name="amc_drive_system_status_2"/>
       <state_interface name="amc_drive_protection_status"/>
       <state_interface name="amc_system_protection_status"/>
+      <state_interface name="position_kp"/>
+      <state_interface name="position_ki"/>
+      <state_interface name="position_kd"/>
+      <state_interface name="velocity_kp"/>
+      <state_interface name="velocity_ki"/>
+      <state_interface name="velocity_kd"/>
 
       <param name="can_id">1</param>
       <param name="axis">1</param>
@@ -103,7 +109,7 @@
       <param name="default_max_accleration">10.0</param>
       <param name="default_max_deceleration">10.0</param>
       
-      <param name="mode_of_operation">position</param>
+      <param name="mode_of_operation">velocity</param>
     </joint>
   </ros2_control>
 </robot>

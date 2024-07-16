@@ -89,7 +89,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     // can only give feedback state for position and velocity
     const auto & state_interfaces = info_.joints[0].state_interfaces;
 	logger_->info("Number of state interfaces: {}", state_interfaces.size());
-    if (state_interfaces.size() != 8)
+    if (state_interfaces.size() != 14)
     {
         logger_->error("[{}] - Incorrect number of state interfaces", motor_name_);
         return CallbackReturn::ERROR;
@@ -104,7 +104,13 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 			(state_interface.name != hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_1) &&
 			(state_interface.name != hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_2) &&
 			(state_interface.name != hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS) &&
-			(state_interface.name != hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS)
+			(state_interface.name != hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS) &&
+			(state_interface.name != hardware_interface::HW_IF_POSTITON_KP) &&
+			(state_interface.name != hardware_interface::HW_IF_POSTITON_KI) &&
+			(state_interface.name != hardware_interface::HW_IF_POSTITON_KD) &&
+			(state_interface.name != hardware_interface::HW_IF_VELOCITY_KP) &&
+			(state_interface.name != hardware_interface::HW_IF_VELOCITY_KI) &&
+			(state_interface.name != hardware_interface::HW_IF_VELOCITY_KD)
 			)
        {
             logger_->error("[{}] - Incorrect type of state interfaces", motor_name_);
@@ -221,7 +227,19 @@ std::vector<hardware_interface::StateInterface> AmcMotorActuator::export_state_i
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS, &amc_drive_protection_status_));
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
-      motor_name_, hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS, &amc_system_protection_status_));        
+      motor_name_, hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS, &amc_system_protection_status_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSTITON_KP, &position_kp_value_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSTITON_KI, &position_ki_value_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_POSTITON_KD, &position_kd_value_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY_KP, &velocity_kp_value_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY_KI, &velocity_ki_value_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, hardware_interface::HW_IF_VELOCITY_KD, &velocity_kd_value_));                    
 
     return state_interfaces;
 
@@ -280,12 +298,17 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
 	
 	amc_system_protection_status_ = sensor_data["amc_drive_stat_2"].asInt();
 
-	// std::cout << "status_state_: " << status_state_ <<std::endl;
-	// std::cout << "actual_motor_current_state_: " << actual_motor_current_state_ <<std::endl;
-	// std::cout << "error_code_state_: " << error_code_state_ <<std::endl;
-	// std::cout << "position_state_: " << position_state_ <<std::endl;
-	// std::cout << "velocity_state_: " << velocity_state_ <<std::endl;
-	// std::cout << "node_guard_error_state_: " << node_guard_error_state_ <<std::endl;
+	position_kp_value_ = sensor_data["position_kp"].asInt();
+
+	position_ki_value_ = sensor_data["position_ki"].asInt();
+
+	position_kd_value_ = sensor_data["position_kd"].asInt();
+
+	velocity_kp_value_ = sensor_data["velocity_kp"].asInt();
+
+	velocity_ki_value_ = sensor_data["velocity_ki"].asInt();
+
+	velocity_kd_value_ = sensor_data["velocity_kd"].asInt();
 
 	if(sensor_data["read_status"].asBool() == true) {
 		logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
@@ -308,7 +331,6 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		if(static_cast<int>(control_state_command_) == ACTUATOR_ENABLE){
 
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-            // set_target_velocity(0.0);
 			set_vel_speed(motor_id_, axis_, 0.0);
 
             logger_->info("[{}] Control state command: Actuator enable", motor_name_);
@@ -317,7 +339,6 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_DISABLE) {
             
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-            // set_target_velocity(0.0);
 			set_vel_speed(motor_id_, axis_, 0.0);
 
 			logger_->info("[{}] Control state command: Actuator disable", motor_name_);
@@ -326,7 +347,6 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         } else if (static_cast<int>(control_state_command_) == ACTUATOR_QUICK_STOP) {
             
 			logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-            // set_target_velocity(0.0);
 			set_vel_speed(motor_id_, axis_, 0.0);
 
 
@@ -365,37 +385,38 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
     }
 
 	if (!std::isnan(position_kp_command_) && !std::isnan(position_ki_command_) && !std::isnan(position_kd_command_)) {
-		if(previous_position_kp_command_ != position_kp_command_ && previous_position_ki_command_ != position_ki_command_ && previous_position_kd_command_ != position_kd_command_){
 			logger_->info("[{}] Position Kp command: [{}], Position Ki command: [{}], Position Kd command: [{}]", motor_name_, position_kp_command_, position_ki_command_, position_kd_command_);
 			set_position_kp(position_kp_command_);
 			set_position_ki(position_ki_command_);
 			set_position_kd(position_kd_command_);
 			store_params_to_drive();
-		}
+			encoder_sensor_->read_position_pid_values = true;
 	}
 
 	if (!std::isnan(velocity_kp_command_) && !std::isnan(velocity_ki_command_) && !std::isnan(velocity_kd_command_)) {
-		if(previous_velocity_kp_command_ != velocity_kp_command_ && previous_velocity_ki_command_ != velocity_ki_command_ && previous_velocity_kd_command_ != velocity_kd_command_){
 			logger_->info("[{}] Velocity Kp command: [{}], Velocity Ki command: [{}], Velocity Kd command: [{}]", motor_name_, velocity_kp_command_, velocity_ki_command_, velocity_kd_command_);
 			set_velocity_kp(velocity_kp_command_);
 			set_velocity_ki(velocity_ki_command_);
 			set_velocity_kd(velocity_kd_command_);
 			store_params_to_drive();
-		}
+			encoder_sensor_->read_velocity_pid_values = true;
 	}
-	
-    previous_position_command_ = position_command_;
-    previous_max_velocity_command_ = max_velocity_command_;
-    previous_acceleration_command_ = acceleration_command_;
+
+	previous_max_velocity_command_ = max_velocity_command_;
+	previous_position_command_ = position_command_;
 	previous_control_state_command_ = control_state_command_;
 
-	previous_position_kp_command_ = position_kp_command_;
-	previous_position_ki_command_ = position_ki_command_;
-	previous_position_kd_command_ = position_kd_command_;
-	previous_velocity_kp_command_ = velocity_kp_command_;
-	previous_velocity_ki_command_ = velocity_ki_command_;
-	previous_velocity_kd_command_ = velocity_kd_command_;
+    position_command_ = std::nan("");
+    max_velocity_command_ = std::nan("");
+    acceleration_command_ = std::nan("");
+	control_state_command_ = std::nan("");
 
+	position_kp_command_ = std::nan("");
+	position_ki_command_ = std::nan("");
+	position_kd_command_ = std::nan("");
+	velocity_kp_command_ = std::nan("");
+	velocity_ki_command_ = std::nan("");
+	velocity_kd_command_ = std::nan("");
 
     return hardware_interface::return_type::OK;
 }
@@ -445,6 +466,29 @@ void AmcMotorActuator::node_guarding_request(){
 
 bool AmcMotorActuator::Homing(){
 
+	Json::Value sensor_data_homing;
+		
+	int max_tries = 4;
+	int current_tries = 0;
+	
+	while (!sensor_data_homing["read_status"].asBool() && current_tries < max_tries)
+	{
+		requestData();
+		encoder_sensor_->getData(sensor_data_homing);
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		current_tries++;
+		
+		logger_->info("[{}] - Homing loop count: [{}]", motor_name_, current_tries);
+	}
+
+	if (!sensor_data_homing["read_status"].asBool())
+	{
+		logger_->warn("[{}] - Unable to read initial counts offset", motor_name_);
+		return false;
+	}
+
+	counts_offset_ = sensor_data_homing["counts"].asInt();
+		
 	if (is_homing_)
 	{	
 		set_profile_velocity(homing_max_velocity_);
@@ -452,29 +496,8 @@ bool AmcMotorActuator::Homing(){
 		set_profile_deacc(homing_deceleration_);
 		motorSetmode(Motor_mode_Position);
 
-		Json::Value sensor_data_homing;
 		bool homing_achieved = false;
 		
-		int max_tries = 4;
-		int current_tries = 0;
-		
-		while (!sensor_data_homing["read_status"].asBool() && current_tries < max_tries)
-		{
-			requestData();
-        	encoder_sensor_->getData(sensor_data_homing);
-			std::this_thread::sleep_for(std::chrono::milliseconds(20));
-			current_tries++;
-			
-			logger_->info("[{}] - Homing loop count: [{}]", motor_name_, current_tries);
-		}
-
-		if (!sensor_data_homing["read_status"].asBool())
-		{
-			logger_->warn("[{}] - Unable to read initial counts, aborting homing", motor_name_);
-			return false;
-		}
-
-		counts_offset_ = sensor_data_homing["counts"].asInt();		
 		auto homing_distance_counts = static_cast<int32_t>((homing_position_ / travel_per_revolution_) * motor_ppr_ * motor_gear_ratio_);
 		auto commanded_count = 0;
 		if (is_homing_at_min_)
@@ -1087,79 +1110,79 @@ int AmcMotorActuator::set_life_time_factor(uint16_t motor_id, uint8_t value) {
 
 }
 
-int AmcMotorActuator::set_position_kp(int32_t kp) {
+int AmcMotorActuator::set_position_kp(float kp) {
 	int err = 0;
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x2038;
 	d.subindex = 0x01;
 	d.data.size = 4;
-	d.data.data = (int32_t)(kp); //(Position Loop Proportional Gain) x 2^32
+	d.data.data = (float)(kp * pow(2, 32)); //(Position Loop Proportional Gain) x 2^32
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
 
-int AmcMotorActuator::set_position_ki(int32_t ki) {
+int AmcMotorActuator::set_position_ki(float ki) {
 	int err = 0;
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x2038;
 	d.subindex = 0x02;
 	d.data.size = 4;
-	d.data.data = (int32_t)(ki); //(Position Loop Integral Gain) x (2^41 / Vpos), Vpos = (Switching Frequency / 2)
+	d.data.data = (float)(ki * (pow(2, 41) / (encoder_sensor_->ks / 2))); //(Position Loop Integral Gain) x (2^41 / Vpos), Vpos = (Switching Frequency / 2)
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
 
-int AmcMotorActuator::set_position_kd(int32_t kd) {
+int AmcMotorActuator::set_position_kd(float kd) {
 	int err = 0;
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x2038;
 	d.subindex = 0x03;
 	d.data.size = 4;
-	d.data.data = (int32_t)(kd); //(Position Loop Derivative Gain) x (2^28 * Vpos), Vpos = (Switching Frequency / 2)
+	d.data.data = (float)(kd * (pow(2, 28) * (encoder_sensor_->ks / 2))); //(Position Loop Derivative Gain) x (2^28 * Vpos), Vpos = (Switching Frequency / 2)
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
 
-int AmcMotorActuator::set_velocity_kp(int32_t kp) {
+int AmcMotorActuator::set_velocity_kp(float kp) {
 	int err = 0;
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x2036;
 	d.subindex = 0x03;
 	d.data.size = 4;
-	d.data.data = (int32_t)(kp); //(Velocity Loop Proportional Gain) x ((2^16 * Vvel * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
-	
+	d.data.data = (float)(kp * (((pow(2, 16) * (encoder_sensor_->ks / 2) * 1) / (2 * encoder_sensor_->kp)))); //(Velocity Loop Proportional Gain) x ((2^16 * Vvel * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
+	logger_->info("[{}] peak current# = [{}]", motor_name_, encoder_sensor_->kp);
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
 
-int AmcMotorActuator::set_velocity_ki(int32_t ki) {
+int AmcMotorActuator::set_velocity_ki(float ki) {
 	int err = 0;
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x2036;
 	d.subindex = 0x04;
 	d.data.size = 4;
-	d.data.data = (int32_t)(ki); //(Velocity Loop Integral Gain) x (2^32 * Rppv) / (2 * Cpk), Rppv = Interpolation Value, Cpk = Peak Current
+	d.data.data = (float)(ki * ((pow(2, 32) * 1) / (2 * encoder_sensor_->kp))); //(Velocity Loop Integral Gain) x (2^32 * Rppv) / (2 * Cpk), Rppv = Interpolation Value, Cpk = Peak Current
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
 }
 
-int AmcMotorActuator::set_velocity_kd(int32_t kd) {
+int AmcMotorActuator::set_velocity_kd(float kd) {
 	int err = 0;
 	SDO_data d;
 	d.nodeid = motor_id_;
 	d.index = 0x2036;
 	d.subindex = 0x05;
 	d.data.size = 4;
-	d.data.data = (int32_t)(kd); //(Velocity Loop Derivative Gain) x ((2^16 * (Vvel)^2 * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
+	d.data.data = (float)(kd * ((pow(2, 16) * pow((encoder_sensor_->ks / 2),2) * 1) / (2 * encoder_sensor_->kp))); //(Velocity Loop Derivative Gain) x ((2^16 * (Vvel)^2 * Rppv) / (2 * Cpk)), Vvel = (Switching Frequency / 2), Rppv = Interpolation Value, Cpk = Peak Current
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
@@ -1172,7 +1195,7 @@ int AmcMotorActuator::store_params_to_drive() {
 	d.index = 0x1010;
 	d.subindex = 0x01;
 	d.data.size = 4;
-	d.data.data = 65766173;
+	d.data.data = 1702257011;
 	
 	err |=  SDO_write(amc_motor_actuator_sockets_->motor_cfg_fd, &d);
 	return err;
