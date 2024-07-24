@@ -89,7 +89,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 5)
+    if (command_interfaces.size() != 8)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         // std::cout << "Incorrect number of command interfaces. " << std::endl;
@@ -103,7 +103,10 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
             (command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) &&
-            (command_interface.name != hardware_interface::HW_IF_GPIO) 
+            (command_interface.name != hardware_interface::HW_IF_GPIO) &&
+            (command_interface.name != "gpio_output_0") && 
+            (command_interface.name != "gpio_output_1") && 
+            (command_interface.name != "gpio_output_2")
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -301,6 +304,14 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
       motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_GPIO, &gpio_command_));
+
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(motor_name_, "gpio_output_0", &gpio_set_0_));
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(motor_name_, "gpio_output_1", &gpio_set_1_));
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(motor_name_, "gpio_output_2", &gpio_set_2_));
+     
 
     return command_interfaces;
 }
@@ -513,11 +524,27 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     }
 
+    if (prev_gpio_set_0_ != gpio_set_0_) {
+        motor_controls_->set_gpio(motor_id_, gpio_set_0_);
+    }
+
+    if (prev_gpio_set_1_ != gpio_set_1_) {
+        motor_controls_->set_gpio(motor_id_, gpio_set_1_);
+    }
+
+    if (prev_gpio_set_2_ != gpio_set_2_) {
+        motor_controls_->set_gpio(motor_id_, gpio_set_2_);
+    }    
+
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
     previous_control_state_command_ = control_state_command_;
     previous_gpio_command_ = gpio_command_;
+
+    prev_gpio_set_0_ = gpio_set_0_;
+    prev_gpio_set_1_ = gpio_set_1_;
+    prev_gpio_set_2_ = gpio_set_2_;
     
     return hardware_interface::return_type::OK;
 }

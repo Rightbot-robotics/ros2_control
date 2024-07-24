@@ -173,6 +173,13 @@ private:
     int homing_counter = 0;
     int initial_counts_rotation = 0;
 
+    double gpio_set_0_ = 0.0;
+    double gpio_set_1_ = 0.0;
+    double gpio_set_2_ = 0.0; 
+
+    double prev_gpio_set_0_ = 0.0;
+    double prev_gpio_set_1_ = 0.0;
+    double prev_gpio_set_2_ = 0.0;
     };
 
 #endif // MOTOR_ACTUATOR_H_

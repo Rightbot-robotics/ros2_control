@@ -458,11 +458,11 @@ private:
 
   std::vector<std::string> low_freq_components_{
     "conveyor_lift_left",
-    "conveyor_lift_right"
+    // "conveyor_lift_right"
   };
   std::vector<std::string> node_guarding_components_{
     "conveyor_lift_left",
-    "conveyor_lift_right"
+    // "conveyor_lift_right"
   };
   std::vector<std::string> sync_request_components_{
     "conveyor_lift_left"

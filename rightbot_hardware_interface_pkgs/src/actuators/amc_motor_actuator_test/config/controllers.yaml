@@ -15,6 +15,9 @@ controller_manager:
     dynamic_conveyor_lift_tuner_controller:
       type: dynamic_conveyor_lift_tuner_controller/DynamicConveyorLiftTunerController
 
+    gpio_controller:
+      type: gpio_controller/GPIOController
+
 velocity_controller:
   ros__parameters:
     joints:
@@ -24,3 +27,17 @@ position_controller:
   ros__parameters:
     joints:
       - test_joint            
+
+gpio_controller:
+  ros__parameters:  
+    outputs:
+     - push_front
+     - pull_back
+     - dummy
+    output_mapping:
+      push_front:
+        interface: conveyor_lift_left/gpio_output_0
+      pull_back:
+        interface: conveyor_lift_left/gpio_output_1
+      dummy:
+        interface: conveyor_lift_left/gpio_output_2        
