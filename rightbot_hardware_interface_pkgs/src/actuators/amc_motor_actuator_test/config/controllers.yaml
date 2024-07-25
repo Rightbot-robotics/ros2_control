@@ -34,10 +34,19 @@ gpio_controller:
      - push_front
      - pull_back
      - dummy
+     - push_front2
+     - pull_back2
+     - dummy2
     output_mapping:
       push_front:
         interface: conveyor_lift_left/gpio_output_0
       pull_back:
         interface: conveyor_lift_left/gpio_output_1
       dummy:
-        interface: conveyor_lift_left/gpio_output_2        
+        interface: conveyor_lift_left/gpio_output_2
+      push_front2:
+        interface: conveyor_lift_right/gpio_output_0
+      pull_back2:
+        interface: conveyor_lift_right/gpio_output_1
+      dummy2:
+        interface: conveyor_lift_right/gpio_output_2          

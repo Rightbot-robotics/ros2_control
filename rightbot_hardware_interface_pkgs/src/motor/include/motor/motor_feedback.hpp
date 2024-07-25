@@ -74,6 +74,8 @@ public:
 
     std::map<std::string, int> motorFeedback(int motor_id, MotorFeedback::feedback_s *feedback_s_m);
 
+    uint16_t read_output_pin_states(int motor_id);
+
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <numeric>
 #include <json_reader/json_read.h>
 #include <actuator/actuator.hpp>
 #include <motor/sockets.hpp>

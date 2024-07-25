@@ -524,17 +524,17 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     }
 
-    if (prev_gpio_set_0_ != gpio_set_0_) {
-        motor_controls_->set_gpio(motor_id_, gpio_set_0_);
+    if (prev_gpio_set_0_ != gpio_set_0_ || prev_gpio_set_1_ != gpio_set_1_ || prev_gpio_set_2_ != gpio_set_2_) {
+        auto curr_state = encoder_sensor->motor_feedback_->read_output_pin_states(motor_id_);
+        int binary = motor_controls_->decToBinary(curr_state);
+        logger_->info("[{}] - gpio set 0: [{}]", curr_state, binary);
+        std::vector<double> gpio_set = {gpio_set_0_, gpio_set_1_, gpio_set_2_};
+        int bin = std::accumulate( gpio_set.begin(), gpio_set.end(), 0, []( int l, int r ) {
+            return l * 10 + r; 
+        } );
+        // encoder_sensor->motor_feedback_->set_gpio_set(motor_id_, );
+        motor_controls_->set_gpio(motor_id_, bin);
     }
-
-    if (prev_gpio_set_1_ != gpio_set_1_) {
-        motor_controls_->set_gpio(motor_id_, gpio_set_1_);
-    }
-
-    if (prev_gpio_set_2_ != gpio_set_2_) {
-        motor_controls_->set_gpio(motor_id_, gpio_set_2_);
-    }    
 
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
