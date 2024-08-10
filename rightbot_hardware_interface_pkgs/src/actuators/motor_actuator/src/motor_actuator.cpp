@@ -386,6 +386,13 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     if (curr_state_ != target_state_) {
         switch (target_state_) {
             case ActuatorFunctionalState::OPERATIONAL: {
+                if (curr_state_ == ActuatorFunctionalState::HARD_STOP) {
+                    logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
+                    max_velocity_command_ = 0.0;
+                    motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+                    logger_->info("[{}] Control state command: Actuator enable", motor_name_);
+                    motor_->motor_enable(motor_id_);
+                }
                 curr_state_ = ActuatorFunctionalState::OPERATIONAL;
                 break;
             }
