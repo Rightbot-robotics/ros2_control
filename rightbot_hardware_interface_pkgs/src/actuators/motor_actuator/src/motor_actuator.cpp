@@ -391,6 +391,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
             }
             case ActuatorFunctionalState::SOFT_STOP: {
                 motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+                max_velocity_command_ = 0.0;
                 if (std::abs(velocity_state_ / travel_per_revolution) < 0.01) {
                     curr_state_ = ActuatorFunctionalState::SOFT_STOP;
                 }
@@ -401,6 +402,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
                 logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
                 motor_->motor_quick_stop(motor_id_);
+                max_velocity_command_ = 0.0;
                 curr_state_ = ActuatorFunctionalState::HARD_STOP;
                 break;
             }
