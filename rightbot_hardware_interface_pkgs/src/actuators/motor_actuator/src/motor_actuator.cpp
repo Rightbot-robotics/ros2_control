@@ -216,7 +216,7 @@ CallbackReturn MotorActuator::on_activate(const rclcpp_lifecycle::State & previo
             return CallbackReturn::ERROR;
         }
     } else {
-        logger_->info("Setting nodeguard time...")
+        logger_->info("Setting nodeguard time...");
         motor_->set_guard_time(motor_id_,50);
         motor_->set_life_time_factor(motor_id_,6);
     }
