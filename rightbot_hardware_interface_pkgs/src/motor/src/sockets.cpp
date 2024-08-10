@@ -25,9 +25,9 @@ Sockets::~Sockets() {
 
 bool Sockets::createSockets(int motor_id) {
 
-    std::string can_interface_id = "can1";
+    std::string can_interface_id = "can2";
     if(motor_name_ == "camera_rotation_joint") {
-        can_interface_id = "can1";
+        can_interface_id = "can2";
     }
 
     uint32_t motor_status_pdo_masks[1] = {COB_MASK};
