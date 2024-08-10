@@ -449,25 +449,32 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   std::vector<std::string> low_freq_components_{
-    "right_armbase_actuator",
-    "left_armbase_actuator",
-    "conveyor_left_encoder",
-    "conveyor_right_encoder",
-    "conveyor_lift_left_actuator",
-    "conveyor_lift_right_actuator",
-    "conveyor_belt_actuator",
-    "DC_hinge_encoder"
+    "main_conveyor_belt",
+    "left_conveyor_belt",
+    "right_conveyor_belt",
+    // "right_armbase_actuator",
+    // "left_armbase_actuator",
+    // "conveyor_left_encoder",
+    // "conveyor_right_encoder",
+    // "conveyor_lift_left_actuator",
+    // "conveyor_lift_right_actuator",
+    // "conveyor_belt_actuator",
+    // "DC_hinge_encoder"
   };
   std::vector<std::string> node_guarding_components_{
-    "right_armbase_actuator",
-    "left_armbase_actuator",
-    "conveyor_lift_left_actuator",
-    "conveyor_lift_right_actuator",
-    "conveyor_belt_actuator"
+    "main_conveyor_belt",
+    "left_conveyor_belt",
+    "right_conveyor_belt",
+    // "right_armbase_actuator",
+    // "left_armbase_actuator",
+    // "conveyor_lift_left_actuator",
+    // "conveyor_lift_right_actuator",
+    // "conveyor_belt_actuator"
   };
   std::vector<std::string> sync_request_components_{
-    "left_armbase_actuator",
-    "conveyor_left_encoder"
+    "main_conveyor_belt",
+    // "left_armbase_actuator",
+    // "conveyor_left_encoder"
   };
   
   struct LowFrequencyLoop {
