@@ -417,6 +417,7 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
     }
 
     if (curr_state_ != target_state_ || target_state_ != ActuatorFunctionalState::OPERATIONAL) {
+        max_velocity_command_ = 0.0;
         return hardware_interface::return_type::OK;
     }
 
