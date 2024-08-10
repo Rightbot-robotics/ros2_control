@@ -111,6 +111,16 @@ private:
     double manufacturer_register_state_ = std::numeric_limits<double>::quiet_NaN();
     double latched_fault_state_ = std::numeric_limits<double>::quiet_NaN();
     double node_guard_error_state_ = std::numeric_limits<double>::quiet_NaN();
+    double functional_mode_state_ = std::numeric_limits<double>::quiet_NaN();
+    enum ActuatorFunctionalState {
+        OPERATIONAL = 0,
+        SOFT_STOP = 1,
+        HARD_STOP = 2,
+        FAULT = 3
+    };
+    ActuatorFunctionalState curr_state_ = ActuatorFunctionalState::OPERATIONAL;
+    ActuatorFunctionalState target_state_ = ActuatorFunctionalState::OPERATIONAL;
+    ActuatorFunctionalState commanded_state_;
     
     double position_command_ = 0.0;
     double max_velocity_command_ = 0.0;
@@ -123,6 +133,7 @@ private:
     double previous_acceleration_command_ = 0.0;
     double previous_control_state_command_ = 0.0;
     double previous_gpio_command_ = 0.0;
+    double functional_mode_command_ = std::numeric_limits<double>::quiet_NaN();
 
     int motor_ppr = 4096;
 

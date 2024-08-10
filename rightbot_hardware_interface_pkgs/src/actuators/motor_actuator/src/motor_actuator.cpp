@@ -144,6 +144,8 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
     }
 
     logger_->info("[{}] - Intialiazation successful", motor_name_);
+
+    functional_mode_state_ = static_cast<double>(ActuatorFunctionalState::OPERATIONAL);
     
     return CallbackReturn::SUCCESS;
 }
@@ -279,6 +281,8 @@ std::vector<hardware_interface::StateInterface> MotorActuator::export_state_inte
       motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_EFFORT, &actual_motor_current_state_));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, "functional_state", &functional_mode_state_));
 
     return state_interfaces;
 
@@ -301,6 +305,8 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
       motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_GPIO, &gpio_command_));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, "function_halt", &functional_mode_command_));
 
     return command_interfaces;
 }
@@ -349,6 +355,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
     manufacturer_register_state_ = sensor_data["manufacturer_register"].asInt();
     latched_fault_state_ = sensor_data["latched_fault"].asInt();
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
+    functional_mode_state_ = static_cast<double>(curr_state_);
 
     logger_->debug("[{}] Read status: [{}], battery_voltage: [{}], input_states: [{}], actual_motor_current: [{}]", motor_name_, status_state_, battery_voltage_state_, input_states_state_, actual_motor_current_state_);
     logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
@@ -358,6 +365,51 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 }
 
 hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+    if (!std::isnan(functional_mode_command_)) {
+        logger_->info("[{}] Functional mode command: [{}]", motor_name_, functional_mode_command_);
+        commanded_state_ = static_cast<ActuatorFunctionalState>(functional_mode_command_);
+        switch (commanded_state_) {
+            case ActuatorFunctionalState::OPERATIONAL:
+            case ActuatorFunctionalState::SOFT_STOP:
+            case ActuatorFunctionalState::HARD_STOP: {
+                target_state_ = commanded_state_;
+                break;
+            }
+            default: {
+                logger_->warn("[{}] Invalid functional mode command: [{}]", motor_name_, functional_mode_command_);                break;
+            }
+        }
+        functional_mode_command_ = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    if (curr_state_ != target_state_) {
+        switch (target_state_) {
+            case ActuatorFunctionalState::OPERATIONAL: {
+                curr_state_ = ActuatorFunctionalState::OPERATIONAL;
+                break;
+            }
+            case ActuatorFunctionalState::SOFT_STOP: {
+                motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+                if (std::abs(velocity_state_ / travel_per_revolution) < 0.01) {
+                    curr_state_ = ActuatorFunctionalState::SOFT_STOP;
+                }
+                break;
+            }
+            case ActuatorFunctionalState::HARD_STOP: {
+                logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
+                motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+                logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
+                motor_->motor_quick_stop(motor_id_);
+                curr_state_ = ActuatorFunctionalState::HARD_STOP;
+                break;
+            }
+        }
+    }
+
+    if (curr_state_ != target_state_ || target_state_ != ActuatorFunctionalState::OPERATIONAL) {
+        return hardware_interface::return_type::OK;
+    }
 
     if(previous_control_state_command_ != control_state_command_){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
