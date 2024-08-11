@@ -2181,9 +2181,9 @@ void ControllerManager::error_monitoring(){
   while(true){
 
 
-    if(!system_error){
+    // if(!system_error){
       resource_manager_->node_guarding_requests();
-    }
+    // }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 

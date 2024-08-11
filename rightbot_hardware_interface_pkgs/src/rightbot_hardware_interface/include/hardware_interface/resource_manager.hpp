@@ -449,9 +449,9 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   std::vector<std::string> low_freq_components_{
-    "main_conveyor_belt",
-    "left_conveyor_belt",
-    "right_conveyor_belt",
+    "main_conveyor_belt_actuator",
+    "right_conveyor_belt_actuator",
+    "left_conveyor_belt_actuator",
     // "right_armbase_actuator",
     // "left_armbase_actuator",
     // "conveyor_left_encoder",
@@ -462,9 +462,9 @@ private:
     // "DC_hinge_encoder"
   };
   std::vector<std::string> node_guarding_components_{
-    "main_conveyor_belt",
-    "left_conveyor_belt",
-    "right_conveyor_belt",
+    "main_conveyor_belt_actuator",
+    "right_conveyor_belt_actuator",
+    "left_conveyor_belt_actuator",
     // "right_armbase_actuator",
     // "left_armbase_actuator",
     // "conveyor_lift_left_actuator",
@@ -472,7 +472,8 @@ private:
     // "conveyor_belt_actuator"
   };
   std::vector<std::string> sync_request_components_{
-    "main_conveyor_belt",
+    "main_conveyor_belt_actuator",
+    "left_conveyor_belt_actuator",
     // "left_armbase_actuator",
     // "conveyor_left_encoder"
   };
@@ -481,9 +482,9 @@ private:
     rclcpp::Time next_sync_trigger_time_ = rclcpp::Time(0, 0);
     rclcpp::Time next_read_trigger_time_ = rclcpp::Time(0, 0);
     rclcpp::Time next_loop_update_time_ = rclcpp::Time(0, 0);
-    rclcpp::Duration total_loop_period_ = rclcpp::Duration(0, 20'000'000);
-    rclcpp::Duration sync_trigger_period_ = rclcpp::Duration(0, 13'000'000);
-    rclcpp::Duration read_trigger_period_ = rclcpp::Duration(0, 20'000'000);
+    rclcpp::Duration total_loop_period_ = rclcpp::Duration(0, 20'000);
+    rclcpp::Duration sync_trigger_period_ = rclcpp::Duration(0, 13'000);
+    rclcpp::Duration read_trigger_period_ = rclcpp::Duration(0, 20'000);
     bool sync_trigger_;
     bool sync_trigger_sent_;
     bool read_trigger_;
