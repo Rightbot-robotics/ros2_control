@@ -1042,6 +1042,7 @@ void ResourceManager::read(const rclcpp::Time & time, const rclcpp::Duration & p
 {
   refresh_low_frequency_trigger(time);
   if(low_freq_loop_.sync_trigger_){
+    logger_->debug("[request] sending sync requests to all components");
     for (auto & component : resource_storage_->actuators_)
     {
       auto component_name = component.get_name();
@@ -1596,6 +1597,7 @@ std::string ResourceManager::get_ur_arm_robot_state_message(int error) {
 
 void ResourceManager::node_guarding_requests(){
 
+  logger_->debug("[request] sending node guarding requests to all components");
   for (auto & component : resource_storage_->actuators_)
   {
     auto component_name = component.get_name();
