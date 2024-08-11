@@ -473,6 +473,7 @@ private:
   };
   std::vector<std::string> sync_request_components_{
     "main_conveyor_belt_actuator",
+    "left_conveyor_belt_actuator",
     // "left_armbase_actuator",
     // "conveyor_left_encoder"
   };
