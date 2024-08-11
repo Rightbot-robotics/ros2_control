@@ -482,9 +482,9 @@ private:
     rclcpp::Time next_sync_trigger_time_ = rclcpp::Time(0, 0);
     rclcpp::Time next_read_trigger_time_ = rclcpp::Time(0, 0);
     rclcpp::Time next_loop_update_time_ = rclcpp::Time(0, 0);
-    rclcpp::Duration total_loop_period_ = rclcpp::Duration(0, 20'000'000);
-    rclcpp::Duration sync_trigger_period_ = rclcpp::Duration(0, 13'000'000);
-    rclcpp::Duration read_trigger_period_ = rclcpp::Duration(0, 20'000'000);
+    rclcpp::Duration total_loop_period_ = rclcpp::Duration(0, 20'000);
+    rclcpp::Duration sync_trigger_period_ = rclcpp::Duration(0, 13'000);
+    rclcpp::Duration read_trigger_period_ = rclcpp::Duration(0, 20'000);
     bool sync_trigger_;
     bool sync_trigger_sent_;
     bool read_trigger_;
