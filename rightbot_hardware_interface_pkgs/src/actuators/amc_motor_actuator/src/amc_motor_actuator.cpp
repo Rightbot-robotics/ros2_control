@@ -848,7 +848,8 @@ int AmcMotorActuator::amc_drive_reset(void) {
 int AmcMotorActuator::reinitializeMotor(void) {
 	int err = 0;
 
-    previous_mode = "not_set";
+	enable_brake(true);	
+
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	logger_->info("Reinitializing motor: {}", motor_name_);
@@ -856,23 +857,35 @@ int AmcMotorActuator::reinitializeMotor(void) {
    	err |= enableMotor();
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	logger_->info("[{}] Setting default max_velocity: [{}]",motor_name_, default_max_velocity_);
-	// set_profile_velocity(default_max_velocity_);
-    
-	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
-	// set_profile_acc(default_acceleration_);
-	// set_profile_deacc(default_acceleration_);
+	set_guard_time(motor_id_,50);
+    set_life_time_factor(motor_id_,6);
 
-	if(mode_of_operation_ == "velocity"){
-		// set_target_velocity(0.0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	if(mode_of_operation_ == "velocity")
+	{
+        motorSetmode(Motor_mode_Velocity);
+		set_profile_velocity(default_max_velocity_);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		set_profile_acc(default_acceleration_);
+		set_profile_deacc(default_deceleration_);
+		set_PTPC(default_acceleration_);
+		set_PTNC(default_deceleration_);
+		set_NTNC(default_acceleration_);
+		set_NTPC(default_deceleration_);
 		set_vel_speed(motor_id_, axis_, 0.0);
-
-        motorSetmode(Motor_mode_Velocity); 
-		// set_target_velocity(0.0);
-		set_vel_speed(motor_id_, axis_, 0.0);
-
-		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity",motor_name_);
+		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity done!",motor_name_);
     }
+
+	if (mode_of_operation_ == "position")
+	{
+		set_profile_velocity(default_max_velocity_);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		set_profile_acc(default_acceleration_);
+		set_profile_deacc(default_deceleration_);
+		motorSetmode(Motor_mode_Position);
+		logger_->info("[{}] Motor mode [position]",motor_name_);
+	}
 
     return err;
 }

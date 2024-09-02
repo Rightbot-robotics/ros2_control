@@ -144,7 +144,7 @@ uint16_t AmcEncoderSensor::read_drive_status_1() {
     SDO_data req, resp;
 	req.nodeid = motor_id_;
 	req.index = 0x2002;
-	req.subindex = 0x05;
+	req.subindex = 0x04;
 	req.data = {0, 0x00};
 	
 	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
@@ -163,7 +163,7 @@ uint16_t AmcEncoderSensor::read_drive_status_2() {
     SDO_data req, resp;
 	req.nodeid = motor_id_;
 	req.index = 0x2002;
-	req.subindex = 0x04;
+	req.subindex = 0x05;
 	req.data = {0, 0x00};
 	
 	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
@@ -624,12 +624,17 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
 
         if(is_fault == 1) {
             logger_->debug("[{}] Fault detected. ", motor_sockets_->motor_name_);
-            status_1 = read_drive_status_1();
-            status_2 = read_drive_status_2();
-            sensor_data["amc_drive_stat_1"] = status_1;
-            sensor_data["amc_drive_stat_2"] = status_2;
-            logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+            // status_1 = read_drive_status_1();
+            // status_2 = read_drive_status_2();
+            // sensor_data["amc_drive_stat_1"] = status_1;
+            // sensor_data["amc_drive_stat_2"] = status_2;
+            // logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
         }
+        status_1 = read_drive_status_1();
+        status_2 = read_drive_status_2();
+        logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+
+
 
     } else {
         sensor_data["read_status"] = false;
