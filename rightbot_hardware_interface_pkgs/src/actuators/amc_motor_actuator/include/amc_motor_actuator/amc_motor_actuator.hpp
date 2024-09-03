@@ -151,6 +151,18 @@ private:
     double amc_drive_system_status_2_ = std::numeric_limits<double>::quiet_NaN();
     double amc_drive_protection_status_ = std::numeric_limits<double>::quiet_NaN();
     double amc_system_protection_status_ = std::numeric_limits<double>::quiet_NaN();
+    double functional_mode_state_ = std::numeric_limits<double>::quiet_NaN();
+
+    enum ActuatorFunctionalState {
+        OPERATIONAL = 0,
+        SOFT_STOP = 1,
+        HARD_STOP = 2,
+        FAULT = 3
+    };
+    ActuatorFunctionalState curr_state_ = ActuatorFunctionalState::OPERATIONAL;
+    ActuatorFunctionalState target_state_ = ActuatorFunctionalState::OPERATIONAL;
+    ActuatorFunctionalState commanded_state_;
+
     double position_kp_value_ = 0.0;
     double position_ki_value_ = 0.0;
     double position_kd_value_ = 0.0;
@@ -172,7 +184,8 @@ private:
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
     double previous_control_state_command_ = 0.0;
-    
+    double functional_mode_command_ = std::numeric_limits<double>::quiet_NaN();
+
     bool using_default_acceleration_ = true;
     double default_max_velocity_ = 2.0;
     double default_acceleration_ = 1.0;

@@ -55,13 +55,19 @@ def generate_launch_description():
         arguments=["position_controller", "-c", "/controller_manager", "--controller-manager-timeout=360"],
     )
 
+    conveyor_belt_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["conveyor_belt_controller", "-c", "/controller_manager", "--controller-manager-timeout=360"],
+    )
 
     return LaunchDescription(
         [
             robot_state_publisher,
             ros2_control_node,
             joint_state_broadcaster_spawner,
-            velocity_controller_spawner,
+            # velocity_controller_spawner,
             position_controller_spawner,
+            conveyor_belt_controller_spawner,
         ]
     )

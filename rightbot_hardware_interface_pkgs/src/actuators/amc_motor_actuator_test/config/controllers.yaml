@@ -18,6 +18,9 @@ controller_manager:
     gpio_controller:
       type: gpio_controller/GPIOController
 
+    conveyor_belt_controller:
+      type: conveyor_belt_controller/ConveyorBeltController
+
 velocity_controller:
   ros__parameters:
     joints:
@@ -50,3 +53,16 @@ gpio_controller:
         interface: conveyor_lift_right/gpio_output_1
       dummy2:
         interface: conveyor_lift_right/gpio_output_2          
+
+conveyor_belt_controller:
+  ros__parameters:
+    actuator_names:
+      - conveyor_lift_left
+    
+    halt_service_timeout_sec: 10.0
+
+    actuator_info:
+      conveyor_lift_left:
+        function_halt_command_interface: conveyor_lift_left/function_halt
+        functional_state_interface: conveyor_lift_left/functional_state
+        velocity_command_interface: conveyor_lift_left/velocity

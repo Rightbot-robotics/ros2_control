@@ -123,6 +123,8 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 
     logger_->info("[{}] - Intialiazation successful", motor_name_);
     
+	functional_mode_state_ = static_cast<double>(ActuatorFunctionalState::OPERATIONAL);
+	
     return CallbackReturn::SUCCESS;
 }
 
@@ -240,7 +242,8 @@ std::vector<hardware_interface::StateInterface> AmcMotorActuator::export_state_i
       motor_name_, hardware_interface::HW_IF_VELOCITY_KI, &velocity_ki_value_));
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_VELOCITY_KD, &velocity_kd_value_));                    
-
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, "functional_state", &functional_mode_state_));
     return state_interfaces;
 
 
@@ -267,7 +270,8 @@ std::vector<hardware_interface::CommandInterface> AmcMotorActuator::export_comma
       motor_name_, hardware_interface::HW_IF_VELOCITY_KI, &velocity_ki_command_));
 	command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_VELOCITY_KD, &velocity_kd_command_));        
-
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, "function_halt", &functional_mode_command_));
     return command_interfaces;
 
 
@@ -310,6 +314,8 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
 
 	velocity_kd_value_ = sensor_data["velocity_kd"].asInt();
 
+	functional_mode_state_ = static_cast<double>(curr_state_);
+
 	if(sensor_data["read_status"].asBool() == true) {
 		logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
 	    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
@@ -325,6 +331,65 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
 }
 
 hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+	// logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
+	// logger_->info("[{}] Functional Mode Command: [{}]", motor_name_, functional_mode_command_);
+
+	if (!std::isnan(functional_mode_command_)) {
+        logger_->info("[{}] Functional mode command: [{}]", motor_name_, functional_mode_command_);
+        commanded_state_ = static_cast<ActuatorFunctionalState>(functional_mode_command_);
+        switch (commanded_state_) {
+            case ActuatorFunctionalState::OPERATIONAL:
+            case ActuatorFunctionalState::SOFT_STOP:
+            case ActuatorFunctionalState::HARD_STOP: {
+                target_state_ = commanded_state_;
+                break;
+            }
+            default: {
+                logger_->warn("[{}] Invalid functional mode command: [{}]", motor_name_, functional_mode_command_);                break;
+            }
+        }
+        functional_mode_command_ = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    if (curr_state_ != target_state_) {
+        switch (target_state_) {
+            case ActuatorFunctionalState::OPERATIONAL: {
+                if (curr_state_ == ActuatorFunctionalState::HARD_STOP) {
+                    logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
+                    max_velocity_command_ = 0.0;
+                    set_vel_speed(motor_id_, axis_, 0.0);
+                    logger_->info("[{}] Control state command: Actuator enable", motor_name_);
+                    enableMotor();
+                }
+                curr_state_ = ActuatorFunctionalState::OPERATIONAL;
+                break;
+            }
+            case ActuatorFunctionalState::SOFT_STOP: {
+                set_vel_speed(motor_id_, axis_, 0.0);
+                max_velocity_command_ = 0.0;
+                if (std::abs(velocity_state_ / travel_per_revolution_) < 0.01) {
+                    curr_state_ = ActuatorFunctionalState::SOFT_STOP;
+                }
+                break;
+            }
+            case ActuatorFunctionalState::HARD_STOP: {
+                logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
+                set_vel_speed(motor_id_, axis_, 0.0);
+                logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
+                quickStopMotor();
+                max_velocity_command_ = 0.0;
+                curr_state_ = ActuatorFunctionalState::HARD_STOP;
+                break;
+            }
+        }
+    }
+
+    if (curr_state_ != target_state_ || target_state_ != ActuatorFunctionalState::OPERATIONAL) {
+        max_velocity_command_ = 0.0;
+        previous_max_velocity_command_ = 0.0;
+        return hardware_interface::return_type::OK;
+    }
 
 	if(previous_control_state_command_ != control_state_command_ && !std::isnan(control_state_command_)){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
@@ -407,7 +472,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 	previous_control_state_command_ = control_state_command_;
 
     position_command_ = std::nan("");
-    max_velocity_command_ = std::nan("");
+    // max_velocity_command_ = std::nan("");
     acceleration_command_ = std::nan("");
 	control_state_command_ = std::nan("");
 
