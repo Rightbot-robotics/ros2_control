@@ -308,8 +308,6 @@ void ControllerManager::init_services()
         std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   // read_thread_ = std::thread(&ControllerManager::read_data, this);
-
-
 }
 
 controller_interface::ControllerInterfaceBaseSharedPtr ControllerManager::load_controller(

@@ -19,6 +19,7 @@ HarmonicMotorActuatorSockets::HarmonicMotorActuatorSockets(int motor_id, std::st
 
 	motor_name_ = motor_name;
 	motor_id_ = motor_id;
+    // can_network_ = can_network; //(info.joints[0].parameters.at("can_network"));
 
     createSockets(motor_id);
 }
@@ -27,7 +28,7 @@ HarmonicMotorActuatorSockets::~HarmonicMotorActuatorSockets() = default;
 
 bool HarmonicMotorActuatorSockets::createSockets(int motor_id) {
 
-    std::string can_interface;
+    std::string can_interface = can_network_;
     if(motor_name_ == "base_rotation_joint"){
         can_interface = "can2";
     }

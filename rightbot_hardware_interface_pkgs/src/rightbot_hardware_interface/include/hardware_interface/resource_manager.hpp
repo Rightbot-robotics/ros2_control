@@ -29,7 +29,6 @@
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
 
-
 #include "spdlog/spdlog.h"
 #include "spdlog/async.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -465,7 +464,10 @@ private:
     "main_conveyor_belt_actuator",
     "right_conveyor_belt_actuator",
     "left_conveyor_belt_actuator",
-    // "right_armbase_actuator",
+    "front_right_drive_harmonic_motor",
+    "front_left_drive_harmonic_motor"
+
+    // "right_armbase_actuator", //write for the harmonic motors for sending the hertbeat signal
     // "left_armbase_actuator",
     // "conveyor_lift_left_actuator",
     // "conveyor_lift_right_actuator",
@@ -473,6 +475,7 @@ private:
   };
   std::vector<std::string> sync_request_components_{
     "main_conveyor_belt_actuator",
+    "front_left_drive_harmonic_motor"
     // "left_armbase_actuator",
     // "conveyor_left_encoder"
   };

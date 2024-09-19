@@ -14,8 +14,6 @@ HarmonicMotorActuator::HarmonicMotorActuatorSPtr harmonic_motor_;
 
 Json::Value actuator_data_;
 
-
-
 int main() {
 
      spdlog::init_thread_pool(8192, 1);

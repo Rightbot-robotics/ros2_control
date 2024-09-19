@@ -1367,12 +1367,10 @@ void ResourceManager::driver_two_gpio_control(bool pump_two, bool gripper_two)
 
 }
 
-
 void ResourceManager::clear_can_buffer(){
   for (auto & component : resource_storage_->actuators_)
   {
     component.clear_can_buffer();
-
   }
 
   for (auto & component : resource_storage_->sensors_)
@@ -1606,7 +1604,6 @@ void ResourceManager::node_guarding_requests(){
       component.node_guarding_request();
       
     }
-
   }
 
 }

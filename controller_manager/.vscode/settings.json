@@ -1,0 +1,26 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/bhavya/ros2_ws/install/lib/python3.10/site-packages",
+        "/home/bhavya/swerve_test_ws/install/robot_localization/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/rightbot_interfaces/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/dwb_msgs/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/nav_2d_msgs/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/nav2_msgs/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/nav2_common/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/holonomic_controller/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/bhavya/ros2_ws/install/lib/python3.10/site-packages",
+        "/home/bhavya/swerve_test_ws/install/robot_localization/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/rightbot_interfaces/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/dwb_msgs/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/nav_2d_msgs/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/nav2_msgs/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/nav2_common/local/lib/python3.10/dist-packages",
+        "/home/bhavya/swerve_test_ws/install/holonomic_controller/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

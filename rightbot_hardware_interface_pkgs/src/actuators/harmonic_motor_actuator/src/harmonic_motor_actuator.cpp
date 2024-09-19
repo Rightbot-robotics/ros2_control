@@ -3,7 +3,6 @@
 //
 
 #include "harmonic_motor_actuator/harmonic_motor_actuator.hpp"
-PLUGINLIB_EXPORT_CLASS(HarmonicMotorActuator, hardware_interface::ActuatorInterface)
 
 
 HarmonicMotorActuator::HarmonicMotorActuator() {
@@ -13,13 +12,13 @@ HarmonicMotorActuator::HarmonicMotorActuator() {
 HarmonicMotorActuator::~HarmonicMotorActuator(){
 
 	motorControlword(motor_id_, Disable_Voltage);
-
-
 }
 
 CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::HardwareInfo & info){
     // We hardcode the info
+	std::cerr << "Before loggger init" << std::endl;
     logger_ = spdlog::get("hardware_interface")->clone("harmonic_motor_actuator");
+	std::cerr << "After loggger init" << std::endl;
    
     // logger_->info(" Harmonic Motor Actuator Init");
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
@@ -31,6 +30,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+	// can_network_ = (info.joints[0].parameters.at("can_network"));
 
 	logger_->info("Harmonic Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 
@@ -110,9 +110,6 @@ CallbackReturn HarmonicMotorActuator::on_configure(const rclcpp_lifecycle::State
     encoder_sensor_ = std::make_shared<HarmonicEncoderSensor>();
     encoder_sensor_->initialize(harmonic_motor_actuator_sockets_);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-	
-    
     return CallbackReturn::SUCCESS;
 }
 
@@ -142,9 +139,9 @@ CallbackReturn HarmonicMotorActuator::on_activate(const rclcpp_lifecycle::State 
 	// std::this_thread::sleep_for(std::chrono::seconds(5));
 	// logger_->info("[{}] Homing wait time passed",motor_name_);
 
-	if(!Homing()){
-        return CallbackReturn::ERROR;
-    }		
+	// if(!Homing()){
+    //     return CallbackReturn::ERROR;
+    // }		
 
 	if(velocity_mode){
 		set_target_velocity(0.0);
@@ -161,11 +158,10 @@ CallbackReturn HarmonicMotorActuator::on_deactivate(const rclcpp_lifecycle::Stat
 
 	//
     logger_->info("Motor Disable action for: [{}]",motor_name_);
+	int err = resetHeartbeatConsumerTime();
     disableMotor();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
     return CallbackReturn::SUCCESS;
-
 }
 
 std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_state_interfaces(){
@@ -186,8 +182,6 @@ std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_st
       motor_name_, hardware_interface::HW_IF_EFFORT, &actual_motor_current_state_));
 
     return state_interfaces;
-
-
 }
 
 std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_command_interfaces(){
@@ -203,8 +197,6 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
       motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
 
     return command_interfaces;
-
-
 }
 
 hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
@@ -217,9 +209,12 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 	// 	// std::cout << "read request" << std::endl;
 
 	// }
+	if(!first_heartbeat_){
+		int err = setHeartbeatConsumerTime();
+		first_heartbeat_ = true;
+	}
 	
     encoder_sensor_->getData(sensor_data);
-
     if(sensor_data["read_status"].asBool() == false){
         // return hardware_interface::return_type::ERROR;
     }
@@ -251,7 +246,6 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 		logger_->debug("[{}] read status false", motor_name_);
 	}
 	
-
     return hardware_interface::return_type::OK;
 }
 
@@ -388,8 +382,50 @@ void HarmonicMotorActuator::data_request(){
 
 void HarmonicMotorActuator::node_guarding_request(){
 	
-	//node guarding not available on current firmware
+	//node guarding not available on current firmware so sending the heartbeat request
 
+	Socketcan_t data[1];
+    uint32_t cob_id;
+    uint32_t node_id;
+
+    data[0].size = 1;
+    data[0].data = 0x05;
+
+    node_id = 0x03;
+    cob_id = NMT_TX + node_id; //0x700 nmt tx also for heartbeat
+
+    socketcan_write(harmonic_motor_actuator_sockets_->nmt_motor_cfg_fd, cob_id, 1, data);
+}
+
+int HarmonicMotorActuator::resetHeartbeatConsumerTime(){
+	int err;
+	SDO_data req;
+	req.nodeid = motor_id_;
+	req.index = 0x1016;
+	req.subindex = 0x01;
+	req.data.size = 4;
+	req.data.data = 0x00;
+	err = SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
+	logger_->info("Reset Heartbeat Consumer Time");
+	return err;
+}
+
+int HarmonicMotorActuator::setHeartbeatConsumerTime(){
+	int err;
+	SDO_data req;
+	req.nodeid = motor_id_;
+	req.index = 0x1016;
+	req.subindex = 0x01;
+	req.data.size = 4;
+	req.data.data = 0x00030290;
+	err = SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &req);
+	if(err != 0){
+		logger_->error("Could not set Heartbeat Consumer Time");
+	}
+	else {
+		logger_->info("Set Heartbeat Consumer Time");
+	}
+	return err;
 }
 
 bool HarmonicMotorActuator::Homing(){
@@ -448,7 +484,6 @@ bool HarmonicMotorActuator::Homing(){
 
         time_passed_response_received_lift_down = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - recovery_lift_down_time);
         std::this_thread::sleep_for(std::chrono::microseconds(20000));
-
     }
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -473,7 +508,7 @@ bool HarmonicMotorActuator::Homing(){
 void HarmonicMotorActuator::init_json(std::string path){
 
     Json::Value config_data;
-    JsonRead config_parser("/home/rightbot/test_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json");
+    JsonRead config_parser("/home/bhavya/ros2_ws/src/ros2_control/rightbot_hardware_interface_pkgs/src/config/config.json");
 
     if (!config_parser.parse())
     throw std::invalid_argument("Parsing error in config of Controller Manager");
@@ -1046,4 +1081,7 @@ double HarmonicMotorActuator::degreeToRadian(double deg){
 	double radian = deg * (3.14/180);
 	return radian;
 }
+
+PLUGINLIB_EXPORT_CLASS(HarmonicMotorActuator, hardware_interface::ActuatorInterface)
+
 

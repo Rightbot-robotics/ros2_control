@@ -7,14 +7,10 @@ PLUGINLIB_EXPORT_CLASS(DummyActuator, hardware_interface::ActuatorInterface)
 
 
 DummyActuator::DummyActuator() {
-
 }
 
 DummyActuator::~DummyActuator(){
-
 	motorControlword(motor_id_, Disable_Voltage);
-
-
 }
 
 CallbackReturn DummyActuator::on_init(const hardware_interface::HardwareInfo & info){
@@ -24,13 +20,14 @@ CallbackReturn DummyActuator::on_init(const hardware_interface::HardwareInfo & i
     // logger_->info(" Harmonic Motor Actuator Init");
     if (ActuatorInterface::on_init(info) != CallbackReturn::SUCCESS)
     {
-      
       return CallbackReturn::ERROR;
     }
 
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+	// can_network_ = (info.joints[0].parameters.at("can_network"));
+	// harmonic_motor_actuator_sockets_->can_network_ = can_network_;
 
 	logger_->info("DummyActuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 

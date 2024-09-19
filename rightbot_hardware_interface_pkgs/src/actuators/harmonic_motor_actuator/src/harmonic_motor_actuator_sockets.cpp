@@ -20,6 +20,8 @@ HarmonicMotorActuatorSockets::HarmonicMotorActuatorSockets(int motor_id, std::st
 	motor_name_ = motor_name;
 	motor_id_ = motor_id;
 
+    // can_network_ = can_network;
+
     createSockets(motor_id);
 }
 
@@ -34,6 +36,8 @@ bool HarmonicMotorActuatorSockets::createSockets(int motor_id) {
     else{
         can_interface = "can0";
     }
+
+    // can_interface = can_network_;
 
     // Open connections to the CAN-network
 	uint32_t motor_status_pdo_masks[1] = {COB_MASK};

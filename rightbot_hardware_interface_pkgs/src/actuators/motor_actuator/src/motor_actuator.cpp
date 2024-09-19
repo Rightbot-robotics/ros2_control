@@ -555,7 +555,6 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
                 motor_controls_->set_absolute_position(motor_id_, axis_, counts); // send absolute position internally
             }
         }
-        
     }
     
     if(previous_gpio_command_ != gpio_command_){

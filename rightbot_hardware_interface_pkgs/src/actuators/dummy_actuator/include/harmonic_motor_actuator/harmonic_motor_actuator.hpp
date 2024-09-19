@@ -60,20 +60,14 @@ public:
     void fault_reset() override;
     void reinitialize_actuator() override;
     void clear_can_buffer() override;
-
     void homing_execution(double &homing_pos) override;
-
     void data_request() override;
-
     void node_guarding_request() override;
-
     void init_json(std::string path);
 
-
-
 private:
-
     std::string motor_name_;
+    std::string can_network_;
     int motor_id_;
     int axis_;
     int zero_point_count_;

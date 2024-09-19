@@ -45,13 +45,10 @@ public:
 
     std::string motor_name_;
     int motor_id_;
-
+    std::string can_network_;
 
 private:
-
     std::shared_ptr<spdlog::logger> logger_;
-
-    
 };
 
 

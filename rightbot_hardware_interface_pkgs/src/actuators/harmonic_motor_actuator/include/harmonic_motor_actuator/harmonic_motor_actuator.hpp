@@ -72,11 +72,15 @@ public:
 
 
 private:
-
+    std::string can_network_;
     std::string motor_name_;
     int motor_id_;
     int axis_;
     int zero_point_count_;
+    bool first_heartbeat_ = false;
+
+    int setHeartbeatConsumerTime();
+    int resetHeartbeatConsumerTime();
 
     int initMotor();
     int motorConfigNode(int motor_id);

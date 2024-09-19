@@ -27,6 +27,8 @@ public:
     typedef std::unique_ptr<HarmonicMotorActuatorSockets> HarmonicMotorActuatorSocketsUPtr;
 
     HarmonicMotorActuatorSockets(int motor_id, std::string motor_name);
+    // HarmonicMotorActuatorSockets(int motor_id, std::string motor_name);
+
 
     ~HarmonicMotorActuatorSockets();
 
@@ -44,6 +46,7 @@ public:
     int nmt_motor_cfg_fd;
 
     std::string motor_name_;
+    std::string can_network_;
     int motor_id_;
 
 
