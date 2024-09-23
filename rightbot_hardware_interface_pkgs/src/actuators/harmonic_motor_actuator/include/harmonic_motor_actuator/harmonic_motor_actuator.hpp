@@ -70,7 +70,6 @@ public:
     void init_json(std::string path);
 
 
-
 private:
     std::string can_network_;
     std::string motor_name_;
@@ -78,6 +77,20 @@ private:
     int axis_;
     int zero_point_count_;
     bool first_heartbeat_ = false;
+
+    enum ActuatorFunctionalState {
+        OPERATIONAL = 0,
+        SOFT_STOP = 1,
+        HARD_STOP = 2,
+        FAULT = 3
+    };
+
+    ActuatorFunctionalState curr_state_ = ActuatorFunctionalState::OPERATIONAL;
+    ActuatorFunctionalState target_state_ = ActuatorFunctionalState::OPERATIONAL;
+    ActuatorFunctionalState commanded_state_;
+    double functional_mode_command_ = std::numeric_limits<double>::quiet_NaN();
+    double functional_mode_state_ = std::numeric_limits<double>::quiet_NaN();
+    double travel_per_revolution = 0.314;
 
     int setHeartbeatConsumerTime();
     int resetHeartbeatConsumerTime();
@@ -130,7 +143,7 @@ private:
     double acceleration_command_ = 0.0;
     double control_state_command_ = 0.0;
 
-    double previous_position_command_ = -1.0;
+    double previous_position_command_ = 0.0;
     double previous_max_velocity_command_ = 0.0;
     double previous_acceleration_command_ = 0.0;
     double previous_control_state_command_ = 0.0;
@@ -139,8 +152,14 @@ private:
 
     bool using_default_max_velocity_ = false;
     bool using_default_acceleration_ = true;
+
+    double default_velocity_ = 2.0;
+    double default_acceleration_ = 2.0;
+
     double default_max_velocity_ = 2.0;
-    double default_acceleration_ = 1.0;
+    double default_max_acceleration_ = 2.0;
+
+   
 
     double acceleration_epsilon = 10e-4;
     double velocity_epsilon = 10e-5;
@@ -154,6 +173,7 @@ private:
     };
 
     bool velocity_mode = true;
+    bool position_mode = false;
 
     bool Homing();
 

@@ -35,6 +35,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
 	logger_->info("Harmonic Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
 
 	std::string config_path;
+	// previous_mode = "not_set";
 	// init_json(config_path);
     
     default_max_velocity_ = stod(info.joints[0].parameters.at("default_max_velocity"));
@@ -62,6 +63,7 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
 			(command_interface.name != hardware_interface::HW_IF_CONTROL_STATE)
         )
+
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
             
@@ -95,6 +97,8 @@ CallbackReturn HarmonicMotorActuator::on_init(const hardware_interface::Hardware
 
     }
     // fprintf(stderr, "TestSingleJointActuator configured successfully.\n");
+
+	functional_mode_state_ = static_cast<double>(ActuatorFunctionalState::OPERATIONAL);
 
     logger_->info("[{}] - Intialiazation successful", motor_name_);
     
@@ -180,6 +184,8 @@ std::vector<hardware_interface::StateInterface> HarmonicMotorActuator::export_st
       motor_name_, hardware_interface::HW_IF_NODE_GUARD_ERROR, &node_guard_error_state_));
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, hardware_interface::HW_IF_EFFORT, &actual_motor_current_state_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, "functional_state", &functional_mode_state_));
 
     return state_interfaces;
 }
@@ -195,6 +201,8 @@ std::vector<hardware_interface::CommandInterface> HarmonicMotorActuator::export_
       motor_name_, hardware_interface::HW_IF_ACCELERATION, &acceleration_command_));
 	command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, hardware_interface::HW_IF_CONTROL_STATE, &control_state_command_));
+	command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      motor_name_, "function_halt", &functional_mode_command_));
 
     return command_interfaces;
 }
@@ -228,6 +236,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     velocity_state_ = axis_*((sensor_data["velocity"].asDouble()*3.14)/30);
 
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
+	functional_mode_state_ = static_cast<double>(curr_state_);
 
 	// std::cout << "status_state_: " << status_state_ <<std::endl;
 	// std::cout << "actual_motor_current_state_: " << actual_motor_current_state_ <<std::endl;
@@ -250,6 +259,69 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
 }
 
 hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time & time, const rclcpp::Duration & period) {
+
+
+	if (!std::isnan(functional_mode_command_)) {
+        logger_->info("[{}] Functional mode command: [{}]", motor_name_, functional_mode_command_);
+        commanded_state_ = static_cast<ActuatorFunctionalState>(functional_mode_command_);
+        switch (commanded_state_) {
+            case ActuatorFunctionalState::OPERATIONAL:
+            case ActuatorFunctionalState::SOFT_STOP:
+            case ActuatorFunctionalState::HARD_STOP: {
+                target_state_ = commanded_state_;
+                break;
+            }
+            default: {
+                logger_->warn("[{}] Invalid functional mode command: [{}]", motor_name_, functional_mode_command_);                break;
+            }
+        }
+        functional_mode_command_ = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    if (curr_state_ != target_state_) {
+        switch (target_state_) {
+            case ActuatorFunctionalState::OPERATIONAL: {
+                if (curr_state_ == ActuatorFunctionalState::HARD_STOP) {
+                    logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
+                    max_velocity_command_ = 0.0;
+                    // motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+					set_target_velocity(0.0);
+                    logger_->info("[{}] Control state command: Actuator enable", motor_name_);
+                    // motor_->motor_enable(motor_id_);
+					enableMotor();
+                }
+                curr_state_ = ActuatorFunctionalState::OPERATIONAL;
+                break;
+            }
+            case ActuatorFunctionalState::SOFT_STOP: {
+                // motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+				set_target_velocity(0.0);
+                max_velocity_command_ = 0.0;
+                if (std::abs(velocity_state_ / travel_per_revolution) < 0.01) {
+                    curr_state_ = ActuatorFunctionalState::SOFT_STOP;
+                }
+                break;
+            }
+            case ActuatorFunctionalState::HARD_STOP: {
+                logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
+                // motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
+				set_target_velocity(0.0);
+                logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
+                // motor_->motor_quick_stop(motor_id_);
+				quickStopMotor();
+                max_velocity_command_ = 0.0;
+                curr_state_ = ActuatorFunctionalState::HARD_STOP;
+                break;
+            }
+        }
+    }
+
+    if (curr_state_ != target_state_ || target_state_ != ActuatorFunctionalState::OPERATIONAL) {
+        max_velocity_command_ = 0.0;
+        previous_max_velocity_command_ = 0.0;
+        return hardware_interface::return_type::OK;
+    }
+
 
 	if(previous_control_state_command_ != control_state_command_){
         logger_->info("[{}] Control state command: [{}]", motor_name_, control_state_command_);
@@ -288,6 +360,8 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 
 	if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
         || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
+
+		position_command_ = 0;
         
         if(abs(max_velocity_command_) < (10e-3)){
             max_velocity_command_ = 0.0;
@@ -322,17 +396,37 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		}
 	}
 
-    if(previous_position_command_ != position_command_){
+	// logger_->info("outside the position if condition and writting the data for position ..................................{}",position_command_);
+	// logger_->info("outside the position if condition and writting the data for position ..................................{}",previous_position_command_);
 
-		if(!velocity_mode){
+    if(previous_position_command_ != position_command_){
+		velocity_mode = false;
+		max_velocity_command_ = 0;
+		
+		logger_->info("Inside the position if condition and writting the data for position ..................................{}$${}",previous_position_command_,position_command_);
+
+		// if(!velocity_mode){
+			Json::Value command_template;
+
+			command_template["timeout"] = 10;
+			command_template["mode"] = "position";
+			command_template["velocity"] = 0;
+			command_template["accel"] = 3.2;
+      		command_template["decel"] = 3.2;
+      		command_template["max_vel"] = 20.0;
+      
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
 			double angle_in_degree = (position_command_*(180/3.14));
 			int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
 			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
-			set_relative_position( counts);
-		}	
+			command_template["relative_pos"] = counts;
+
+			writeData(command_template);
+			previous_mode = "position";
+			// set_relative_position( counts);
+		// }	
     }
-    
+
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
@@ -835,6 +929,7 @@ int HarmonicMotorActuator::reinitializeMotor(void) {
 	logger_->info("[{}] Setting default acceleration: [{}]",motor_name_, default_acceleration_);
 	set_profile_acc(default_acceleration_);
 	set_profile_deacc(default_acceleration_);
+	velocity_mode = true;
 
 	if(velocity_mode){
 		set_target_velocity(0.0);
@@ -936,13 +1031,17 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.data.size = 4;
 	d.data.data = (int32_t)(pos*axis_ + zero_point_count_);
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
+	logger_->info("Inside the motor control writting for the motor.....................................");
+
+	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
+	std::this_thread::sleep_for(std::chrono::microseconds(500));
+	err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
 
 	if((motor_name_ != "rotation2_joint") || (motor_id_ != 17)){
 
 		err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
 		std::this_thread::sleep_for(std::chrono::microseconds(500));
 		err |= motorControlword(motor_id_, Start_Excercise_Pos_Immediate);// for trigger
-
 	}
 	else if (((motor_name_ == "rotation2_joint") || (motor_id_ == 17)) && (trigger_once == false)){
 

@@ -2106,9 +2106,7 @@ void ControllerManager::handle_service(
     RCLCPP_INFO(get_logger(), "Function name '%s' not recognized", request->function_name.c_str());
   }
 
-
   response->status = true;
-
 }
 
 void ControllerManager::camera_align_service(
