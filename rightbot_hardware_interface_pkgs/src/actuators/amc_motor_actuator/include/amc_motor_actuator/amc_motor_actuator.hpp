@@ -191,7 +191,8 @@ private:
     double default_acceleration_ = 1.0;
     double default_deceleration_ = 1.0;
     std::string mode_of_operation_;
-    
+    std::string previous_mode_of_operation_ = "velocity";
+
     int is_homing_ = 0;
     double homing_max_velocity_ = 2.0;
     double homing_acceleration_ = 1.0;

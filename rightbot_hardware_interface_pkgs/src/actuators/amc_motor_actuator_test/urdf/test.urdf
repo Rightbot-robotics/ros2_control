@@ -90,7 +90,7 @@
       <state_interface name="velocity_ki"/>
       <state_interface name="velocity_kd"/>
 
-      <param name="can_id">1</param>
+      <param name="can_id">2</param>
       <param name="axis">1</param>
       
       <param name="is_homing">0</param>
@@ -109,7 +109,7 @@
       <param name="default_max_accleration">10.0</param>
       <param name="default_max_deceleration">10.0</param>
       
-      <param name="mode_of_operation">velocity</param>
+      <!-- <param name="mode_of_operation">velocity</param> -->
     </joint>
   </ros2_control>
 </robot>

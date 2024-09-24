@@ -50,7 +50,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 	motor_gear_ratio_ = stod(info.joints[0].parameters.at("motor_gear_ratio"));
 	motor_ppr_ = stod(info.joints[0].parameters.at("motor_ppr"));
     
-	mode_of_operation_ = std::string(info.joints[0].parameters.at("mode_of_operation"));
+	// mode_of_operation_ = std::string(info.joints[0].parameters.at("mode_of_operation"));
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
@@ -168,7 +168,7 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
     	set_life_time_factor(motor_id_,6);
 	}
 
-	if(mode_of_operation_ == "velocity")
+	if(previous_mode_of_operation_ == "velocity")
 	{
         motorSetmode(Motor_mode_Velocity);
 		set_profile_velocity(default_max_velocity_);
@@ -183,7 +183,7 @@ CallbackReturn AmcMotorActuator::on_activate(const rclcpp_lifecycle::State & pre
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity done!",motor_name_);
     }
 
-	if (mode_of_operation_ == "position")
+	if (previous_mode_of_operation_ == "position")
 	{
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -426,7 +426,24 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
         }
 	}
 
-	if (mode_of_operation_ == "velocity" && !std::isnan(max_velocity_command_)){
+
+	// if (mode_of_operation_ == "velocity" && !std::isnan(max_velocity_command_)){
+	if (!std::isnan(max_velocity_command_)){
+		if (previous_mode_of_operation_ != "velocity"){
+			motorSetmode(Motor_mode_Velocity);
+			set_profile_velocity(default_max_velocity_);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			set_profile_acc(default_acceleration_);
+			set_profile_deacc(default_deceleration_);
+			set_PTPC(default_acceleration_);
+			set_PTNC(default_deceleration_);
+			set_NTNC(default_acceleration_);
+			set_NTPC(default_deceleration_);
+			set_vel_speed(motor_id_, axis_, 0.0);
+			logger_->info("[{}] Motor mode [velocity]. Setting zero velocity done!",motor_name_);
+			previous_mode_of_operation_ = "velocity";
+
+		}
 		if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
     	    || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
 			
@@ -441,14 +458,25 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 		}
 	}
 
-	if (mode_of_operation_ == "position" && !std::isnan(position_command_)) {
-    	if(previous_position_command_ != position_command_){
+	// if (mode_of_operation_ == "position" && !std::isnan(position_command_)) {
+	if (!std::isnan(position_command_)) {
+		if (previous_mode_of_operation_ != "position"){
+	    	max_velocity_command_ = std::nan("");
+			set_profile_velocity(default_max_velocity_);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			set_profile_acc(default_acceleration_);
+			set_profile_deacc(default_deceleration_);
+			motorSetmode(Motor_mode_Position);
+			logger_->info("[{}] Motor mode [position]",motor_name_);	
+			previous_mode_of_operation_ = "position";
+		}
+		if(previous_position_command_ != position_command_){
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
 			auto position = (((position_command_ / travel_per_revolution_) * motor_ppr_) * (axis_)) + (counts_offset_);
 			set_relative_position(static_cast<int32_t>(position));
-    	}
+		}
     }
-
+	
 	if (!std::isnan(position_kp_command_) && !std::isnan(position_ki_command_) && !std::isnan(position_kd_command_)) {
 			logger_->info("[{}] Position Kp command: [{}], Position Ki command: [{}], Position Kd command: [{}]", motor_name_, position_kp_command_, position_ki_command_, position_kd_command_);
 			set_position_kp(position_kp_command_);
@@ -660,7 +688,7 @@ int AmcMotorActuator::initMotor(){
 		return MOTOR_ERROR;
 	}
 
-	err |= motorSetmode(Motor_mode_Position); 
+	err |= motorSetmode(Motor_mode_Velocity); 
 	if (err != 0) {
 		logger_->debug("Err in motorSetmode for {}", motor_name_);
 		return MOTOR_ERROR;
@@ -927,8 +955,8 @@ int AmcMotorActuator::reinitializeMotor(void) {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	if(mode_of_operation_ == "velocity")
-	{
+	// if(mode_of_operation_ == "velocity")
+	// {
         motorSetmode(Motor_mode_Velocity);
 		set_profile_velocity(default_max_velocity_);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -940,17 +968,17 @@ int AmcMotorActuator::reinitializeMotor(void) {
 		set_NTPC(default_deceleration_);
 		set_vel_speed(motor_id_, axis_, 0.0);
 		logger_->info("[{}] Motor mode [velocity]. Setting zero velocity done!",motor_name_);
-    }
+    // }
 
-	if (mode_of_operation_ == "position")
-	{
-		set_profile_velocity(default_max_velocity_);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		set_profile_acc(default_acceleration_);
-		set_profile_deacc(default_deceleration_);
-		motorSetmode(Motor_mode_Position);
-		logger_->info("[{}] Motor mode [position]",motor_name_);
-	}
+	// if (mode_of_operation_ == "position")
+	// {
+		// set_profile_velocity(default_max_velocity_);
+		// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		// set_profile_acc(default_acceleration_);
+		// set_profile_deacc(default_deceleration_);
+		// motorSetmode(Motor_mode_Position);
+		// logger_->info("[{}] Motor mode [position]",motor_name_);
+	// }
 
     return err;
 }
