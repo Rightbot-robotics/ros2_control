@@ -138,6 +138,7 @@ private:
     double velocity_state_ = std::numeric_limits<double>::quiet_NaN();
     double node_guard_error_state_ = std::numeric_limits<double>::quiet_NaN();
     double fault_state_ = 0.0;
+    double connection_break_state_ = 0.0;
     
     double position_command_ = 0.0;
     double max_velocity_command_ = 0.0;

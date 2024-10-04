@@ -9,6 +9,7 @@
 #include <harmonic_motor_actuator/harmonic_motor_actuator_sockets.hpp>
 #include <deque>
 #include <condition_variable>
+#include <chrono>
 
 using namespace std;
 
@@ -30,6 +31,7 @@ public:
     bool read_status_err_code;
     bool read_status_encoder;
     bool read_status_velocity;
+    std::chrono::steady_clock::time_point time_stamp;
 
 };
 

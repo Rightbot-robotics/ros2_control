@@ -327,6 +327,7 @@ void HarmonicEncoderSensor::readMotorData() {
                 if (prev_err == 0) {
 
                     read_mutex_.lock();
+                    prev_encoder_data.time_stamp = std::chrono::steady_clock::now();
                     q_encoder_data_.push_back(prev_encoder_data);
                     read_mutex_.unlock();
                 }
@@ -379,6 +380,7 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["read_status_err_code"] = encoder_data_q_element.read_status_err_code;
         sensor_data["read_status_encoder"] = encoder_data_q_element.read_status_encoder;
         sensor_data["read_status_velocity"] = encoder_data_q_element.read_status_velocity;
+        sensor_data["data_age_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - encoder_data_q_element.time_stamp).count();
         
         logger_->debug("[{}] Status: [{}], Error Code: [{}]", motor_sockets_->motor_name_, encoder_data_q_element.status_m, encoder_data_q_element.err_code_m);
         logger_->debug("[{}] Position: {} counts, Velocity: {} rpm", motor_sockets_->motor_name_, encoder_data_q_element.pos_m, encoder_data_q_element.vel_m);
