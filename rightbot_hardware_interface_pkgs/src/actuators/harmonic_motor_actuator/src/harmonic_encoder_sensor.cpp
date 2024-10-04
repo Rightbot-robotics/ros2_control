@@ -297,7 +297,8 @@ void HarmonicEncoderSensor::readToClearBuffer(){
 
 void HarmonicEncoderSensor::readMotorData() {
 
-
+    int prev_err,err = 0;
+    HarmonicEncoderData prev_encoder_data;
     while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
@@ -315,13 +316,18 @@ void HarmonicEncoderSensor::readMotorData() {
                     
                 // }
                 std::this_thread::sleep_for(std::chrono::microseconds(2000));
-                
-                int err = readData( &encoder_data_);
 
-                if (err == 0) {
+                encoder_data_.read_status_encoder = true;
+                while(encoder_data_.read_status_encoder) {
+                    prev_encoder_data = encoder_data_;
+                    prev_err = err;
+                    err = readData( &encoder_data_);
+                }
+
+                if (prev_err == 0) {
 
                     read_mutex_.lock();
-                    q_encoder_data_.push_back(encoder_data_);
+                    q_encoder_data_.push_back(prev_encoder_data);
                     read_mutex_.unlock();
                 }
                 else {
