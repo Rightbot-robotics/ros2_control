@@ -290,17 +290,14 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
                 if (curr_state_ == ActuatorFunctionalState::HARD_STOP) {
                     logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
                     max_velocity_command_ = 0.0;
-                    // motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
 					set_target_velocity(0.0);
                     logger_->info("[{}] Control state command: Actuator enable", motor_name_);
-                    // motor_->motor_enable(motor_id_);
 					enableMotor();
                 }
                 curr_state_ = ActuatorFunctionalState::OPERATIONAL;
                 break;
             }
             case ActuatorFunctionalState::SOFT_STOP: {
-                // motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
 				set_target_velocity(0.0);
                 max_velocity_command_ = 0.0;
                 if (std::abs(velocity_state_ / travel_per_revolution) < 0.01) {
@@ -310,10 +307,8 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
             }
             case ActuatorFunctionalState::HARD_STOP: {
                 logger_->info("[{}] Control mode change. Writing zero velocity command.", motor_name_);
-                // motor_controls_->set_vel_speed(motor_id_, axis_, 0.0);
 				set_target_velocity(0.0);
                 logger_->info("[{}] Control state command: Actuator quick stop", motor_name_);
-                // motor_->motor_quick_stop(motor_id_);
 				quickStopMotor();
                 max_velocity_command_ = 0.0;
                 curr_state_ = ActuatorFunctionalState::HARD_STOP;
@@ -376,8 +371,8 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 		if(!using_default_max_velocity_){
 			
             logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
-           	double degree_per_sec = (max_velocity_command_*(180/3.14));
-			double revolution_per_min = (degree_per_sec*60)/360.0;
+           	double degree_per_sec = (max_velocity_command_*(180/M_PI));
+			double revolution_per_min = axis_ * (degree_per_sec*60)/360.0;
             float max_velocity_command_final_ = static_cast<float>(revolution_per_min);
 			float scaled_max_vel = 1.0f * max_velocity_command_final_;
             logger_->debug("[{}] Velocity command in rpm: [{}]", motor_name_, scaled_max_vel);
@@ -422,8 +417,8 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
       		command_template["max_vel"] = 20.0;
       
 			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
-			double angle_in_degree = (position_command_*(180/3.14));
-			int counts = static_cast<uint32_t>((angle_in_degree/360)*motor_ppr_);
+			double target_count_double = zero_point_count_ + (axis_ * ((position_command_ * motor_ppr_)/(2*M_PI)));
+			int counts = static_cast<int>(target_count_double);
 			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
 			command_template["relative_pos"] = counts;
 
