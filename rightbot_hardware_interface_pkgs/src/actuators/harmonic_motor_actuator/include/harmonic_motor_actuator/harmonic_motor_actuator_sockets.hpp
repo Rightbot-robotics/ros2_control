@@ -26,7 +26,7 @@ public:
     typedef std::shared_ptr<HarmonicMotorActuatorSockets> HarmonicMotorActuatorSocketsSPtr;
     typedef std::unique_ptr<HarmonicMotorActuatorSockets> HarmonicMotorActuatorSocketsUPtr;
 
-    HarmonicMotorActuatorSockets(int motor_id, std::string motor_name);
+    HarmonicMotorActuatorSockets(int motor_id, std::string motor_name, std::string can_network);
     // HarmonicMotorActuatorSockets(int motor_id, std::string motor_name);
 
 
