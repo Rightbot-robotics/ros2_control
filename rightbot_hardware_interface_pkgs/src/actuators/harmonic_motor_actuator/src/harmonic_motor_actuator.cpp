@@ -461,11 +461,11 @@ void HarmonicMotorActuator::reinitialize_actuator(){
 	reinitializeMotor();
 }
 
-void HarmonicMotorActuator::clear_can_buffer(){
+// void HarmonicMotorActuator::clear_can_buffer(){
 
-	encoder_sensor_->readToClearBuffer();
+// 	encoder_sensor_->readToClearBuffer();
 
-}
+// }
 
 void HarmonicMotorActuator::homing_execution(double &homing_pos){
 

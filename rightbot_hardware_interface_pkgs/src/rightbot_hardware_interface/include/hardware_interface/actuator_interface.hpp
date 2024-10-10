@@ -201,7 +201,7 @@ public:
 
   /// actuator reinitialization
 
-  virtual void clear_can_buffer() = 0;
+  // virtual void clear_can_buffer() = 0;
 
   virtual void homing_execution(double &homing_pos) = 0;
 

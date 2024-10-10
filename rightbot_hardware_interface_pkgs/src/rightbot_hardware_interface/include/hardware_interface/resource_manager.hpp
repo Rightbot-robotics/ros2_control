@@ -397,6 +397,14 @@ public:
   std::string get_zlac_driver_error(int error);
 
   std::string get_harmonic_driver_error(int error);
+    
+  std::string get_amc_drive_system_status_1_error(int error);
+
+  std::string get_amc_drive_system_status_2_error(int error);
+  
+  std::string get_amc_drive_protection_status_error(int error);
+  
+  std::string get_amc_system_protection_status_error(int error);
 
   std::string get_ur_arm_safety_message(int error);
 
@@ -448,36 +456,15 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   std::vector<std::string> low_freq_components_{
-    "main_conveyor_belt_actuator",
-    "right_conveyor_belt_actuator",
-    "left_conveyor_belt_actuator",
-    // "right_armbase_actuator",
-    // "left_armbase_actuator",
-    // "conveyor_left_encoder",
-    // "conveyor_right_encoder",
-    // "conveyor_lift_left_actuator",
-    // "conveyor_lift_right_actuator",
-    // "conveyor_belt_actuator",
-    // "DC_hinge_encoder"
+    "conveyor_lift_left",
+    // "conveyor_lift_right"
   };
   std::vector<std::string> node_guarding_components_{
-    "main_conveyor_belt_actuator",
-    "right_conveyor_belt_actuator",
-    "left_conveyor_belt_actuator",
-    "front_right_drive_harmonic_motor",
-    "front_left_drive_harmonic_motor"
-
-    // "right_armbase_actuator", //write for the harmonic motors for sending the hertbeat signal
-    // "left_armbase_actuator",
-    // "conveyor_lift_left_actuator",
-    // "conveyor_lift_right_actuator",
-    // "conveyor_belt_actuator"
+    "conveyor_lift_left",
+    // "conveyor_lift_right"
   };
   std::vector<std::string> sync_request_components_{
-    "main_conveyor_belt_actuator",
-    "front_left_drive_harmonic_motor"
-    // "left_armbase_actuator",
-    // "conveyor_left_encoder"
+    "conveyor_lift_left"
   };
   
   struct LowFrequencyLoop {

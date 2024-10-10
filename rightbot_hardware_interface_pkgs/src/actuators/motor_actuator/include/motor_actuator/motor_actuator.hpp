@@ -4,6 +4,7 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <numeric>
 #include <json_reader/json_read.h>
 #include <actuator/actuator.hpp>
 #include <motor/sockets.hpp>
@@ -60,7 +61,7 @@ public:
 
     void reinitialize_actuator() override;
 
-    void clear_can_buffer() override;
+    // void clear_can_buffer() override;
 
     void homing_execution(double &homing_pos) override;
 
@@ -184,6 +185,13 @@ private:
     int homing_counter = 0;
     int initial_counts_rotation = 0;
 
+    double gpio_set_0_ = 0.0;
+    double gpio_set_1_ = 0.0;
+    double gpio_set_2_ = 0.0; 
+
+    double prev_gpio_set_0_ = 0.0;
+    double prev_gpio_set_1_ = 0.0;
+    double prev_gpio_set_2_ = 0.0;
     };
 
 #endif // MOTOR_ACTUATOR_H_

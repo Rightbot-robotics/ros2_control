@@ -89,7 +89,7 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
 
     const auto & command_interfaces = info_.joints[0].command_interfaces;
     
-    if (command_interfaces.size() != 5)
+    if (command_interfaces.size() != 8)
     {
         logger_->error("[{}] - Incorrect number of command interfaces", motor_name_);
         // std::cout << "Incorrect number of command interfaces. " << std::endl;
@@ -103,7 +103,10 @@ CallbackReturn MotorActuator::on_init(const hardware_interface::HardwareInfo & i
             (command_interface.name != hardware_interface::HW_IF_VELOCITY) &&
             (command_interface.name != hardware_interface::HW_IF_ACCELERATION) &&
             (command_interface.name != hardware_interface::HW_IF_CONTROL_STATE) &&
-            (command_interface.name != hardware_interface::HW_IF_GPIO) 
+            (command_interface.name != hardware_interface::HW_IF_GPIO) &&
+            (command_interface.name != "gpio_output_0") && 
+            (command_interface.name != "gpio_output_1") && 
+            (command_interface.name != "gpio_output_2")
         )
        {
             logger_->error("[{}] - Incorrect type of command interfaces", motor_name_);
@@ -312,6 +315,14 @@ std::vector<hardware_interface::CommandInterface> MotorActuator::export_command_
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       motor_name_, "function_halt", &functional_mode_command_));
 
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(motor_name_, "gpio_output_0", &gpio_set_0_));
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(motor_name_, "gpio_output_1", &gpio_set_1_));
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(motor_name_, "gpio_output_2", &gpio_set_2_));
+     
+
     return command_interfaces;
 }
 
@@ -321,7 +332,7 @@ hardware_interface::return_type MotorActuator::read(const rclcpp::Time & time, c
 
     if(!initialization_done){
         logger_->info("[{}] CAN buffer clear command", motor_name_);
-        encoder_sensor->enc_clear_can_buffer();
+        // encoder_sensor->enc_clear_can_buffer();
 
         if(sensor_data["read_status_encoder"].asBool()){
             initial_counts_rotation = sensor_data["counts"].asInt();
@@ -579,11 +590,27 @@ hardware_interface::return_type MotorActuator::write(const rclcpp::Time & time, 
 
     }
 
+    if (prev_gpio_set_0_ != gpio_set_0_ || prev_gpio_set_1_ != gpio_set_1_ || prev_gpio_set_2_ != gpio_set_2_) {
+        auto curr_state = encoder_sensor->motor_feedback_->read_output_pin_states(motor_id_);
+        int binary = motor_controls_->decToBinary(curr_state);
+        logger_->info("[{}] - gpio set 0: [{}]", curr_state, binary);
+        std::vector<double> gpio_set = {gpio_set_0_, gpio_set_1_, gpio_set_2_};
+        int bin = std::accumulate( gpio_set.begin(), gpio_set.end(), 0, []( int l, int r ) {
+            return l * 10 + r; 
+        } );
+        // encoder_sensor->motor_feedback_->set_gpio_set(motor_id_, );
+        motor_controls_->set_gpio(motor_id_, bin);
+    }
+
     previous_position_command_ = position_command_;
     previous_max_velocity_command_ = max_velocity_command_;
     previous_acceleration_command_ = acceleration_command_;
     previous_control_state_command_ = control_state_command_;
     previous_gpio_command_ = gpio_command_;
+
+    prev_gpio_set_0_ = gpio_set_0_;
+    prev_gpio_set_1_ = gpio_set_1_;
+    prev_gpio_set_2_ = gpio_set_2_;
     
     return hardware_interface::return_type::OK;
 }
@@ -609,12 +636,12 @@ void MotorActuator::reinitialize_actuator(){
     logger_->warn("[{}] - Reinitialise motor is not implemented yet", motor_name_);
 }
 
-void MotorActuator::clear_can_buffer(){
+// void MotorActuator::clear_can_buffer(){
 
-    encoder_sensor->readToClearBuffer();
+//     encoder_sensor->readToClearBuffer();
 
-    //
-}
+//     //
+// }
 
 void MotorActuator::data_request(){
 

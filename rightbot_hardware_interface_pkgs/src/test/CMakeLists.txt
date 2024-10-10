@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.8)
 project(test)
 
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif ()
 
-#if (NOT TARGET spdlog)
-#    # Stand-alone build
-#    find_package(spdlog REQUIRED)
-#endif ()
+if (NOT TARGET spdlog)
+   # Stand-alone build
+   find_package(spdlog REQUIRED)
+endif ()
 
 include_directories(
         include

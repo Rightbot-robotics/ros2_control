@@ -1,0 +1,9 @@
+<library path="amc_motor_actuator">
+
+  <class name="amc_motor_actuator" type="AmcMotorActuator" base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      amc motor actuator
+    </description>
+  </class>
+
+</library>

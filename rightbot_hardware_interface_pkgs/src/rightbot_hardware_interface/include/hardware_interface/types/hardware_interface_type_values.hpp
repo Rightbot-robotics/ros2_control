@@ -48,6 +48,25 @@ constexpr char HW_IF_CONTROL_STATE[] = "control_state";
 
 constexpr char HW_IF_GPIO[] = "gpio";
 
+constexpr char HW_IF_AMC_DRIVE_SYSTEM_STATUS_1[] = "amc_drive_system_status_1";
+
+constexpr char HW_IF_AMC_DRIVE_SYSTEM_STATUS_2 [] = "amc_drive_system_status_2";
+
+constexpr char HW_IF_AMC_DRIVE_PROTECTION_STATUS [] = "amc_drive_protection_status";
+
+constexpr char HW_IF_AMC_SYSTEM_PROTECTION_STATUS [] = "amc_system_protection_status";
+
+constexpr char HW_IF_POSTITON_KP [] = "position_kp";
+
+constexpr char HW_IF_POSTITON_KI [] = "position_ki";
+
+constexpr char HW_IF_POSTITON_KD [] = "position_kd";
+
+constexpr char HW_IF_VELOCITY_KP [] = "velocity_kp";
+
+constexpr char HW_IF_VELOCITY_KI [] = "velocity_ki";
+
+constexpr char HW_IF_VELOCITY_KD [] = "velocity_kd";
 
 
 }  // namespace hardware_interface

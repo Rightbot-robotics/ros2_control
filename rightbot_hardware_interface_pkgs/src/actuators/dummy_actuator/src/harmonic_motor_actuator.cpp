@@ -217,9 +217,9 @@ void DummyActuator::reinitialize_actuator(){
     logger_->debug("[{}] - reinitialize actuator", motor_name_);
 }
 
-void DummyActuator::clear_can_buffer(){
+// void DummyActuator::clear_can_buffer(){
 
-}
+// }
 
 void DummyActuator::homing_execution(double &homing_pos){
 

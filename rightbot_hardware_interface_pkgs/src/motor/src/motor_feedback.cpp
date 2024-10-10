@@ -46,6 +46,27 @@ double MotorFeedback::motor_cps_to_rpm(double counts_per_sec) {
     return m_per_sec;
 }
 
+uint16_t MotorFeedback::read_output_pin_states(int motor_id) {
+	int err;
+    SDO_data req, resp;
+	req.nodeid = motor_id;
+	req.index = 0x2194;
+	req.subindex = 0x00;
+	req.data = {0, 0x00};
+	
+	err = SDO_read(motor_sockets->motor_cfg_fd, &req, &resp);
+    if(err != 0) {
+        logger_->info("[{}] output pin states was not read...", motor_name_);
+		return 1;
+	}
+
+	uint16_t pin_states = (static_cast<uint16_t>(resp.data.data));
+    
+	logger_->info("[{}] output pin states was read...", pin_states);
+
+	return pin_states;
+}
+
 int MotorFeedback::motor_status_n_voltage_n_input_states_read(int motor_id, uint16_t *status, float *battery_vol, uint16_t *input_states,  float *actual_motor_current, int timeout){
     int err;
     my_can_frame f;

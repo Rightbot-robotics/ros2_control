@@ -1527,7 +1527,329 @@ std::string ResourceManager::get_harmonic_driver_error(int error){
   
 }
 
+std::string ResourceManager::get_amc_drive_system_status_1_error(int error){
 
+  std::string error_type;
+
+  if(error < 0){
+    error_type = "Negative error value";
+    return error_type;
+  }
+  else if (error == 0){
+    error_type = " Works properly ";
+    return error_type;
+  }
+
+  if (((error & (1 << 0)) >> 0)){
+    error_type = error_type + " Log Entry Missed. ";
+  }
+
+  if (((error & (1 << 1)) >> 1)){
+    error_type = error_type + " Software Disable. ";
+  }
+
+  if (((error & (1 << 2)) >> 2)){
+    error_type = error_type + " User Disable. ";
+  }
+
+  if (((error & (1 << 3)) >> 3)){
+    error_type = error_type + " User Positive Inhibit. ";
+  }
+
+  if (((error & (1 << 4)) >> 4)){
+    error_type = error_type + " User Positive Inhibit. ";
+  }
+
+  if (((error & (1 << 5)) >> 5)){
+    error_type = error_type + " Current Limiting. ";
+  }
+
+  if (((error & (1 << 6)) >> 6)){
+    error_type = error_type + " Continuous Current Foldback. ";
+  }
+
+  if (((error & (1 << 7)) >> 7)){
+    error_type = error_type + " Current Loop Saturated. ";
+  }
+
+  if (((error & (1 << 8)) >> 8)){
+    error_type = error_type + " User Under Voltage. ";
+  }
+
+  if (((error & (1 << 9)) >> 9)){
+    error_type = error_type + " User Over Voltage. ";
+  }
+
+  if (((error & (1 << 10)) >> 10)){
+    error_type = error_type + " Non-Sinusoidal Commutation. ";
+  }
+
+  if (((error & (1 << 11)) >> 11)){
+    error_type = error_type + " Phase Detect Active. ";
+  }
+
+  if (((error & (1 << 12)) >> 12)){
+    error_type = error_type + " Motion Engine Active. ";
+  }
+
+  if (((error & (1 << 13)) >> 13)){
+    error_type = error_type + " User Auxiliary Disable. ";
+  }
+
+  if (((error & (1 << 14)) >> 14)){
+    error_type = error_type + " Shunt Regulator Active. ";
+  }
+
+  if (((error & (1 << 15)) >> 15)){
+    error_type = error_type + " Phase Detect Done. ";
+  }
+
+  return error_type;  
+  
+}
+
+std::string ResourceManager::get_amc_drive_system_status_2_error(int error){
+
+  std::string error_type;
+
+  if(error < 0){
+    error_type = "Negative error value";
+    return error_type;
+  }
+  else if (error == 0){
+    error_type = " Works properly ";
+    return error_type;
+  }
+
+  if (((error & (1 << 0)) >> 0)){
+    error_type = error_type + " Zero Velocity. ";
+  }
+
+  if (((error & (1 << 1)) >> 1)){
+    error_type = error_type + " At Command. ";
+  }
+
+  if (((error & (1 << 2)) >> 2)){
+    error_type = error_type + " Velocity Following Error. ";
+  }
+
+  if (((error & (1 << 3)) >> 3)){
+    error_type = error_type + " Positive Target Velocity Limit. ";
+  }
+
+  if (((error & (1 << 4)) >> 4)){
+    error_type = error_type + " Negative Target Velocity Limit. ";
+  }
+
+  if (((error & (1 << 5)) >> 5)){
+    error_type = error_type + " Command Limiter Active. ";
+  }
+
+  if (((error & (1 << 6)) >> 6)){
+    error_type = error_type + " In Home Position. ";
+  }
+
+  if (((error & (1 << 7)) >> 7)){
+    error_type = error_type + " Position Following Error. ";
+  }
+
+  if (((error & (1 << 8)) >> 8)){
+    error_type = error_type + " Max Target Position Limit. ";
+  }
+
+  if (((error & (1 << 9)) >> 9)){
+    error_type = error_type + " Min Target Position Limit. ";
+  }
+
+  if (((error & (1 << 10)) >> 10)){
+    error_type = error_type + " Set Position. ";
+  }
+
+  if (((error & (1 << 11)) >> 11)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 12)) >> 12)){
+    error_type = error_type + " Homing Active. ";
+  }
+
+  if (((error & (1 << 13)) >> 13)){
+    error_type = error_type + " Safe Torque Off Status. ";
+  }
+
+  if (((error & (1 << 14)) >> 14)){
+    error_type = error_type + " Homing Complete. ";
+  }
+
+  if (((error & (1 << 15)) >> 15)){
+    error_type = error_type + " Zero Position Error. ";
+  }
+
+  return error_type;  
+  
+}
+
+std::string ResourceManager::get_amc_drive_protection_status_error(int error){
+
+  std::string error_type;
+
+  if(error < 0){
+    error_type = "Negative error value";
+    return error_type;
+  }
+  else if (error == 0){
+    error_type = " Works properly ";
+    return error_type;
+  }
+
+  if (((error & (1 << 0)) >> 0)){
+    error_type = error_type + " Drive Reset. ";
+  }
+
+  if (((error & (1 << 1)) >> 1)){
+    error_type = error_type + " Drive Internal Error. ";
+  }
+
+  if (((error & (1 << 2)) >> 2)){
+    error_type = error_type + " Short Circuit. ";
+  }
+
+  if (((error & (1 << 3)) >> 3)){
+    error_type = error_type + " Current Overshoot. ";
+  }
+
+  if (((error & (1 << 4)) >> 4)){
+    error_type = error_type + " Drive Under Voltage. ";
+  }
+
+  if (((error & (1 << 5)) >> 5)){
+    error_type = error_type + " Drive Over Voltage. ";
+  }
+
+  if (((error & (1 << 6)) >> 6)){
+    error_type = error_type + " Drive Over Temperature. ";
+  }
+
+  if (((error & (1 << 7)) >> 7)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 8)) >> 8)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 9)) >> 9)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 10)) >> 10)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 11)) >> 11)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 12)) >> 12)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 13)) >> 13)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 14)) >> 14)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 15)) >> 15)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  return error_type;  
+  
+}
+
+std::string ResourceManager::get_amc_system_protection_status_error(int error){
+
+  std::string error_type;
+
+  if(error < 0){
+    error_type = "Negative error value";
+    return error_type;
+  }
+  else if (error == 0){
+    error_type = " Works properly ";
+    return error_type;
+  }
+
+  if (((error & (1 << 0)) >> 0)){
+    error_type = error_type + " Parameter Restore Error. ";
+  }
+
+  if (((error & (1 << 1)) >> 1)){
+    error_type = error_type + " Parameter Store Error. ";
+  }
+
+  if (((error & (1 << 2)) >> 2)){
+    error_type = error_type + " Invalid Hall State. ";
+  }
+
+  if (((error & (1 << 3)) >> 3)){
+    error_type = error_type + " Phase Sync.Error. ";
+  }
+
+  if (((error & (1 << 4)) >> 4)){
+    error_type = error_type + " Motor Over Temperature. ";
+  }
+
+  if (((error & (1 << 5)) >> 5)){
+    error_type = error_type + " Phase Detection Fault. ";
+  }
+
+  if (((error & (1 << 6)) >> 6)){
+    error_type = error_type + " Feedback Sensor Error. ";
+  }
+
+  if (((error & (1 << 7)) >> 7)){
+    error_type = error_type + " Motor Over Speed. ";
+  }
+
+  if (((error & (1 << 8)) >> 8)){
+    error_type = error_type + " Max Measured Position. ";
+  }
+
+  if (((error & (1 << 9)) >> 9)){
+    error_type = error_type + " Min Measured Position. ";
+  }
+
+  if (((error & (1 << 10)) >> 10)){
+    error_type = error_type + " Comm. Error (Node Guarding). ";
+  }
+
+  if (((error & (1 << 11)) >> 11)){
+    error_type = error_type + " PWM Input Broken Wire. ";
+  }
+
+  if (((error & (1 << 12)) >> 12)){
+    error_type = error_type + " Motion Engine Error. ";
+  }
+
+  if (((error & (1 << 13)) >> 13)){
+    error_type = error_type + " Motion Engine Abort. ";
+  }
+
+  if (((error & (1 << 14)) >> 14)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  if (((error & (1 << 15)) >> 15)){
+    error_type = error_type + " Reserved. ";
+  }
+
+  return error_type;  
+  
+}
 std::string ResourceManager::get_ur_arm_safety_message(int error) {
   switch (error)
   {
@@ -1622,7 +1944,8 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
     std::string component_name;
     int status;
     int error_register;
-    std::string error_type = "error";
+    std::string error_type = "";
+    int amc_error_code;
 
     int node_guard_error;
 
@@ -1664,7 +1987,13 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_STATUS){
         status = static_cast<int>(state_interface.get_value());
       }
-
+      
+      error_register = 0;
+      if(((status&(1 << 3)) >> 3) != 0)
+      {
+        error_register = -1;
+      }
+      
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_LATCHED_FAULT){
         error_register = static_cast<int>(state_interface.get_value());
         error_type = get_zlac_driver_error(error_register);
@@ -1673,6 +2002,26 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_ERROR_CODE){
         error_register = static_cast<int>(state_interface.get_value());
         error_type = get_harmonic_driver_error(error_register);
+      }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_1){
+        amc_error_code = static_cast<int>(state_interface.get_value());
+        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_system_status_1_error(error_register);
+      }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_2){
+        amc_error_code = static_cast<int>(state_interface.get_value());
+        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_system_status_2_error(error_register);
+      }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS){
+        amc_error_code = static_cast<int>(state_interface.get_value());
+        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_protection_status_error(error_register);
+      }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS){
+        amc_error_code = static_cast<int>(state_interface.get_value());
+        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_system_protection_status_error(error_register);
       }
 
     }

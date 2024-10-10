@@ -7,7 +7,7 @@
 #include <iostream>
 #include <motor/sockets.hpp>
 #include <motor/motor_params.hpp>
-
+#define ull unsigned long long int
 
 class MotorControls {
 
@@ -118,6 +118,9 @@ public:
     int set_gpio(uint16_t node_id, int n) ;
     int clear_gpio(uint16_t node_id);
 
+    int decToBinary(int n);
+    int binaryToDecimal(int n);
+    
     int set_driving_motor_position_mode_params(uint16_t node_id, double position_loop_acc, double position_loop_deacc,
                                                double position_loop_speed);
 
