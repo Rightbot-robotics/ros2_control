@@ -9,6 +9,7 @@
 #include <amc_motor_actuator/amc_motor_actuator_sockets.hpp>
 #include <deque>
 #include <condition_variable>
+#include <chrono>
 
 using namespace std;
 
@@ -31,6 +32,7 @@ public:
     int io_stat_m;
     int guard_err_m;
     bool read_status_encoder;
+    std::chrono::steady_clock::time_point time_stamp;
 
     int32_t position_kp_m;
     int32_t position_ki_m;

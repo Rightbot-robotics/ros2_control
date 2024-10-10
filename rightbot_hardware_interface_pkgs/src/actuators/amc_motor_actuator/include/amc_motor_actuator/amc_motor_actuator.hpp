@@ -153,6 +153,8 @@ private:
     double amc_drive_protection_status_ = std::numeric_limits<double>::quiet_NaN();
     double amc_system_protection_status_ = std::numeric_limits<double>::quiet_NaN();
     double functional_mode_state_ = std::numeric_limits<double>::quiet_NaN();
+    double fault_state_ = std::numeric_limits<double>::quiet_NaN();
+    double connection_break_state_ = std::numeric_limits<double>::quiet_NaN();
 
     enum ActuatorFunctionalState {
         OPERATIONAL = 0,

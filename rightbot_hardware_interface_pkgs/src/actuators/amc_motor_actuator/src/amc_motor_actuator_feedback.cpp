@@ -517,6 +517,7 @@ void AmcEncoderSensor::readMotorData() {
                 if (prev_err == 0) {
 
                     read_mutex_.lock();
+                    prev_encoder_data.time_stamp = std::chrono::steady_clock::now();
                     q_encoder_data_.push_back(prev_encoder_data);
                     read_mutex_.unlock();
                 }
@@ -574,6 +575,7 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["io_stat"] = encoder_data_q_element.io_stat_m;
         sensor_data["amc_drive_stat_1"] = status_1;
         sensor_data["amc_drive_stat_2"] = status_2;
+        sensor_data["data_age_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - encoder_data_q_element.time_stamp).count();
 
         logger_->debug("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
         logger_->debug("motor velocity [{}] cps", encoder_data_q_element.vel_m);

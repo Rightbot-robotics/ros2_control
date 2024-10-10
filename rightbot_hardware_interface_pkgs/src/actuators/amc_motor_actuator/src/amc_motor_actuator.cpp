@@ -287,6 +287,8 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
     }
     
     status_state_ = sensor_data["status"].asInt();
+    fault_state_ = static_cast<double>((sensor_data["status"].asInt() & (1<<3)) != 0);
+    connection_break_state_ = static_cast<double>((sensor_data["data_age_ms"].asInt() > 200));
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 	
