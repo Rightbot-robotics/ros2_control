@@ -29,7 +29,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
-	can_network_ = info.joints[0].parameters.at("``");
+    can_network_ = info.joints[0].parameters.at("can_network");
 
 	logger_->info("Amc Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
     
