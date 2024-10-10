@@ -29,6 +29,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
     motor_id_ = stoi(info.joints[0].parameters.at("can_id"));
     motor_name_ = info_.joints[0].name;
     axis_ = stoi(info.joints[0].parameters.at("axis"));
+	can_network_ = info.joints[0].parameters.at("``");
 
 	logger_->info("Amc Motor Actuator Init actuator: [{}], can_id: [{}], axis: [{}]", motor_name_, motor_id_, axis_);
     
@@ -131,7 +132,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 CallbackReturn AmcMotorActuator::on_configure(const rclcpp_lifecycle::State & previous_state){
     
     previous_mode = "not_set";
-    amc_motor_actuator_sockets_ = std::make_shared<AmcMotorActuatorSockets>(motor_id_, motor_name_);
+    amc_motor_actuator_sockets_ = std::make_shared<AmcMotorActuatorSockets>(motor_id_, motor_name_, can_network_);
     
     initMotor();
     encoder_sensor_ = std::make_shared<AmcEncoderSensor>();
