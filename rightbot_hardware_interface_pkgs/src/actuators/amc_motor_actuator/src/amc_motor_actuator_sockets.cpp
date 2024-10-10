@@ -1,6 +1,6 @@
 #include "amc_motor_actuator/amc_motor_actuator_sockets.hpp"
 
-AmcMotorActuatorSockets::AmcMotorActuatorSockets(int motor_id, std::string motor_name) {
+AmcMotorActuatorSockets::AmcMotorActuatorSockets(int motor_id, std::string motor_name, std::string can_network) {
     
     motor_pdo_fd = -1;    //!< Process CAN-connection.
     motor_cfg_fd = -1;    //!< Configuration CAN-connection.
@@ -16,6 +16,7 @@ AmcMotorActuatorSockets::AmcMotorActuatorSockets(int motor_id, std::string motor
 
 	motor_name_ = motor_name;
 	motor_id_ = motor_id;
+    can_network_ = can_network;
 
     createSockets(motor_id);
 }
@@ -25,12 +26,7 @@ AmcMotorActuatorSockets::~AmcMotorActuatorSockets() = default;
 bool AmcMotorActuatorSockets::createSockets(int motor_id) {
 
     std::string can_interface;
-    if(motor_name_ == "base_rotation_joint"){
-        can_interface = "can2";
-    }
-    else{
-        can_interface = "can0";
-    }
+    can_interface = can_network_.c_str();
 
     // Open connections to the CAN-network
 	uint32_t motor_status_pdo_masks[1] = {COB_MASK};

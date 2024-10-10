@@ -86,6 +86,7 @@ private:
     int motor_id_;
     int axis_;
     int zero_point_count_;
+    std::string can_network_;
 
     int initMotor();
     int motorConfigNode(int motor_id);

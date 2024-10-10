@@ -22,7 +22,7 @@ public:
     typedef std::shared_ptr<AmcMotorActuatorSockets> AmcMotorActuatorSocketsSPtr;
     typedef std::unique_ptr<AmcMotorActuatorSockets> AmcMotorActuatorSocketsUPtr;
 
-    AmcMotorActuatorSockets(int motor_id, std::string motor_name);
+    AmcMotorActuatorSockets(int motor_id, std::string motor_name, std::string can_network);
 
     ~AmcMotorActuatorSockets();
 
@@ -42,6 +42,7 @@ public:
 
     std::string motor_name_;
     int motor_id_;
+    std::string can_network_;
 
 
 private:

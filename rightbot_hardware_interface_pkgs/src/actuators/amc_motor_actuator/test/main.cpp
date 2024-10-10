@@ -33,7 +33,7 @@ int main() {
     logger_->info("In Interface Initialization");
     logger_->flush();
 
-    amc_motor_actuator_sockets_ = std::make_shared<AmcMotorActuatorSockets>(1, "motor_actuator");
+    amc_motor_actuator_sockets_ = std::make_shared<AmcMotorActuatorSockets>(1, "motor_actuator", "can0");
 
     actuator_data_["timeout"] = 10;
     actuator_data_["mode"] = "velocity";
