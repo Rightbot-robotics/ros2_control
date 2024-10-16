@@ -52,6 +52,7 @@ CallbackReturn AmcMotorActuator::on_init(const hardware_interface::HardwareInfo 
 	motor_ppr_ = stod(info.joints[0].parameters.at("motor_ppr"));
     
 	mode_of_operation_ = std::string(info.joints[0].parameters.at("mode_of_operation"));
+    connection_break_state_ = 0.0;
     // std::cout << "default_max_velocity_: " << default_max_velocity_ << std::endl;
     // std::cout << "default_acceleration_: " << default_acceleration_ << std::endl;
 	logger_->info("Actuator: [{}]-> Default max velocity: [{}], Default accleration [{}]", motor_name_, default_max_velocity_, default_acceleration_);
@@ -245,6 +246,10 @@ std::vector<hardware_interface::StateInterface> AmcMotorActuator::export_state_i
       motor_name_, hardware_interface::HW_IF_VELOCITY_KD, &velocity_kd_value_));                    
 	state_interfaces.emplace_back(hardware_interface::StateInterface(
       motor_name_, "functional_state", &functional_mode_state_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, "fault", &fault_state_));
+	state_interfaces.emplace_back(hardware_interface::StateInterface(
+      motor_name_, "connection_break", &connection_break_state_));
     return state_interfaces;
 
 
@@ -289,6 +294,7 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
     status_state_ = sensor_data["status"].asInt();
     fault_state_ = static_cast<double>((sensor_data["status"].asInt() & (1<<3)) != 0);
     connection_break_state_ = static_cast<double>((sensor_data["data_age_ms"].asInt() > 200));
+    connection_break_state_ = 0.0;
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 	
@@ -1155,7 +1161,7 @@ int AmcMotorActuator::set_relative_position(int32_t pos) {
 }
 
 int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
-	logger_->info("[{}] Motor mode [velocity]. Setting velocity",motor_name_);
+	// logger_->info("[{}] Motor mode [velocity]. Setting velocity",motor_name_);
 
     int err = 0;
     // const int32_t countspersec = axis * rpm_to_countspersec(vel);//motor_rpm_to_cps(axis * vel);
@@ -1163,7 +1169,7 @@ int AmcMotorActuator::set_vel_speed(uint16_t nodeid, int axis, float vel) {
 	Socketcan_t target_vel[1] = {
             {4, drive_val}};
     err = PDO_send(amc_motor_actuator_sockets_->motor_vel_read_pdo_fd, PDO_RX4_ID + nodeid, 1, target_vel);
-	logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", encoder_sensor_->ki, encoder_sensor_->ks, drive_val);		
+	// logger_->info("ki = [{}], ks = [{}], drive_val = [{}].", encoder_sensor_->ki, encoder_sensor_->ks, drive_val);		
     return err;
 }
 

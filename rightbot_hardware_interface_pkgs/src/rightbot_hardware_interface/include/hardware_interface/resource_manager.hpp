@@ -456,15 +456,17 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   std::vector<std::string> low_freq_components_{
-    "conveyor_lift_left",
+    "front_left_drive",
+    "rear_left_drive",
     // "conveyor_lift_right"
   };
   std::vector<std::string> node_guarding_components_{
-    "conveyor_lift_left",
+    "front_left_drive",
+    "rear_left_drive",
     // "conveyor_lift_right"
   };
   std::vector<std::string> sync_request_components_{
-    "conveyor_lift_left"
+    "front_left_drive"
   };
   
   struct LowFrequencyLoop {
