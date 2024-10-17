@@ -153,7 +153,7 @@ uint16_t AmcEncoderSensor::read_drive_status_1() {
 		return 1;
 	}
 	
-	uint16_t drive_status_1 = (static_cast<double>(resp.data.data));
+	uint16_t drive_status_1 = (static_cast<uint16_t>(resp.data.data));
 	
 	return drive_status_1;
 }
@@ -172,7 +172,7 @@ uint16_t AmcEncoderSensor::read_drive_status_2() {
 		return 1;
 	}
 	
-	uint16_t drive_status_2 = (static_cast<double>(resp.data.data));
+	uint16_t drive_status_2 = (static_cast<uint16_t>(resp.data.data));
 	
 	return drive_status_2;
 }
@@ -573,8 +573,6 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         sensor_data["amc_system_stat"] = encoder_data_q_element.system_stat_m;
         sensor_data["voltage"] = encoder_data_q_element.voltage_m;
         sensor_data["io_stat"] = encoder_data_q_element.io_stat_m;
-        sensor_data["amc_drive_stat_1"] = status_1;
-        sensor_data["amc_drive_stat_2"] = status_2;
         sensor_data["data_age_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - encoder_data_q_element.time_stamp).count();
 
         logger_->debug("motor status [{}], motor count [{}]", encoder_data_q_element.status_m, encoder_data_q_element.pos_m);
@@ -631,10 +629,17 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
             // sensor_data["amc_drive_stat_1"] = status_1;
             // sensor_data["amc_drive_stat_2"] = status_2;
             // logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+            status_1 = read_drive_status_1();
+            status_2 = read_drive_status_2();
         }
-        status_1 = read_drive_status_1();
-        status_2 = read_drive_status_2();
+        else {
+            status_1 = 0;
+            status_2 = 0;
+        }
+
         logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+        sensor_data["amc_drive_stat_1"] = status_1;
+        sensor_data["amc_drive_stat_2"] = status_2;
 
 
 

@@ -412,14 +412,14 @@ hardware_interface::return_type HarmonicMotorActuator::write(const rclcpp::Time 
 			command_template["timeout"] = 10;
 			command_template["mode"] = "position";
 			command_template["velocity"] = 0;
-			command_template["accel"] = 3.2;
-      		command_template["decel"] = 3.2;
-      		command_template["max_vel"] = 20.0;
+			command_template["accel"] = default_acceleration_;
+      		command_template["decel"] = default_acceleration_;
+      		command_template["max_vel"] = default_max_velocity_;
       
-			logger_->info("[{}] Position command: [{}]", motor_name_, position_command_);
+			logger_->debug("[{}] Position command: [{}]", motor_name_, position_command_);
 			double target_count_double = zero_point_count_ + (axis_ * ((position_command_ * motor_ppr_)/(2*M_PI)));
 			int counts = static_cast<int>(target_count_double);
-			logger_->info("[{}] Position command in counts: [{}]", motor_name_, counts);
+			logger_->debug("[{}] Position command in counts: [{}]", motor_name_, counts);
 			command_template["relative_pos"] = counts;
 
 			writeData(command_template);
@@ -1030,9 +1030,9 @@ int HarmonicMotorActuator::set_relative_position(int32_t pos) {
 	d.index = 0x607A;
 	d.subindex = 0x00;
 	d.data.size = 4;
-	d.data.data = (int32_t)(pos*axis_ + zero_point_count_);
+	d.data.data = (int32_t)(pos);
 	err |=  SDO_write(harmonic_motor_actuator_sockets_->motor_cfg_fd, &d);
-	logger_->info("Inside the motor control writting for the motor.....................................");
+	logger_->debug("Inside the motor control writting for the motor.....................................");
 
 	err |= motorControlword(motor_id_, Switch_On_And_Enable_Operation_Pos_Immediate);
 	std::this_thread::sleep_for(std::chrono::microseconds(500));
@@ -1068,22 +1068,22 @@ void HarmonicMotorActuator::writeData(Json::Value &actuator_data){
     actuator_data_["decel"] = actuator_data["decel"];
 
 	auto command_type = actuator_data_["mode"].asString();
-	auto max_vel = actuator_data_["max_vel"].asDouble();;
+	auto max_vel = actuator_data_["max_vel"].asDouble();
 	auto accel = actuator_data_["accel"].asDouble();
 	auto decel = actuator_data_["decel"].asDouble();
-	auto pos = actuator_data_["relative_pos"].asDouble();
+	auto pos = actuator_data_["relative_pos"].asInt();
 
 	if (command_type == "velocity") {
 
 	}
 	else if ((previous_mode == "position") && (command_type == "position")) {
 
-		logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
+		logger_->debug("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
 		set_relative_position(static_cast<int32_t>(pos));
 	}
 	else if((previous_mode != "position") && (command_type == "position")){
 
-		logger_->info("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
+		logger_->debug("'Write Data in position mode for motor [{}]",harmonic_motor_actuator_sockets_->motor_name_);
 		motorSetmode(Motor_mode_Position);
         set_profile_velocity(max_vel);
     	set_profile_acc(accel);
