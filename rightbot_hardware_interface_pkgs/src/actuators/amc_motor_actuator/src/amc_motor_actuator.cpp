@@ -8,6 +8,7 @@ AmcMotorActuator::AmcMotorActuator() {
 
 AmcMotorActuator::~AmcMotorActuator(){
 
+	set_vel_speed(motor_id_, axis_, 0.0);
 	motorControlword(motor_id_, Disable_Voltage);
 
 
@@ -431,6 +432,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 	// if (mode_of_operation_ == "velocity" && !std::isnan(max_velocity_command_)){
 	if (!std::isnan(max_velocity_command_)){
 		if (previous_mode_of_operation_ != "velocity"){
+			logger_->info("[{}] Max velocity command: [{}]", motor_name_, max_velocity_command_);
 			motorSetmode(Motor_mode_Velocity);
 			set_profile_velocity(default_max_velocity_);
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -443,9 +445,10 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 			set_vel_speed(motor_id_, axis_, 0.0);
 			logger_->info("[{}] Motor mode [velocity]. Setting zero velocity done!",motor_name_);
 			previous_mode_of_operation_ = "velocity";
-
+			auto vel = (((max_velocity_command_ / travel_per_revolution_) * motor_ppr_) * (axis_));
+			set_vel_speed(motor_id_, axis_, vel);
 		}
-		if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
+		else if((max_velocity_command_ > (previous_max_velocity_command_ + velocity_epsilon)) 
     	    || (max_velocity_command_ < (previous_max_velocity_command_ - velocity_epsilon)) ){
 			
     	    if(abs(max_velocity_command_) < (10e-3)){
@@ -501,7 +504,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 	previous_control_state_command_ = control_state_command_;
 
     position_command_ = std::nan("");
-    // max_velocity_command_ = std::nan("");
+    max_velocity_command_ = std::nan("");
     acceleration_command_ = std::nan("");
 	control_state_command_ = std::nan("");
 
@@ -890,7 +893,7 @@ int AmcMotorActuator::disableMotor(void) {
 	// err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational);
 
 	encoder_sensor_->stop_read_thread();
-
+	set_vel_speed(motor_id_, axis_, 0.0);
 	std::this_thread::sleep_for(std::chrono::microseconds(50000));
 	err |= motorControlword(motor_id_, Disable_Voltage);
 	

@@ -172,7 +172,7 @@ private:
     double velocity_kd_value_ = 0.0;
     
     double position_command_ = 0.0;
-    double max_velocity_command_ = 0.0;
+    double max_velocity_command_ = std::numeric_limits<double>::quiet_NaN();
     double acceleration_command_ = std::numeric_limits<double>::quiet_NaN();
     double control_state_command_ = 0.0;
     double position_kp_command_ = std::numeric_limits<double>::quiet_NaN();

@@ -24,13 +24,20 @@ controller_manager:
 velocity_controller:
   ros__parameters:
     joints:
-      - conveyor_lift_left
+      # - conveyor_lift_left
+      - motor1
+      # - motor2
+      # - motor3
+      # - motor4
 
 position_controller:
   ros__parameters:
     joints:
-      - conveyor_lift_left            
-
+      # - conveyor_lift_left            
+      - motor1
+      # - motor2
+      # - motor3
+      # - motor4
 gpio_controller:
   ros__parameters:  
     outputs:

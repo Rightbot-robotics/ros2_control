@@ -457,15 +457,24 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   std::vector<std::string> low_freq_components_{
-    "conveyor_lift_left",
+    // "conveyor_lift_left",
     // "conveyor_lift_right"
+    "motor1",
+    // "motor2",
+    // "motor3",
+    // "motor4"
   };
   std::vector<std::string> node_guarding_components_{
-    "conveyor_lift_left",
+    // "conveyor_lift_left",
     // "conveyor_lift_right"
+    "motor1",
+    // "motor2",
+    // "motor3",
+    // "motor4"
   };
   std::vector<std::string> sync_request_components_{
-    "conveyor_lift_left"
+    // "conveyor_lift_left"
+    "motor1"
   };
   
   struct LowFrequencyLoop {
