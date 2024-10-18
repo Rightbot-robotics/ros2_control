@@ -149,7 +149,7 @@ uint16_t AmcEncoderSensor::read_drive_status_1() {
 	
 	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
     if(err != 0) {
-        logger_->info("[{}] drive status 1 was not read...", motor_name_);
+        logger_->error("[{}] drive status 1 was not read...", motor_name_);
 		return 1;
 	}
 	
@@ -168,7 +168,7 @@ uint16_t AmcEncoderSensor::read_drive_status_2() {
 	
 	err = SDO_read(motor_sockets_->motor_cfg_fd, &req, &resp);
     if(err != 0) {
-        logger_->info("[{}] drive status 2 was not read...", motor_name_);
+        logger_->error("[{}] drive status 2 was not read...", motor_name_);
 		return 1;
 	}
 	

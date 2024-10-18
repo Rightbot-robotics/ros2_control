@@ -445,6 +445,7 @@ hardware_interface::return_type AmcMotorActuator::write(const rclcpp::Time & tim
 			if (default_max_velocity_ >= abs(max_velocity_command_)){	
     	        logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, max_velocity_command_);
 				auto velocity = (((max_velocity_command_ / travel_per_revolution_) * motor_ppr_) * (axis_));
+				logger_->debug("[{}] Velocity command in radian per sec: [{}]", motor_name_, velocity);
 				set_vel_speed(motor_id_, axis_, velocity);
 				}
 		}

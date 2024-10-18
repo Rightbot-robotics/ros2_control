@@ -464,6 +464,10 @@ private:
     "rear_left_drive",
     "rear_right_steer",
     "rear_right_drive",
+    "conveyor_left",
+    "conveyor_right",
+    "conveyor_front",
+    "conveyor_rear",
     // "conveyor_lift_right"
   };
   std::vector<std::string> node_guarding_components_{
@@ -472,11 +476,16 @@ private:
     "front_right_drive"
     "rear_left_drive",
     "rear_right_drive",
+    "conveyor_left",
+    "conveyor_right",
+    "conveyor_front",
+    "conveyor_rear",
     // "conveyor_lift_right"
   };
   std::vector<std::string> sync_request_components_{
     "front_left_steer",
     "front_left_drive",
+    "conveyor_left"
   };
   
   struct LowFrequencyLoop {
