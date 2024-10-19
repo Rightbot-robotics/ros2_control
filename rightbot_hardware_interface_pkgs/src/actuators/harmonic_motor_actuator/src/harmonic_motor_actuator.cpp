@@ -242,7 +242,7 @@ hardware_interface::return_type HarmonicMotorActuator::read(const rclcpp::Time &
     node_guard_error_state_ = sensor_data["guard_err"].asInt();
 	functional_mode_state_ = static_cast<double>(curr_state_);
 	fault_state_ = static_cast<double>((sensor_data["status"].asInt() & (1<<3)) != 0);
-	connection_break_state_ = static_cast<double>((sensor_data["data_age_ms"].asInt() > 200));
+    connection_break_state_ = (sensor_data["data_age_ms"].asInt() > 200)? 1.0 : 0.0;
 
 	// std::cout << "status_state_: " << status_state_ <<std::endl;
 	// std::cout << "actual_motor_current_state_: " << actual_motor_current_state_ <<std::endl;

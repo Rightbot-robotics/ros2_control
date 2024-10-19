@@ -293,8 +293,7 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
     
     status_state_ = sensor_data["status"].asInt();
     fault_state_ = static_cast<double>((sensor_data["status"].asInt() & (1<<3)) != 0);
-    connection_break_state_ = static_cast<double>((sensor_data["data_age_ms"].asInt() > 200));
-    connection_break_state_ = 0.0;
+    connection_break_state_ = (sensor_data["data_age_ms"].asInt() > 200)? 1.0 : 0.0;
     error_code_state_ = sensor_data["err_code"].asInt();
 	actual_motor_current_state_ = sensor_data["actual_motor_current"].asDouble();
 	
@@ -329,6 +328,7 @@ hardware_interface::return_type AmcMotorActuator::read(const rclcpp::Time & time
 		logger_->debug("[{}] Read status: [{}], actual_motor_current: [{}], error_code: [{}]", motor_name_, status_state_, actual_motor_current_state_, error_code_state_);
 	    logger_->debug("[{}] Read position: [{}], velocity: [{}]", motor_name_, position_state_, velocity_state_);
     	logger_->debug("[{}] Read node_guard_error_state_: [{}]", motor_name_, node_guard_error_state_);
+		logger_->debug("[{}] data_age_ms: [{}], connection break state [{}]", motor_name_, sensor_data["data_age_ms"].asInt(), connection_break_state_);
 
 	}
 	else {

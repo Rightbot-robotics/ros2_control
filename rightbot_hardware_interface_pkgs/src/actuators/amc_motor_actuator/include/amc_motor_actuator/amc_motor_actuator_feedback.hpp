@@ -150,6 +150,7 @@ public:
     bool read_velocity_pid_values = false;
     
     int read_pid = 0;
+    std::chrono::steady_clock::time_point last_data_push_time_;
 };
 
 #endif // AMC_MOTOR_ACTUATOR_FEEDBACK_H_

@@ -23,6 +23,7 @@ void AmcEncoderSensor::initialize(AmcMotorActuatorSockets::AmcMotorActuatorSocke
     
     motor_id_ = motor_sockets_->motor_id_;
     motor_name_ = motor_sockets_->motor_name_;
+    last_data_push_time_ = std::chrono::steady_clock::now();
 
     read_err_ = 0;
     reading_loop_started = false;
@@ -443,6 +444,7 @@ int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
         // position register
         encoder_data->pos_m = actual_position_fb_[0];
         encoder_data->read_status_encoder = true;
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
     }
     else{
         encoder_data->read_status_encoder = false;
@@ -454,6 +456,7 @@ int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
         double vel = vel_fb_[0];
         vel = vel/(pow(2, 17)/(ki * ks));
         encoder_data->vel_m = vel;
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
     }
     else{
         logger_->debug("[{}] vel read error", motor_name_);
@@ -463,6 +466,7 @@ int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
         // motor current register
         int16_t actual_motor_current = actual_motor_current_fb_[0] / (pow(2, 13)/kp);
         encoder_data->actual_motor_current_m = actual_motor_current;
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
         
     }else {
         logger_->debug("[{}] motor current read error", motor_name_);
@@ -478,6 +482,7 @@ int AmcEncoderSensor::readData(AmcEncoderData *encoder_data) {
         encoder_data->voltage_m = voltage;
         // io stat register
         encoder_data->io_stat_m = io_stat_fb_[0];
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
     }else {
         logger_->debug("[{}] drive stat, system stat, voltage, io read error", motor_name_);
     }
@@ -496,9 +501,11 @@ void AmcEncoderSensor::readMotorData() {
 
     AmcEncoderData prev_encoder_data;
     int err, prev_err;
+    bool read_latest;
     while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
+        read_latest = false;
 
         {
             
@@ -512,17 +519,21 @@ void AmcEncoderSensor::readMotorData() {
                     prev_encoder_data = encoder_data_;
                     prev_err = err;
                     err = readData( &encoder_data_);
+                    if(!read_latest && encoder_data_.read_status_encoder) {
+                        read_latest = true;
+                    }
                 }
                 
-                if (prev_err == 0) {
+                if (read_latest) {
 
                     read_mutex_.lock();
                     prev_encoder_data.time_stamp = std::chrono::steady_clock::now();
+                    last_data_push_time_ = std::chrono::steady_clock::now();
                     q_encoder_data_.push_back(prev_encoder_data);
                     read_mutex_.unlock();
                 }
                 else {
-                    logger_->warn("incomplete data received, not pushing to sensor data q");
+                    logger_->debug("[{}] incomplete data received, not pushing to sensor data q", motor_name_);
                 }
             }
             
@@ -644,8 +655,10 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
 
 
     } else {
+        sensor_data["data_age_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_data_push_time_).count();
         sensor_data["read_status"] = false;
         logger_->debug("[{}] Sensor Data Queue Empty. ", motor_sockets_->motor_name_);
+        logger_->debug("[{}] Queue data_age_ms [{}]", motor_sockets_->motor_name_, sensor_data["data_age_ms"].asInt());
     }
 
 

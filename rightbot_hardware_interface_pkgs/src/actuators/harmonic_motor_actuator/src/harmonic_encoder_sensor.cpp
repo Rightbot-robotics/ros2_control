@@ -31,6 +31,7 @@ void HarmonicEncoderSensor::initialize(HarmonicMotorActuatorSockets::HarmonicMot
     
     motor_id_ = motor_sockets_->motor_id_;
     motor_name_ = motor_sockets_->motor_name_;
+    last_data_push_time_ = std::chrono::steady_clock::now();
 
     read_err_ = 0;
     reading_loop_started = false;
@@ -212,6 +213,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
         encoder_data->err_code_m = err_code_fb_[0];
         encoder_data->actual_motor_current_m = actual_motor_current_fb_[0];
         encoder_data->read_status_err_code = true;
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
 
     }
     else{
@@ -223,6 +225,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
         // logger_->debug("TEST [{}] Encoder_position: [{}]",motor_name_, encoder_fb_[0]);
         encoder_data->read_status_encoder = true;
         // logger_->debug("[{}] - enc read success",motor_name_);
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
     }
     else{
         encoder_data->read_status_encoder = false;
@@ -233,6 +236,7 @@ int HarmonicEncoderSensor::readData(HarmonicEncoderData *encoder_data) {
         // logger_->debug("TEST [{}] Encoder_Velocity: [{}]", motor_name_, vel_fb_[0]);
         encoder_data->read_status_velocity = true;
         // logger_->debug("[{}] - vel read success",motor_name_);
+        encoder_data->time_stamp = std::chrono::steady_clock::now();
     }else {
         encoder_data->read_status_velocity = false;
         // logger_->debug("[{}] - vel read false",motor_name_);
@@ -298,23 +302,16 @@ void HarmonicEncoderSensor::readToClearBuffer(){
 void HarmonicEncoderSensor::readMotorData() {
 
     int prev_err,err = 0;
+    bool read_latest;
     HarmonicEncoderData prev_encoder_data;
     while (!stop_read_thread_flag) {
 
         auto start_time = std::chrono::system_clock::now();
+        read_latest = false;
 
         {
             
             if(reading_loop_started) {
-
-                // if((motor_name_ == "base_rotation_joint") && (sending_motor_request_internally)){
-                //     motor_request();
-                    
-                // }
-                // if((motor_name_ == "elbow_rotation_joint") && (sending_motor_request_internally)){
-                //     motor_request();
-                    
-                // }
                 std::this_thread::sleep_for(std::chrono::microseconds(2000));
 
                 encoder_data_.read_status_encoder = true;
@@ -322,17 +319,21 @@ void HarmonicEncoderSensor::readMotorData() {
                     prev_encoder_data = encoder_data_;
                     prev_err = err;
                     err = readData( &encoder_data_);
+                    if(!read_latest && encoder_data_.read_status_encoder) {
+                        read_latest = true;
+                    }
                 }
 
-                if (prev_err == 0) {
+                if (read_latest) {
 
                     read_mutex_.lock();
                     prev_encoder_data.time_stamp = std::chrono::steady_clock::now();
+                    last_data_push_time_ = std::chrono::steady_clock::now();
                     q_encoder_data_.push_back(prev_encoder_data);
                     read_mutex_.unlock();
                 }
                 else {
-                    logger_->warn("incomplete data received, not pushing to sensor data q");
+                    logger_->debug("incomplete data received, not pushing to sensor data q");
                 }
             }
             
@@ -387,8 +388,10 @@ void HarmonicEncoderSensor::getData(Json::Value &sensor_data) {
         logger_->debug("[{}] Guard Err: {}", motor_sockets_->motor_name_, encoder_data_q_element.guard_err_m);
 
     } else {
+        sensor_data["data_age_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_data_push_time_).count();
         sensor_data["read_status"] = false;
         logger_->debug("[{}] Sensor Data Queue Empty. ", motor_sockets_->motor_name_);
+        logger_->debug("[{}] Queue data_age_ms [{}]", motor_sockets_->motor_name_, sensor_data["data_age_ms"].asInt());
     }
 
 

@@ -108,6 +108,7 @@ public:
     int guard_err_fb_ = -1;
 
     float motor_rated_current_;
+    std::chrono::steady_clock::time_point last_data_push_time_;
 
 };
 
