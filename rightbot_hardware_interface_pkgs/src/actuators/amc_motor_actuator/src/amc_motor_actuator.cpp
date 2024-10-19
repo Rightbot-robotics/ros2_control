@@ -656,8 +656,8 @@ int AmcMotorActuator::initMotor(){
 	// err |= motorControlword(motor_id_, Disable_Voltage);
 
 	// err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Stop_Node); 
+	err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Node); 
 	err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Comunication); 
-	// err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Reset_Node); 
 
     err |= NMT_change_state(amc_motor_actuator_sockets_->motor_cfg_fd, motor_id_, NMT_Enter_PreOperational); 
 	if (err != 0) {
@@ -707,7 +707,7 @@ int AmcMotorActuator::motorConfigNode(int motor_id){
 	num_PDOs = 4;
     Epos_pdo_mapping status_and_vol[] = {
             {0x2002, 0x02, 16},   // drive protection status
-            {0x2002, 0x03, 16},   // system protection status
+            {0x2002, 0x05, 16},   // drive system status 2
 		    {0x200F, 0x01, 16},   // drive voltage
             {0x2023, 0x01, 16}    // i/o status
 	};

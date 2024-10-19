@@ -631,26 +631,26 @@ void AmcEncoderSensor::getData(Json::Value &sensor_data) {
         }
         
 
-		auto is_fault = (( sensor_data["status"].asInt() & (1 << 3)) >> 3);
+		// auto is_fault = (( sensor_data["status"].asInt() & (1 << 3)) >> 3);
 
-        if(is_fault == 1) {
-            logger_->debug("[{}] Fault detected. ", motor_sockets_->motor_name_);
-            // status_1 = read_drive_status_1();
-            // status_2 = read_drive_status_2();
-            // sensor_data["amc_drive_stat_1"] = status_1;
-            // sensor_data["amc_drive_stat_2"] = status_2;
-            // logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
-            status_1 = read_drive_status_1();
-            status_2 = read_drive_status_2();
-        }
-        else {
-            status_1 = 0;
-            status_2 = 0;
-        }
+        // if(is_fault == 1) {
+        //     logger_->debug("[{}] Fault detected. ", motor_sockets_->motor_name_);
+        //     // status_1 = read_drive_status_1();
+        //     // status_2 = read_drive_status_2();
+        //     // sensor_data["amc_drive_stat_1"] = status_1;
+        //     // sensor_data["amc_drive_stat_2"] = status_2;
+        //     // logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+        //     status_1 = read_drive_status_1();
+        //     status_2 = read_drive_status_2();
+        // }
+        // else {
+        //     status_1 = 0;
+        //     status_2 = 0;
+        // }
 
-        logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
-        sensor_data["amc_drive_stat_1"] = status_1;
-        sensor_data["amc_drive_stat_2"] = status_2;
+        // logger_->debug("[{}] status 1 [{}], status 2 [{}]", motor_sockets_->motor_name_, status_1, status_2);
+        // sensor_data["amc_drive_stat_1"] = status_1;
+        // sensor_data["amc_drive_stat_2"] = status_2;
 
 
 
