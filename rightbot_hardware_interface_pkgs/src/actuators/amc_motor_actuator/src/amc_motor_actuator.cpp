@@ -536,6 +536,7 @@ void AmcMotorActuator::data_request(){
 }
 
 void AmcMotorActuator::node_guarding_request(){
+	logger_->debug("[{}] [node_guarding] - sending node guarding request", motor_name_);
     sendNodeGuardingRequest();
 }
 

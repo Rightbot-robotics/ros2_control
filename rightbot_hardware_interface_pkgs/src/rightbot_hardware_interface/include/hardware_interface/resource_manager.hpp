@@ -473,7 +473,7 @@ private:
   std::vector<std::string> node_guarding_components_{
     "front_left_steer",
     "front_left_drive",
-    "front_right_drive"
+    "front_right_drive",
     "rear_left_drive",
     "rear_right_drive",
     "conveyor_left",

@@ -1917,12 +1917,13 @@ std::string ResourceManager::get_ur_arm_robot_state_message(int error) {
 
 void ResourceManager::node_guarding_requests(){
 
-  logger_->debug("[request] sending node guarding requests to all components");
+  logger_->debug("[node_guarding] sending node guarding requests to all components");
   for (auto & component : resource_storage_->actuators_)
   {
     auto component_name = component.get_name();
-
+    logger_->debug("[node_guarding] checking component [{}] for node guarding", component_name);
     if(is_node_guarding_component(component_name)) {
+      logger_->debug("[node_guarding] component [{}] is node guarding", component_name);
       component.node_guarding_request();
       
     }
