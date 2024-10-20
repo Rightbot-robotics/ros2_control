@@ -2005,24 +2005,24 @@ void ResourceManager::get_error_data(ComponentErrorData *error_data_, bool *syst
         error_type = get_harmonic_driver_error(error_register);
       }
 
-      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_1){
+      // if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_1){
+      //   amc_error_code = static_cast<int>(state_interface.get_value());
+      //   error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_system_status_1_error(amc_error_code);
+      // }
+
+      // if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS){
+      //   amc_error_code = static_cast<int>(state_interface.get_value());
+      //   error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_system_protection_status_error(amc_error_code);
+      // }
+
+      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS){
         amc_error_code = static_cast<int>(state_interface.get_value());
-        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_system_status_1_error(amc_error_code);
+        error_type = "[" + error_type + std::to_string(amc_error_code) + "]:" + get_amc_drive_protection_status_error(amc_error_code);
       }
 
       if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_SYSTEM_STATUS_2){
         amc_error_code = static_cast<int>(state_interface.get_value());
-        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_system_status_2_error(amc_error_code);
-      }
-
-      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_DRIVE_PROTECTION_STATUS){
-        amc_error_code = static_cast<int>(state_interface.get_value());
-        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_drive_protection_status_error(amc_error_code);
-      }
-
-      if(state_interface.get_interface_name() == hardware_interface::HW_IF_AMC_SYSTEM_PROTECTION_STATUS){
-        amc_error_code = static_cast<int>(state_interface.get_value());
-        error_type = error_type + std::to_string(amc_error_code) + ":" + get_amc_system_protection_status_error(amc_error_code);
+        error_type = "[" + error_type + std::to_string(amc_error_code) + "]:" + get_amc_drive_system_status_2_error(amc_error_code);
       }
 
     }
